@@ -270,6 +270,8 @@ class Playback:
                 raise ValueError("Select an existing CSV from the lab catalog")
 
     def enqueue(self, job_id, names, interval_ms):
+        if self.worker_error or not self.thread or not self.thread.is_alive():
+            raise LabConflict("Playback worker is unavailable; restart the lab before submitting")
         self._validate_files(names)
         with connect(self.url) as conn:
             conn.execute("SELECT pg_advisory_xact_lock(%s)", (CONTROL_LOCK,))
@@ -383,6 +385,9 @@ class Playback:
                 FROM ops.issues i JOIN raw.records r ON r.id=i.record_id
                 JOIN raw.deliveries d ON d.id=r.delivery_id
                 ORDER BY i.id DESC LIMIT 12""").fetchall()
+            file_problems = conn.execute("""SELECT filename,reason,last_seen_at
+                FROM ops.file_errors WHERE resolved_at IS NULL
+                ORDER BY last_seen_at DESC LIMIT 12""").fetchall()
         catalog = []
         for path in sorted((self.root / "drops").glob("*.csv")):
             if path.resolve().parent != (self.root / "drops").resolve():
@@ -424,6 +429,7 @@ class Playback:
             "jobs": jobs,
             "months": months,
             "issues": problems,
+            "file_errors": file_problems,
             "worker_error": self.worker_error,
             "worker_alive": bool(self.thread and self.thread.is_alive()),
         }

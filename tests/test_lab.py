@@ -142,6 +142,7 @@ def test_mutation_failure_is_visible_and_retry_recovers(lab_root):
         failed = finished(client)
         assert failed["job"]["status"] == "failed"
         assert failed["counts"]["file_errors"] == 1
+        assert failed["file_errors"][0]["filename"] == OCT
         assert failed["business_hash"] == original["business_hash"]
         assert failed["catalog"][0]["status"] == "changed"
         path.write_bytes(content)
@@ -176,6 +177,9 @@ def test_lab_request_boundaries_and_single_worker(database, lab_root):
         with pytest.raises(ValueError, match="already running"):
             second.start()
         assert client.get("/api/lab/health").status_code == 200
+        client.app.state.playback.stop()
+        assert request(client, [OCT]).status_code == 409
+        assert client.get("/api/lab/health").status_code == 503
         assert client.get(f"/api/lab/jobs/{uuid4()}").status_code == 404
         assert (
             client.get("/api/lab/state", headers={"Host": "untrusted.example"}).status_code == 400
