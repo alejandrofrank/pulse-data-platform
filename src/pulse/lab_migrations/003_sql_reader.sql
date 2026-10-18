@@ -1,0 +1,2 @@
+GRANT USAGE ON SCHEMA lab TO pulse_reader;
+GRANT SELECT ON ALL TABLES IN SCHEMA lab TO pulse_reader;
