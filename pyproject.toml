@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=75"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pulse-data"
+version = "0.1.0"
+description = "Auditable monthly metrics for a network of advisory firms"
+requires-python = ">=3.12"
+dependencies = [
+  "fastapi==0.119.0", "uvicorn==0.37.0", "psycopg[binary]==3.2.12",
+  "dagster==1.11.16", "dagster-webserver==1.11.16", "dagster-postgres==0.27.16",
+]
+
+[project.optional-dependencies]
+dev = ["pytest==8.4.2", "httpx==0.28.1", "ruff==0.14.0"]
+
+[project.scripts]
+pulse = "pulse.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+pulse = ["static/*", "migrations/*.sql"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = ["integration: requires a disposable PostgreSQL database"]
+
