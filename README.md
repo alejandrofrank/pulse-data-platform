@@ -133,7 +133,7 @@ Pause and stop finish the current CSV before taking effect. Resume preserves the
 remaining queue; after a process restart, interrupted work becomes paused and can
 be retried. The request UUID makes an HTTP submission retry return the same job.
 Only one active playback is allowed, and the existing ingestion advisory lock still
-protects publication. Controls accept only catalog filenames, never client paths or SQL.
+protects publication. Playback controls accept only catalog filenames, never client paths or SQL.
 
 Each CSV calls the **same `ingest()` function** as the production Dagster asset, with
 an explicit file selection and lab database connection. The lab's durable playback
@@ -162,6 +162,52 @@ CI starts a disposable lab, loads all 36 drops one by one, replays all 36 in rev
 checks every skip and unchanged hash/counts, then clears that test lab. The smoke script
 requires an initially empty lab and an explicit `--disposable` flag. Do not run it against
 an experiment whose evidence you intend to retain.
+
+### Query the lab with PostgreSQL
+
+Open **http://localhost:8001/#sql-console** or click **SQL** in the lab header.
+Write a query and press **Ejecutar SQL** or **Ctrl/Command + Enter**. If text is
+selected, only that selection runs. The schema browser lists actual tables, columns,
+types and primary keys; click a name to insert it at the cursor. **Ver plan** runs
+EXPLAIN without ANALYZE. Examples insert editable SQL and never execute automatically.
+The browser retains the editor draft locally. Results are a snapshot taken when you
+run the query; run it again to see deliveries loaded since then.
+
+```sql
+SELECT f.asesoria_id, f.mes, f.clientes_activos,
+       f.facturacion_asesoria_eur, d.filename AS source_csv, r.line_number
+FROM mart.firm_month f
+JOIN raw.records r ON r.id = f.source_record_id
+JOIN raw.deliveries d ON d.id = r.delivery_id
+ORDER BY f.mes DESC, f.asesoria_id;
+```
+
+`core.firms` contains the master even before playback. `raw.deliveries` and
+`raw.records` show archived inputs and versions; `mart.firm_month` shows the current
+winning record per firm/month. `ops.issues` explains validation and `ops.runs` shows
+loaded/skipped files per execution. `lab.jobs` and `lab.steps` expose playback evidence.
+Repeated firm/month keys across raw deliveries can be legitimate corrections;
+the published fact has a unique `(asesoria_id, mes)` key.
+
+The editor sends SQL directly to PostgreSQL using `pulse_reader`, with a read-only
+transaction that is rolled back after each request. PostgreSQL's
+[DECLARE grammar](https://www.postgresql.org/docs/17/sql-declare.html) accepts SELECT,
+WITH, VALUES and TABLE queries; extended-protocol preparation rejects multiple statements.
+Use the plan button instead of writing EXPLAIN in the editor. No owner credentials,
+DDL/DML, transaction control or psql backslash commands are exposed through this endpoint.
+The main dashboard has no SQL endpoint.
+
+Queries have a five-second deadline, two simultaneous execution slots, a maximum of
+1,000 displayed rows and a 2 MB returned-value budget. Truncation is explicit; aggregate,
+filter or paginate in SQL to inspect larger results. Values use PostgreSQL's text
+representation, preserving decimal/bigint precision, JSON and duplicate column names;
+NULL stays distinct from an empty string. Query errors include PostgreSQL's SQLSTATE.
+
+For a terminal session in the same read-only database:
+
+```sh
+docker compose exec lab-db psql -U pulse_reader -d pulse_lab
+```
 
 ## Reporting API
 
