@@ -7,6 +7,7 @@ from test_ingestion import source
 from test_parsing import make_csv
 
 from pulse.db import connect
+from pulse.ingest import LOCK as INGEST_LOCK
 from pulse.ingest import ingest
 from pulse.lab import Playback, validate_target
 from pulse.lab_api import app
@@ -64,7 +65,7 @@ def test_selected_ingestion_never_falls_back_to_all_files(database, lab_root):
         assert conn.execute("SELECT count(*) AS n FROM raw.deliveries").fetchone()["n"] == 1
 
 
-def test_playback_corrections_replays_and_request_idempotency(lab_root):
+def test_playback_corrections_replays_and_request_idempotency(database, lab_root):
     with TestClient(app) as client:
         initial = client.get("/api/lab/state").json()
         assert initial["counts"]["raw_rows"] == 0
@@ -79,6 +80,19 @@ def test_playback_corrections_replays_and_request_idempotency(lab_root):
         assert all(c["passed"] for c in first["checks"])
         assert request(client, [OCT, NOV], request_id=job_id).status_code == 200
         assert request(client, [NOV], request_id=job_id).status_code == 409
+        path = lab_root / "drops" / NOV
+        content = path.read_bytes()
+        path.unlink()
+        try:
+            # A retry returns the accepted job even when its inputs are no longer available.
+            assert request(client, [OCT, NOV], request_id=job_id).json()["id"] == str(job_id)
+        finally:
+            path.write_bytes(content)
+        # A clock adjustment must not make the previous run look newer than its successor.
+        with connect(database) as conn:
+            conn.execute(
+                "UPDATE lab.jobs SET created_at=now()+interval '1 day' WHERE id=%s", (job_id,)
+            )
         assert request(client, [OCT, NOV]).status_code == 200
         replay = finished(client)
         assert replay["business_hash"] == first["business_hash"]
@@ -177,6 +191,14 @@ def test_lab_request_boundaries_and_single_worker(database, lab_root):
         with pytest.raises(ValueError, match="already running"):
             second.start()
         assert client.get("/api/lab/health").status_code == 200
+        with connect(database) as writer:
+            writer.execute("SELECT pg_advisory_lock(%s)", (INGEST_LOCK,))
+            assert (
+                client.post(
+                    "/api/lab/reset", headers=HEADERS, json={"confirmation": "RESET LAB"}
+                ).status_code
+                == 409
+            )
         client.app.state.playback.stop()
         assert request(client, [OCT]).status_code == 409
         assert client.get("/api/lab/health").status_code == 503

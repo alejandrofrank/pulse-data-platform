@@ -7,6 +7,7 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 from pulse.db import connect, migrate
+from pulse.ingest import LOCK as INGEST_LOCK
 from pulse.ingest import ingest, jsonb, load_master
 from pulse.parsing import V1, V2, FileContractError, delivery_key, read_csv
 
@@ -156,7 +157,7 @@ class Playback:
                 with conn.transaction():
                     conn.execute("SELECT pg_advisory_xact_lock(%s)", (CONTROL_LOCK,))
                     job = conn.execute("""SELECT * FROM lab.jobs WHERE status='queued'
-                        ORDER BY created_at LIMIT 1 FOR UPDATE""").fetchone()
+                        ORDER BY sequence LIMIT 1 FOR UPDATE""").fetchone()
                     if job:
                         conn.execute(
                             "UPDATE lab.jobs SET status='running',updated_at=now() WHERE id=%s",
@@ -270,9 +271,6 @@ class Playback:
                 raise ValueError("Select an existing CSV from the lab catalog")
 
     def enqueue(self, job_id, names, interval_ms):
-        if self.worker_error or not self.thread or not self.thread.is_alive():
-            raise LabConflict("Playback worker is unavailable; restart the lab before submitting")
-        self._validate_files(names)
         with connect(self.url) as conn:
             conn.execute("SELECT pg_advisory_xact_lock(%s)", (CONTROL_LOCK,))
             existing = conn.execute("SELECT * FROM lab.jobs WHERE id=%s", (job_id,)).fetchone()
@@ -280,6 +278,11 @@ class Playback:
                 if existing["filenames"] != names or existing["interval_ms"] != interval_ms:
                     raise LabConflict("Request ID already belongs to a different selection")
                 return existing
+            if self.worker_error or not self.thread or not self.thread.is_alive():
+                raise LabConflict(
+                    "Playback worker is unavailable; restart the lab before submitting"
+                )
+            self._validate_files(names)
             if conn.execute(
                 "SELECT 1 FROM lab.jobs WHERE status=ANY(%s)", (list(ACTIVE),)
             ).fetchone():
@@ -343,6 +346,10 @@ class Playback:
                 "SELECT 1 FROM lab.jobs WHERE status IN ('queued','running')"
             ).fetchone():
                 raise LabConflict("Pause playback and wait for the current file before resetting")
+            if not conn.execute(
+                "SELECT pg_try_advisory_xact_lock(%s) AS locked", (INGEST_LOCK,)
+            ).fetchone()["locked"]:
+                raise LabConflict("An ingestion is running; wait before resetting the lab")
             # Explicit table list, fixed lab connection, no database/schema drop or source deletion.
             conn.execute("""TRUNCATE lab.steps,lab.jobs,mart.firm_month,ops.issues,
                 ops.file_errors,raw.records,raw.deliveries,ops.runs RESTART IDENTITY""")
@@ -369,9 +376,7 @@ class Playback:
                 FROM raw.deliveries d LEFT JOIN raw.records r ON r.delivery_id=d.id
                 GROUP BY d.id""")
             }
-            jobs = conn.execute(
-                "SELECT * FROM lab.jobs ORDER BY created_at DESC LIMIT 20"
-            ).fetchall()
+            jobs = conn.execute("SELECT * FROM lab.jobs ORDER BY sequence DESC LIMIT 20").fetchall()
             job = next((j for j in jobs if j["status"] in ACTIVE), jobs[0] if jobs else None)
             if job:
                 job["steps"] = conn.execute(
