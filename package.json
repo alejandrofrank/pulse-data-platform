@@ -1,0 +1,13 @@
+{
+  "name": "pulse-dashboard-checks",
+  "private": true,
+  "description": "Development-only DOM integration tests; no Node runtime or frontend build required",
+  "scripts": {
+    "test": "node --test tests/dashboard.test.cjs",
+    "lint": "prettier --check src/pulse/static tests/dashboard.test.cjs package.json"
+  },
+  "devDependencies": {
+    "jsdom": "26.1.0",
+    "prettier": "3.6.2"
+  }
+}

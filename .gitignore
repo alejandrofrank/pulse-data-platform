@@ -10,5 +10,8 @@ htmlcov/
 dist/
 build/
 test-results/
+test-results*.json
+compose.log
+node_modules/
 .dagster/
 

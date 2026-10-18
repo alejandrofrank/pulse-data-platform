@@ -13,6 +13,7 @@ USER pulse
 CMD ["uvicorn", "pulse.api:app", "--host", "0.0.0.0", "--port", "8000"]
 
 FROM runtime AS test
+ENV RUFF_CACHE_DIR=/tmp/ruff-cache
 USER root
 COPY requirements-dev.txt .
 RUN pip install --no-cache-dir -r requirements-dev.txt
