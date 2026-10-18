@@ -216,4 +216,14 @@ delivery keys, keeping publication transactional and retries idempotent.
 
 ## Delivery
 
+Development uses descriptive `feat/<change>` branches and pull requests into `main`.
+The initial source-contract commit is the baseline. `feat/data-platform` adds the
+working pipeline, database, API and dashboard; `feat/verification-and-docs` adds
+end-to-end CI, dashboard checks and the defense guide. The latter initially builds
+on the former, so its CI verifies their combined result. Pull requests are merged
+with merge commits to preserve this progression; the demonstration branches are
+retained for review. New work should branch from the latest `main` and keep each
+coherent, verified change in a separate commit. CI runs for pull requests and `main`;
+this workflow does not imply that branch protection or human approval is configured.
+
 This history has been prepared for a public portfolio edition.
