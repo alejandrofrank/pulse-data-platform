@@ -1,0 +1,316 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#10151c" />
+    <title>Pulse · Laboratorio de ingesta</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+    <link rel="stylesheet" href="/static/lab.css" />
+    <script defer src="/static/lab.js"></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#lab-main">Ir al laboratorio</a>
+    <header>
+      <div class="brand">
+        <div>
+          <h1>Pulse / Lab</h1>
+          <p>Reproducción de entregas · Base aislada</p>
+        </div>
+      </div>
+      <nav aria-label="Herramientas">
+        <a href="/dashboard">Dashboard principal</a
+        ><a href="/docs">API del laboratorio</a
+        ><span id="connection-status" role="status">Conectando…</span>
+      </nav>
+    </header>
+    <main id="lab-main">
+      <div id="error" role="alert" hidden></div>
+      <div class="section-intro">
+        <div>
+          <h2>Reproduce el histórico, un CSV cada vez</h2>
+          <p class="note">
+            Mueve el cursor, elige entregas y observa qué cambia. Repetir una
+            entrega debe omitirla.
+          </p>
+        </div>
+        <button id="reset-open">Reiniciar laboratorio</button>
+      </div>
+      <section class="panel timeline-panel" aria-labelledby="timeline-title">
+        <div class="panel-title">
+          <div class="panel-heading">
+            <span class="section-index">01</span>
+            <h2 id="timeline-title">Línea de entregas</h2>
+          </div>
+          <div class="legend">
+            <span><i></i>Cargado</span
+            ><span><i class="pending-dot"></i>Pendiente</span
+            ><span><i class="partial"></i>Modificado</span>
+          </div>
+        </div>
+        <div class="timeline-body">
+          <div class="playhead-info">
+            <output id="cursor-label" for="playhead">Inicio</output
+            ><span id="cursor-detail" class="panel-meta"
+              >Elige una entrega</span
+            >
+          </div>
+          <label class="sr-only" for="playhead">Cursor de entregas CSV</label>
+          <input
+            id="playhead"
+            type="range"
+            min="0"
+            max="0"
+            value="0"
+            step="1"
+          />
+          <div
+            class="timeline-scroll"
+            tabindex="0"
+            aria-label="Entregas ordenadas por fecha"
+          >
+            <div id="timeline-track"></div>
+          </div>
+          <div class="selection-actions">
+            <button id="select-until">Seleccionar hasta el cursor</button
+            ><button id="select-all">Todos</button
+            ><button id="select-none">Ninguno</button
+            ><span id="selection-count" class="panel-meta"
+              >0 seleccionados</span
+            >
+          </div>
+        </div>
+        <div class="transport">
+          <button id="play" class="primary-button" disabled>
+            ▶ Reproducir selección</button
+          ><button id="step" disabled>Cargar CSV del cursor</button
+          ><button id="pause" disabled>Pausar</button
+          ><button id="cancel" disabled>Detener</button
+          ><label
+            >Intervalo
+            <select id="interval">
+              <option value="0">Sin espera</option>
+              <option value="500">0,5 s</option>
+              <option value="1000" selected>1 s</option>
+              <option value="3000">3 s</option>
+            </select></label
+          >
+        </div>
+        <div class="playback-status">
+          <div>
+            <strong id="job-status">Listo para empezar</strong
+            ><span id="job-progress" class="panel-meta"
+              >Sin reproducciones</span
+            >
+          </div>
+          <progress
+            id="progress"
+            value="0"
+            max="1"
+            aria-label="Entregas completadas"
+          ></progress>
+          <p id="job-message" class="note">
+            El cursor selecciona; no borra ni revierte datos. Pausar termina el
+            CSV en curso.
+          </p>
+        </div>
+      </section>
+      <section class="cards lab-cards" aria-label="Estado del laboratorio">
+        <article>
+          <h2>Entregas cargadas</h2>
+          <strong id="loaded-count">0</strong>
+          <p id="catalog-count">Catálogo disponible</p>
+        </article>
+        <article>
+          <h2>Filas originales</h2>
+          <strong id="raw-count">0</strong>
+          <p id="raw-detail">Sin cargas</p>
+        </article>
+        <article>
+          <h2>Registros publicados</h2>
+          <strong id="published-count">0</strong>
+          <p>Una fila por asesoría y mes</p>
+        </article>
+        <article id="lab-quality-card">
+          <h2>Filas rechazadas</h2>
+          <strong id="reject-count">0</strong>
+          <p id="quality-detail">Sin incidencias</p>
+        </article>
+      </section>
+      <section class="panel integrity-panel" aria-labelledby="integrity-title">
+        <div class="panel-title">
+          <div class="panel-heading">
+            <span class="section-index">02</span>
+            <h2 id="integrity-title">Integridad de la publicación</h2>
+          </div>
+          <span class="panel-meta">Verificación después de cada CSV</span>
+        </div>
+        <div id="checks" aria-live="polite"></div>
+        <details class="hash-details">
+          <summary>
+            Huella del resultado: <code id="hash-short">—</code>
+          </summary>
+          <code id="business-hash">—</code>
+          <p class="note">
+            SHA-256 de los valores publicados, ordenados por asesoría y mes.
+            Excluye IDs técnicos de ejecución y origen. Al repetir sin cambios,
+            esta huella y el archivo raw deben permanecer iguales.
+          </p>
+        </details>
+      </section>
+      <div class="lab-columns">
+        <section class="panel catalog-panel">
+          <div class="panel-title">
+            <div class="panel-heading">
+              <span class="section-index">03</span>
+              <h2>Catálogo y orden de reproducción</h2>
+            </div>
+            <button id="reverse">Invertir selección</button>
+          </div>
+          <p class="panel-note note">
+            Marca los CSV. En la cola, usa ↑ ↓ para cambiar el orden y probar
+            llegadas tardías.
+          </p>
+          <div class="catalog-scroll" id="catalog"></div>
+          <div class="queue-heading">
+            <h2>Cola seleccionada</h2>
+            <span class="note">Se aplica a la próxima reproducción</span>
+          </div>
+          <ol id="queue"></ol>
+        </section>
+        <section class="panel">
+          <div class="panel-title">
+            <div class="panel-heading">
+              <span class="section-index">04</span>
+              <h2>Evidencia por entrega</h2>
+            </div>
+            <span id="run-label" class="panel-meta">Sin ejecución</span>
+          </div>
+          <div
+            class="table-wrap evidence-scroll"
+            tabindex="0"
+            role="region"
+            aria-label="Resultados por CSV"
+          >
+            <table id="steps">
+              <thead>
+                <tr>
+                  <th>Entrega</th>
+                  <th>Resultado</th>
+                  <th>Nuevas</th>
+                  <th>Cambiadas</th>
+                  <th>Replay</th>
+                  <th>Evidencia</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <p class="panel-note note">
+            Nuevas y cambiadas se refieren a valores de asesoría/mes. «Omitido»
+            conserva la entrega original y añade únicamente el registro de
+            ejecución.
+          </p>
+        </section>
+      </div>
+      <div class="lab-columns results-columns">
+        <section class="panel">
+          <div class="panel-title">
+            <h2>Resultado mensual en vivo</h2>
+            <a
+              href="/api/v1/network/metrics?limit=500"
+              target="_blank"
+              rel="noopener"
+              >JSON</a
+            >
+          </div>
+          <div
+            class="table-wrap lab-result-scroll"
+            tabindex="0"
+            role="region"
+            aria-label="Totales mensuales"
+          >
+            <table id="lab-months">
+              <thead>
+                <tr>
+                  <th>Mes</th>
+                  <th class="numeric">Facturación</th>
+                  <th class="numeric">Asesorías</th>
+                  <th class="numeric">Ausentes</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </section>
+        <section class="panel">
+          <div class="panel-title">
+            <h2>Últimas incidencias</h2>
+            <a href="/api/v1/quality/issues" target="_blank" rel="noopener"
+              >Todas</a
+            >
+          </div>
+          <div id="issues" class="issues-list"></div>
+        </section>
+      </div>
+      <section class="panel">
+        <div class="panel-title">
+          <h2>Historial de reproducciones</h2>
+          <span class="panel-meta"
+            >Últimas 20 · conservadas entre reinicios</span
+          >
+        </div>
+        <div
+          class="table-wrap lab-result-scroll"
+          tabindex="0"
+          role="region"
+          aria-label="Historial de reproducciones"
+        >
+          <table id="history">
+            <thead>
+              <tr>
+                <th>Inicio</th>
+                <th>Estado</th>
+                <th>Completadas</th>
+                <th>Orden</th>
+                <th>Detalle</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+      <footer>
+        <span>Pulse / Playback Lab</span
+        ><span
+          >Los CSV de origen y el dashboard principal se conservan. El
+          laboratorio usa su propia base de datos.</span
+        >
+      </footer>
+    </main>
+    <dialog id="evidence-dialog" aria-labelledby="evidence-title">
+      <div class="panel-title">
+        <h2 id="evidence-title">Evidencia de la entrega</h2>
+        <button id="close-evidence">Cerrar</button>
+      </div>
+      <pre id="evidence-content"></pre>
+    </dialog>
+    <dialog id="reset-dialog" aria-labelledby="reset-title">
+      <div class="panel-title">
+        <h2 id="reset-title">Vaciar el laboratorio</h2>
+      </div>
+      <div class="reset-body">
+        <p>
+          Se eliminarán las cargas, resultados y reproducciones de esta base de
+          pruebas. Los CSV originales y el dashboard principal se conservan.
+        </p>
+        <div class="selection-actions">
+          <button id="reset-cancel">Volver</button
+          ><button id="reset-confirm" class="danger-button">
+            Vaciar laboratorio
+          </button>
+        </div>
+      </div>
+    </dialog>
+  </body>
+</html>

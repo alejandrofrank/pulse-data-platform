@@ -143,6 +143,19 @@ live API. They check behavior and safe DOM rendering; they are not visual browse
 
 ## Demo sequence
 
+The optional playback lab at port 8001 makes the ingestion boundary visible. Scrubbing
+selects source deliveries; it does not time-travel the published database. A separate
+database starts empty, and a durable worker calls the same ingestion function once per
+selected CSV. This demonstrates incremental raw archival, corrections, replay idempotency
+and recovery without modifying the already-loaded dashboard. The worker controls playback
+timing; Dagster remains responsible for the normal pipeline's schedule.
+
+For a short lab demonstration, select April and May 2023, play them and inspect the
+May evidence for changes to earlier firm-months. Replay both: raw counts and the
+business hash stay identical. Reset the lab, load May before April, and use the lineage
+API for firm 218 in April to show that delivery precedence beats arrival order. Pause
+after a file, refresh the browser and continue to demonstrate persisted progress.
+
 1. Start with `docker compose up`; open the dashboard and explain coverage.
 2. Inspect a row error, a backlog warning and a duplicate.
 3. Select firm 218 and inspect April 2023 lineage to show a later correction.

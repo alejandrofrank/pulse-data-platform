@@ -43,9 +43,14 @@ jobs:
           npm ci
           npm run lint
           npm test
+      - name: Verify isolated CSV playback and reverse replay
+        run: |
+          docker compose --profile lab up -d --build --wait lab
+          python scripts/lab_smoke.py --disposable
+          python scripts/smoke.py --compare /tmp/pulse-before.json
       - name: Collect service logs
         if: always()
-        run: docker compose logs --no-color > compose.log
+        run: docker compose --profile lab logs --no-color > compose.log
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -53,5 +58,5 @@ jobs:
           path: compose.log
       - name: Stop disposable CI services
         if: always()
-        run: docker compose down -v
+        run: docker compose --profile lab down -v
 
