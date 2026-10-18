@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pulse · Red de asesorías</title>
+  <link rel="stylesheet" href="/static/styles.css">
+  <script defer src="/static/app.js"></script>
+</head>
+<body>
+<header><div><h1>Pulse <span>Red de asesorías</span></h1><p>Métricas mensuales y calidad de las entregas</p></div>
+  <nav aria-label="Herramientas"><a href="/docs">API</a><button id="refresh">Actualizar</button></nav></header>
+<main>
+  <div id="error" role="alert" hidden></div>
+  <form id="filters" class="controls">
+    <label>Desde <input id="start" type="month"></label>
+    <label>Hasta <input id="end" type="month"></label>
+    <label>Vista <select id="firm"><option value="">Toda la red</option></select></label>
+    <button type="submit">Aplicar</button><span id="loading" role="status">Cargando datos…</span>
+  </form>
+  <section class="cards" aria-label="Último mes del periodo">
+    <article><h2>Facturación · <span class="latest-month">—</span></h2><strong id="revenue">—</strong><p>Importe observado; incluye otros ingresos</p></article>
+    <article><h2>Clientes activos · <span class="latest-month">—</span></h2><strong id="clients">—</strong><p>Suma de carteras; no clientes únicos de la red</p></article>
+    <article><h2>Cobertura · <span class="latest-month">—</span></h2><strong id="coverage">—</strong><p id="coverage-detail">Asesorías con datos / esperadas</p></article>
+    <article><h2>Filas rechazadas · todas las cargas</h2><strong id="rejected">—</strong><p id="quality-detail">—</p></article>
+  </section>
+  <section class="panel"><div class="panel-title"><h2>Evolución de la facturación</h2><span>EUR · por mes</span></div>
+    <div id="chart" role="img" aria-label="Facturación mensual. Los valores exactos están en la tabla inferior."></div>
+    <p class="note">Los huecos son datos ausentes, no ceros. Los totales pueden ser parciales: consulta la cobertura.</p>
+  </section>
+  <section class="panel"><h2>Detalle mensual</h2><p class="note">Satisfacción: media simple de las medias de asesorías; no una media ponderada por respuestas.</p>
+    <div class="table-wrap"><table id="metrics"><thead></thead><tbody></tbody></table></div>
+  </section>
+  <section class="panel"><div class="panel-title"><h2>Salud del dato</h2><span id="last-load">—</span></div>
+    <p id="quality-summary"></p><p id="last-run" class="note"></p>
+    <div class="controls"><label>Inspeccionar <select id="quality-view">
+      <option value="issues?severity=error">Errores de filas</option>
+      <option value="issues?severity=warning">Advertencias</option>
+      <option value="issues?severity=info">Duplicados descartados</option>
+      <option value="gaps">Meses ausentes</option><option value="deliveries">Entregas</option>
+      <option value="runs">Ejecuciones</option><option value="file-errors">Errores de archivos</option>
+    </select></label></div>
+    <div class="table-wrap"><table id="quality"><thead></thead><tbody></tbody></table></div>
+    <div class="pagination"><span id="page-info"></span><button id="previous">Anterior</button><button id="next">Siguiente</button></div>
+  </section>
+  <footer>Pulse · Fase 1 · Datos conservados con fichero, fila y motivo. Las advertencias no se ocultan.</footer>
+</main>
+<dialog id="details"><div class="panel-title"><h2>Detalle y trazabilidad</h2><button id="close-dialog">Cerrar</button></div><pre id="detail-content"></pre></dialog>
+</body>
+</html>
+
