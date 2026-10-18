@@ -1,0 +1,102 @@
+name: pulse
+
+x-app: &app
+  image: pulse-app:local
+  build:
+    context: .
+    target: runtime
+  environment: &environment
+    DATABASE_URL: postgresql://pulse:pulse_local@db:5432/pulse
+    DAGSTER_DB_URL: postgresql+psycopg2://pulse:pulse_local@db:5432/dagster
+    PULSE_DATA_DIR: /data
+  volumes:
+    - ./data:/data:ro
+  init: true
+
+services:
+  db:
+    image: postgres:17.6-bookworm
+    environment:
+      POSTGRES_USER: pulse
+      POSTGRES_PASSWORD: pulse_local
+      POSTGRES_DB: pulse
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./orchestration/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U pulse -d pulse"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+    restart: unless-stopped
+
+  bootstrap:
+    <<: *app
+    command: [pulse, bootstrap]
+    depends_on:
+      db:
+        condition: service_healthy
+
+  api:
+    <<: *app
+    environment:
+      <<: *environment
+      DATABASE_URL: postgresql://pulse_reader:pulse_reader_local@db:5432/pulse
+    ports:
+      - "127.0.0.1:${PULSE_PORT:-8000}:8000"
+    depends_on:
+      bootstrap:
+        condition: service_completed_successfully
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  dagster:
+    <<: *app
+    command: [dagster-webserver, -h, 0.0.0.0, -p, "3000", -w, workspace.yaml]
+    ports:
+      - "127.0.0.1:${DAGSTER_PORT:-3000}:3000"
+    depends_on:
+      bootstrap:
+        condition: service_completed_successfully
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://localhost:3000/server_info')"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+    restart: unless-stopped
+
+  daemon:
+    <<: *app
+    command: [dagster-daemon, run, -w, workspace.yaml]
+    depends_on:
+      dagster:
+        condition: service_healthy
+    healthcheck:
+      test: [CMD, dagster-daemon, liveness-check]
+      interval: 30s
+      timeout: 10s
+      start_period: 30s
+      retries: 5
+    restart: unless-stopped
+
+  test:
+    <<: *app
+    profiles: [test]
+    image: pulse-test:local
+    build:
+      context: .
+      target: test
+    environment:
+      <<: *environment
+      TEST_DATABASE_URL: postgresql://pulse:pulse_local@db:5432/pulse_test
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+

@@ -4,4 +4,6 @@ psycopg[binary]==3.2.12
 dagster==1.11.16
 dagster-webserver==1.11.16
 dagster-postgres==0.27.16
+# Dagster 1.11 is tested against SQLAlchemy 2.0; do not change its driver implicitly.
+sqlalchemy==2.0.44
 

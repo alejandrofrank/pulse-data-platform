@@ -63,6 +63,8 @@ graphql-core==3.2.6
     #   graphql-relay
 graphql-relay==3.2.0
     # via graphene
+greenlet==3.5.6
+    # via sqlalchemy
 grpcio==1.84.0
     # via
     #   dagster
@@ -146,8 +148,9 @@ six==1.17.0
     # via
     #   dagster
     #   python-dateutil
-sqlalchemy==2.1.5
+sqlalchemy==2.0.44
     # via
+    #   -r requirements.in
     #   alembic
     #   dagster
 starlette==0.48.0

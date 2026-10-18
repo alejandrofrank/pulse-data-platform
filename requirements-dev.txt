@@ -101,6 +101,10 @@ graphql-relay==3.2.0
     # via
     #   -r requirements.txt
     #   graphene
+greenlet==3.5.6
+    # via
+    #   -r requirements.txt
+    #   sqlalchemy
 grpcio==1.84.0
     # via
     #   -r requirements.txt
@@ -249,7 +253,7 @@ six==1.17.0
     #   -r requirements.txt
     #   dagster
     #   python-dateutil
-sqlalchemy==2.1.5
+sqlalchemy==2.0.44
     # via
     #   -r requirements.txt
     #   alembic
