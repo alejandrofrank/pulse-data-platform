@@ -3,92 +3,162 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#10151c" />
     <title>Pulse · Red de asesorías</title>
     <link rel="stylesheet" href="/static/styles.css" />
+    <link
+      rel="preload"
+      href="/static/inter-tight-latin.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <link
+      rel="preload"
+      href="/static/jetbrains-mono-latin.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
     <script defer src="/static/app.js"></script>
   </head>
   <body>
+    <a class="skip-link" href="#resumen">Ir al contenido</a>
     <header>
-      <div>
-        <h1>Pulse <span>Red de asesorías</span></h1>
-        <p>Métricas mensuales y calidad de las entregas</p>
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true"
+          ><svg viewBox="0 0 28 28" fill="none">
+            <path
+              d="M2 15h6l3-8 5 15 3-9h7"
+              stroke="currentColor"
+              stroke-width="1.6"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            /></svg
+        ></span>
+        <div>
+          <h1>Pulse</h1>
+          <p>Demo · Red de asesorías</p>
+        </div>
       </div>
       <nav aria-label="Herramientas">
-        <a href="/docs">API</a><button id="refresh">Actualizar</button>
+        <a href="#resumen">Resumen</a><a href="#calidad">Calidad</a
+        ><a href="/docs">API</a>
+        <button id="refresh" class="refresh-button">
+          <svg aria-hidden="true" viewBox="0 0 20 20" fill="none">
+            <path
+              d="M16 7a6.5 6.5 0 1 0 .2 5M16 3v4h-4"
+              stroke="currentColor"
+              stroke-width="1.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            /></svg
+          >Actualizar
+        </button>
       </nav>
     </header>
-    <main>
+    <main id="resumen">
+      <div class="section-intro">
+        <p class="eyebrow">Métricas mensuales</p>
+        <p>Evolución de la red y calidad de las entregas</p>
+      </div>
       <div id="error" role="alert" hidden></div>
-      <form id="filters" class="controls">
+      <form id="filters" class="controls filters" aria-label="Filtrar métricas">
         <label>Desde <input id="start" type="month" /></label>
         <label>Hasta <input id="end" type="month" /></label>
-        <label
+        <label class="firm-control"
           >Vista
           <select id="firm">
             <option value="">Toda la red</option>
           </select></label
         >
-        <button type="submit">Aplicar</button
+        <button type="submit" class="primary-button">Aplicar filtros</button
         ><span id="loading" role="status">Cargando datos…</span>
       </form>
       <section class="cards" aria-label="Último mes del periodo">
         <article>
-          <h2>Facturación · <span class="latest-month">—</span></h2>
+          <h2>Facturación <span class="latest-month">—</span></h2>
           <strong id="revenue">—</strong>
           <p>Importe observado; incluye otros ingresos</p>
         </article>
         <article>
-          <h2>Clientes activos · <span class="latest-month">—</span></h2>
+          <h2>Clientes activos <span class="latest-month">—</span></h2>
           <strong id="clients">—</strong>
           <p>Suma de carteras; no clientes únicos de la red</p>
         </article>
-        <article>
-          <h2>Cobertura · <span class="latest-month">—</span></h2>
+        <article id="coverage-card">
+          <h2>Cobertura <span class="latest-month">—</span></h2>
           <strong id="coverage">—</strong>
           <p id="coverage-detail">Asesorías con datos / esperadas</p>
         </article>
-        <article>
-          <h2>Filas rechazadas · todas las cargas</h2>
+        <article id="rejected-card">
+          <h2>
+            Filas rechazadas <span class="card-scope">Todas las cargas</span>
+          </h2>
           <strong id="rejected">—</strong>
           <p id="quality-detail">—</p>
         </article>
       </section>
       <section class="panel">
         <div class="panel-title">
-          <h2>Evolución de la facturación</h2>
-          <span>EUR · por mes</span>
+          <div class="panel-heading">
+            <span class="section-index" aria-hidden="true">01</span>
+            <h2>Evolución de la facturación</h2>
+          </div>
+          <div class="legend" aria-label="Leyenda del gráfico">
+            <span><i aria-hidden="true"></i>Cobertura completa</span
+            ><span><i class="partial" aria-hidden="true"></i>Parcial</span
+            ><span>EUR / mes</span>
+          </div>
         </div>
         <div
           id="chart"
+          tabindex="0"
           role="img"
           aria-label="Facturación mensual. Los valores exactos están en la tabla inferior."
         ></div>
-        <p class="note">
+        <p class="note panel-note">
           Los huecos son datos ausentes, no ceros. Los totales pueden ser
           parciales: consulta la cobertura.
         </p>
       </section>
       <section class="panel">
-        <h2>Detalle mensual</h2>
-        <p class="note">
-          Satisfacción: media simple de las medias de asesorías; no una media
-          ponderada por respuestas.
-        </p>
-        <div class="table-wrap">
-          <table id="metrics">
+        <div class="panel-title">
+          <div class="panel-heading">
+            <span class="section-index" aria-hidden="true">02</span>
+            <h2>Detalle mensual</h2>
+          </div>
+          <span class="panel-meta">Valores exactos · por periodo</span>
+        </div>
+        <div
+          class="table-wrap metrics-scroll"
+          tabindex="0"
+          role="region"
+          aria-label="Detalle mensual, tabla desplazable"
+        >
+          <table id="metrics" aria-label="Métricas mensuales">
             <thead></thead>
             <tbody></tbody>
           </table>
         </div>
+        <p class="note panel-note">
+          Satisfacción: media simple de las medias de asesorías; no una media
+          ponderada por respuestas.
+        </p>
       </section>
-      <section class="panel">
+      <section class="panel" id="calidad">
         <div class="panel-title">
-          <h2>Salud del dato</h2>
+          <div class="panel-heading">
+            <span class="section-index" aria-hidden="true">03</span>
+            <h2>Salud del dato</h2>
+          </div>
           <span id="last-load">—</span>
         </div>
-        <p id="quality-summary"></p>
-        <p id="last-run" class="note"></p>
-        <div class="controls">
+        <div class="quality-overview">
+          <p id="quality-summary"></p>
+          <p id="last-run" class="note"></p>
+        </div>
+        <div class="controls quality-controls">
           <label
             >Inspeccionar
             <select id="quality-view">
@@ -104,8 +174,13 @@
             </select></label
           >
         </div>
-        <div class="table-wrap">
-          <table id="quality">
+        <div
+          class="table-wrap quality-scroll"
+          tabindex="0"
+          role="region"
+          aria-label="Calidad de datos, tabla desplazable"
+        >
+          <table id="quality" aria-label="Registros de calidad">
             <thead></thead>
             <tbody></tbody>
           </table>
@@ -116,13 +191,16 @@
         </div>
       </section>
       <footer>
-        Pulse · Fase 1 · Datos conservados con fichero, fila y motivo. Las
-        advertencias no se ocultan.
+        <span>Pulse / Demo</span
+        ><span
+          >Cada cifra conserva su origen. Datos ausentes y advertencias siempre
+          visibles.</span
+        >
       </footer>
     </main>
-    <dialog id="details">
+    <dialog id="details" aria-labelledby="detail-title">
       <div class="panel-title">
-        <h2>Detalle y trazabilidad</h2>
+        <h2 id="detail-title">Detalle y trazabilidad</h2>
         <button id="close-dialog">Cerrar</button>
       </div>
       <pre id="detail-content"></pre>
