@@ -23,7 +23,7 @@ pulse = "pulse.cli:main"
 where = ["src"]
 
 [tool.setuptools.package-data]
-pulse = ["static/*", "migrations/*.sql"]
+pulse = ["static/*", "migrations/*.sql", "lab_migrations/*.sql"]
 
 [tool.ruff]
 line-length = 100
