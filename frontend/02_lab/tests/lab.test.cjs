@@ -3,8 +3,8 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const { randomUUID } = require("node:crypto");
 const { JSDOM } = require("jsdom");
-const html = fs.readFileSync("src/pulse/static/lab.html", "utf8");
-const script = fs.readFileSync("src/pulse/static/lab.js", "utf8");
+const html = fs.readFileSync("02_lab/public/lab.html", "utf8");
+const script = fs.readFileSync("02_lab/public/lab.js", "utf8");
 
 async function until(predicate) {
   for (let i = 0; i < 100; i++) {

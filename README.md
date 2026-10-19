@@ -73,7 +73,7 @@ removes this Compose project's database volume; use only when intentionally rebu
 | Python CSV adapters | Read two explicit contracts, parse precise numeric values and validate rows | Small, pure functions that can be tested without a database; no dataframe framework needed for 18k rows |
 | PostgreSQL | Raw archive, quality audit, firm dimension and monthly facts | One transactional system supports provenance, atomic publication and the API |
 | SQL migrations | Version database schemas and reporting views | Numbered, checksum-verified files; applied transactionally under a migration lock |
-| Dagster OSS | Daily schedule, manual reruns, persisted execution logs and asset check | Fits the company's existing tooling and runs without a cloud service |
+| Dagster OSS | File sensor, daily schedule, manual reruns, persisted execution logs and asset check | Fits the company's existing tooling and runs without a cloud service |
 | FastAPI | Read-only metrics and operational endpoints with OpenAPI | Shared Python codebase, parameter validation and bounded queries |
 | HTML/CSS/JavaScript | Single internal view consuming the API | No frontend build chain, CDN or extra service; design stays focused on numbers and quality |
 | Docker Compose | Provision and connect all local services | Reproduces the evaluator's startup without manual steps |
@@ -81,6 +81,67 @@ removes this Compose project's database volume; use only when intentionally rebu
 
 See [the implementation walkthrough](docs/walkthrough.md) for a defense-oriented
 explanation and [the data contract](docs/data-contract.md) for every quality decision.
+
+## Repository layout
+
+The structure follows the Bakiano repository's `backend/`, `frontend/` and `docs/`
+separation, with numbered directories for the main backend responsibilities:
+
+```text
+pulse/
+├── backend/
+│   ├── 00_infrastructure/
+│   │   ├── Dockerfile          # Runtime and test image targets
+│   │   ├── dagster/            # Instance storage, queue and code-location config
+│   │   └── postgres/           # Initial databases and reader roles
+│   ├── 01_pipeline/
+│   │   └── src/pulse/
+│   │       ├── parsing.py      # CSV contracts and quality rules
+│   │       ├── ingest.py       # Raw archival and atomic reporting publication
+│   │       ├── db.py           # Connections and migration runner
+│   │       ├── cli.py          # pulse bootstrap / migrate / ingest
+│   │       ├── definitions.py  # Dagster asset, job, check and schedule
+│   │       ├── file_sensor.py  # Stable-file discovery and dispatch
+│   │       ├── migrations/    # Main database schema and reporting views
+│   │       └── lab_migrations/ # Optional playback/reader database extensions
+│   ├── 02_api/
+│   │   └── src/pulse_api/
+│   │       ├── app.py          # Read-only reporting API and dashboard hosting
+│   │       ├── models.py       # Public response contracts
+│   │       ├── assets.py       # Locations of the two frontend source trees
+│   │       ├── lab_api.py      # Playback and SQL HTTP endpoints
+│   │       ├── lab.py          # Durable playback worker and evidence
+│   │       └── lab_sql.py      # Bounded read-only PostgreSQL execution
+│   ├── 03_scripts/             # Profiling and deployed-stack smoke checks
+│   ├── tests/                  # Python unit and PostgreSQL integration tests
+│   ├── pyproject.toml          # One Python distribution containing both packages
+│   └── requirements*.in/.txt   # Dependency inputs and pinned lock files
+├── frontend/
+│   ├── 01_dashboard/           # public/ assets and tests/ for the main dashboard
+│   ├── 02_lab/                 # public/ assets and tests/ for playback and SQL
+│   └── package.json            # Shared development-only frontend verification
+├── data/                       # Original master and incoming drops/
+├── docs/                       # Assignment, quality decisions and defense guide
+├── .github/workflows/          # Clean-environment CI verification
+└── compose.yaml                # Root entry point: docker compose up
+```
+
+`01_pipeline` owns business rules and storage. `02_api` imports those rules for the
+lab and reads the reporting tables; the pipeline never imports the HTTP application.
+The Python package names are `pulse` and `pulse_api`: numeric directory prefixes
+organize the repository and are not part of import paths. One backend dependency
+lock and distribution keep the runtime coherent without duplicated library versions.
+
+The dashboard and lab are plain HTML/CSS/JavaScript. FastAPI serves their `public/`
+directories; Docker copies them to `/app/frontend` and sets `PULSE_FRONTEND_DIR`.
+The lab reuses the dashboard's base stylesheet/fonts at `/static` and serves its
+own controls at `/lab-static`. Node is used only for formatting and DOM tests.
+No frontend build or separate web server is needed to start the delivered system.
+
+The Compose entry point and source data stay at the repository root. SQL migration
+names and contents are preserved, so reorganizing source files requires no database
+reset or migration rewrite. Infrastructure configuration here targets the on-premise
+Compose deployment. The lab is an optional, tested application rather than a prototype.
 
 ## Data model and execution
 
@@ -186,7 +247,7 @@ an experiment whose evidence you intend to retain.
 
 CI also adds a temporary revision to its disposable main stack and verifies that the
 actual Dagster daemon ingests it automatically, records the sensor trigger, and does not
-launch more ingestions on subsequent unchanged observations. `scripts/sensor_smoke.py`
+launch more ingestions on subsequent unchanged observations. `backend/03_scripts/sensor_smoke.py`
 requires `--disposable`; its database keeps the test revision until the test stack is removed.
 
 ### Query the lab with PostgreSQL
@@ -264,17 +325,17 @@ as explicitly labeled, independently of the chart filter.
 The dashboard's dark slate palette, blue accents and typography follow the author's
 [technical portfolio](https://me.alejandrofranks.workers.dev/tech). Inter Tight and
 JetBrains Mono are bundled locally with their SIL Open Font Licenses in
-`src/pulse/static/`; loading the dashboard makes no font/CDN requests. Scrollable
+`frontend/01_dashboard/public/`; loading the dashboard makes no font/CDN requests. Scrollable
 tables retain their column headers, and coverage/error colors reflect API values.
 
 ## Tests and CI
 
 ```sh
 docker compose build test
-docker compose run --rm test ruff check src tests scripts
-docker compose run --rm test ruff format --check src tests scripts
+docker compose run --rm test ruff check 01_pipeline 02_api tests 03_scripts
+docker compose run --rm test ruff format --check 01_pipeline 02_api tests 03_scripts
 docker compose run --rm test pytest -q -p no:cacheprovider
-docker compose run --rm test python scripts/profile_data.py
+docker compose run --rm test python 03_scripts/profile_data.py
 ```
 
 Integration tests use the separate `pulse_test` database; they refuse to reset any
@@ -285,7 +346,7 @@ ingestion protection, API errors, gap semantics, idempotence and independent CSV
 reconciliation of all 36 monthly revenue and active-client totals.
 
 For development-only dashboard DOM checks against the running API, use Node 22+:
-`npm ci` then `npm test`. These exercise rendering, filters, lineage, gaps and API
+`npm --prefix frontend ci` then `npm --prefix frontend test`. These exercise rendering, filters, lineage, gaps and API
 failure feedback using jsdom. Node is not needed to run the delivered application.
 
 The CI workflow runs those checks, builds the runtime image, starts the full Compose
@@ -293,8 +354,9 @@ stack, verifies real HTTP responses, ingests again and compares stable published
 results. It uploads service logs and tears down its disposable database. There is
 no automatic deployment to an external server because no target was supplied.
 
-Dependencies are pinned transitively in `requirements*.txt`. Update the `.in` files
-and regenerate with pip-tools under Python 3.12, then run the complete CI. Dagster's
+Dependencies are pinned transitively in `backend/requirements*.txt`. From `backend/`,
+update the adjacent `.in` files and regenerate with pip-tools under Python 3.12, then
+run the complete CI. Dagster's
 PostgreSQL metadata connection explicitly uses psycopg2; business ingestion uses
 psycopg 3. SQLAlchemy 2.0 is pinned for the selected Dagster release.
 

@@ -4,7 +4,6 @@ import os
 import re
 from datetime import date
 from decimal import Decimal
-from pathlib import Path
 from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, FastAPI, HTTPException, Query
@@ -14,8 +13,9 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from pulse.db import connect
-from pulse.models import FirmMetricPage, NetworkMetricPage
 from pulse.parsing import POLICY_VERSION
+from pulse_api.assets import DASHBOARD_STATIC
+from pulse_api.models import FirmMetricPage, NetworkMetricPage
 
 app = FastAPI(
     title="Pulse",
@@ -26,8 +26,7 @@ app = FastAPI(
     ),
 )
 router = APIRouter()
-STATIC = Path(__file__).parent / "static"
-app.mount("/static", StaticFiles(directory=STATIC), name="static")
+app.mount("/static", StaticFiles(directory=DASHBOARD_STATIC), name="static")
 
 
 class Page(BaseModel):
@@ -96,7 +95,7 @@ def page(conn, query, params, limit, offset):
 
 @app.get("/", include_in_schema=False)
 def dashboard():
-    return FileResponse(STATIC / "index.html")
+    return FileResponse(DASHBOARD_STATIC / "index.html")
 
 
 @app.get("/lab", include_in_schema=False)

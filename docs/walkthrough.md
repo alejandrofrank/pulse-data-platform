@@ -11,7 +11,7 @@ and dashboard make both the business data and its limitations visible.”
 
 ## 1. Source adapters: interpreting the files
 
-File: `src/pulse/parsing.py`.
+File: `backend/01_pipeline/src/pulse/parsing.py`.
 
 The producer changed separator, decimal convention, a column name and revenue
 categories. An explicit header-to-contract adapter prevents accidental mappings.
@@ -58,7 +58,7 @@ peaks and zero consultancy revenue are not rejected just for looking unusual.
 
 ## 4. Publication: latest valid delivery wins
 
-File: `src/pulse/ingest.py`; table: `mart.firm_month`.
+File: `backend/01_pipeline/src/pulse/ingest.py`; table: `mart.firm_month`.
 
 `(asesoria_id, mes)` is the business key. `(delivery_month, revision)` establishes
 delivery precedence. Row order and ingestion time do not establish business precedence.
@@ -93,7 +93,7 @@ satisfaction expose contributor counts. Missing months have null metrics, not ze
 
 ## 6. Dagster: executing and observing the pipeline
 
-Files: `src/pulse/definitions.py`, `orchestration/`, `compose.yaml`.
+Files: `backend/01_pipeline/src/pulse/definitions.py`, `backend/00_infrastructure/dagster/`, `compose.yaml`.
 
 The ingestion/publication workflow is one Dagster asset because it has a single
 transactional reporting outcome. It calls ordinary Python functions rather than
@@ -125,7 +125,7 @@ The sensor and its ticks are visible in Dagster; the interactive lab keeps its o
 
 ## 7. API and dashboard: consuming one source of truth
 
-Files: `src/pulse/api.py`, `src/pulse/static/`.
+Files: `backend/02_api/src/pulse_api/app.py`, `frontend/01_dashboard/public/`.
 
 FastAPI validates month and pagination parameters. Database queries are parameterized,
 read-only, bounded and timed out. Repeatable-read transactions keep a list's total and

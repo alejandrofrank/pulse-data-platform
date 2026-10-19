@@ -5,6 +5,8 @@ import json
 import urllib.request
 from pathlib import Path
 
+from check_assets import check_assets
+
 parser = argparse.ArgumentParser()
 parser.add_argument("--base", default="http://localhost:8000")
 parser.add_argument("--save", type=Path)
@@ -27,9 +29,8 @@ assert quality["curated_rows"] == 17988
 assert quality["latest_run"]["status"] == "success"
 assert quality["file_errors"] == 0
 assert get("/api/v1/quality/deliveries")["total"] == 36
-for path in ("/", "/static/app.js", "/static/styles.css", "/openapi.json"):
-    with urllib.request.urlopen(args.base + path, timeout=15) as response:
-        assert response.status == 200
+check_assets(args.base)
+assert get("/openapi.json")["info"]["title"] == "Pulse"
 stable = {
     "network": network,
     "quality": {

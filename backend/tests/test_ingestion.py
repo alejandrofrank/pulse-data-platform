@@ -9,10 +9,10 @@ import pytest
 from fastapi.testclient import TestClient
 from test_parsing import make_csv
 
-from pulse.api import app
 from pulse.db import connect
 from pulse.ingest import LOCK, ingest
-from pulse.models import FirmMetricPage, NetworkMetricPage
+from pulse_api.app import app
+from pulse_api.models import FirmMetricPage, NetworkMetricPage
 
 pytestmark = pytest.mark.integration
 

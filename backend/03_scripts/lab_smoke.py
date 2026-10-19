@@ -6,6 +6,8 @@ import time
 import urllib.request
 from uuid import uuid4
 
+from check_assets import check_assets
+
 parser = argparse.ArgumentParser()
 parser.add_argument("--base", default="http://127.0.0.1:8001")
 parser.add_argument("--disposable", action="store_true", required=True)
@@ -40,6 +42,7 @@ def play(files):
     raise AssertionError("Playback timed out")
 
 
+check_assets(args.base)
 state = call("/api/lab/state")
 assert state["counts"]["files"] == 0 and not state["jobs"], (
     "Refusing to reset an existing experiment"

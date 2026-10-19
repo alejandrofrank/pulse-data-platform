@@ -4,7 +4,7 @@
 
 The supplied master has 500 firms. There are 36 deliveries, April 2023 to March 2026,
 with 18,087 physical data records. The original files are committed byte-for-byte.
-Run `docker compose run --rm test python scripts/profile_data.py` for a repeatable profile.
+Run `docker compose run --rm test python 03_scripts/profile_data.py` for a repeatable profile.
 
 The format is detected from its exact header, not guessed from the metric month:
 
