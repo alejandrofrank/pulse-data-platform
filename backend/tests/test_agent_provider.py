@@ -225,6 +225,7 @@ class ProviderTests(unittest.TestCase):
         self.serve(decision(), response())
         self.run_plan()
         instructions = " ".join(self.request(1)[1]["instructions"].split())
+        router_instructions = " ".join(self.request(0)[1]["questions"][0]["instructions"].split())
         # Verify the contract actually sent to the planner, not simulated model accuracy.
         for requirement in (
             "total revenue across all four components",
@@ -251,6 +252,37 @@ class ProviderTests(unittest.TestCase):
         ):
             with self.subTest(requirement=requirement):
                 self.assertIn(requirement, instructions)
+        # Both stages must recognize current-publication lineage without promising history
+        # or upstream correctness; the router can reject a request before planning begins.
+        for stage, sent in (("router", router_instructions), ("planner", instructions)):
+            for requirement in (
+                "deterministic read-only service for one firm and month",
+                "Requests to reconcile the current publication with its archived source "
+                "and reporting API are supported",
+                "verify the immutable CSV checksum",
+                "independently normalize and sum all four revenue components",
+                "verify the selected accepted raw record against the mart",
+                "compare the actual reporting HTTP API response",
+                "recorded versions, loaded_at and the current publication manifest",
+                "A past metric month alone is supported against the current publication",
+                "Historical 'as known then' questions, past HTTP responses, "
+                "and past dashboard states are unsupported",
+                "These checks cannot prove upstream business correctness",
+            ):
+                with self.subTest(stage=stage, requirement=requirement):
+                    self.assertIn(requirement, sent)
+        self.assertIn("Route these requests to continue", router_instructions)
+        self.assertIn(
+            "Never answer the business question, generate SQL or call tools", router_instructions
+        )
+        self.assertIn(
+            "Never answer the business question, invent results, generate SQL, call tools, "
+            "or grant execution permission",
+            instructions,
+        )
+        self.assertIn(
+            "Revenue investigations use investigate, revenue_eur, one firm and month", instructions
+        )
         for code in (
             "missing_metric",
             "missing_period",

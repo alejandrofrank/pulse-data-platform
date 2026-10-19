@@ -10,7 +10,7 @@ from zoneinfo import ZoneInfo
 
 from pulse_agents import provider, store
 from pulse_agents.analytics import execute_plan
-from pulse_agents.schemas import QueryPlan
+from pulse_agents.schemas import InvestigationTarget, QueryPlan
 
 EXAMPLES = [
     {"agent": "business", "question": "Network revenue in March 2026"},
@@ -89,9 +89,17 @@ def ask(
     owner="local-operator",
     allowed_firm_ids=None,
     can_investigate=True,
+    target: InvestigationTarget | None = None,
 ):
     started = time.monotonic()
-    current = provider.provider_status()
+    if target is not None:
+        target = InvestigationTarget.model_validate(target)
+        if profile != "investigation":
+            raise ValueError("Exact targets require the investigation profile")
+        question = (
+            f"Investigate total billed revenue for firm ID {target.firm_id} in {target.month}."
+        )
+    current = {"mode": "direct", "model": None} if target else provider.provider_status()
     configured_scope = scope()
     authorized = allowed_firm_ids
     if configured_scope is not None:
@@ -100,6 +108,9 @@ def ask(
             if authorized is None
             else tuple(sorted(set(authorized) & set(configured_scope)))
         )
+    authorization = {"firms": authorized, "investigate": can_investigate}
+    if target is not None:
+        authorization["exact_target"] = target.model_dump(mode="json")
     admission = store.begin(
         request_id,
         conversation_id,
@@ -107,7 +118,7 @@ def ask(
         question,
         owner,
         live=current["mode"] == "live",
-        authorization={"firms": authorized, "investigate": can_investigate},
+        authorization=authorization,
     )
     if "cached" in admission:
         return admission["cached"]
@@ -123,7 +134,7 @@ def ask(
         "evidence": None,
         "trace": {
             "implementation_sha256": implementation_version(),
-            "prompt_version": "pulse-intent-v1",
+            "prompt_version": "pulse-exact-investigation-v1" if target else "pulse-intent-v2",
             "run_id": str(request_id),
             "model": current["model"],
             "mode": current["mode"],
@@ -140,7 +151,25 @@ def ask(
             "recent_questions": state.get("recent_questions", [])[-2:],
             "current_date": datetime.now(ZoneInfo("Europe/Madrid")).date().isoformat(),
         }
-        interpreted = provider.plan(question, profile, context)
+        if target is not None:
+            interpreted = {
+                "plan": QueryPlan(
+                    action="investigate",
+                    metric="revenue_eur",
+                    firm_id=target.firm_id,
+                    start=target.month,
+                    end=target.month,
+                ).model_dump(mode="json"),
+                "trace": {
+                    "mode": "direct",
+                    "model": None,
+                    "input_tokens": 0,
+                    "output_tokens": 0,
+                    "cost_usd": "0.00",
+                },
+            }
+        else:
+            interpreted = provider.plan(question, profile, context)
         plan = QueryPlan.model_validate(interpreted["plan"])
         result["plan"] = plan.model_dump(mode="json")
         result["trace"].update(interpreted["trace"])

@@ -47,6 +47,18 @@ def main():
         replay = request(args.base, "/api/v1/agents/ask", body)
         assert replay["trace"]["replayed"] is True
         assert replay["evidence"] == result["evidence"]
+    body = {
+        "request_id": str(uuid4()),
+        "conversation_id": None,
+        "firm_id": 42,
+        "month": "2024-01",
+    }
+    direct = request(args.base, "/api/v1/agents/investigate", body)
+    assert direct["status"] == "answered" and direct["evidence"]["status"] == "consistent"
+    assert direct["trace"]["mode"] == "direct" and direct["trace"]["cost_usd"] == "0.00"
+    assert direct["plan"]["firm_id"] == 42 and direct["trace"]["model"] is None
+    replay = request(args.base, "/api/v1/agents/investigate", body)
+    assert replay["trace"]["replayed"] and replay["evidence"] == direct["evidence"]
     print("Both agents returned database evidence; repeated request IDs replayed stored results.")
 
 

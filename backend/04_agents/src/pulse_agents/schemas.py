@@ -80,6 +80,21 @@ class QueryPlan(BaseModel):
         return self
 
 
+class InvestigationTarget(BaseModel):
+    """Explicit controls require no natural-language interpretation."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    firm_id: Annotated[int, Field(strict=True, gt=0, le=2_147_483_647)]
+    month: Month
+
+    @field_validator("month")
+    @classmethod
+    def valid_calendar_month(cls, value: str) -> str:
+        date.fromisoformat(value + "-01")
+        return value
+
+
 def query_plan_json_schema() -> dict:
     """Complete closed schema with every field required for strict-output adapters.
 
