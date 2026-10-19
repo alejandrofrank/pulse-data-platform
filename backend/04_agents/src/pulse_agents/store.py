@@ -88,13 +88,15 @@ def begin(request_id, conversation_id, profile, question, owner, *, live, author
         if recent >= 60:
             raise AdmissionError("The operator has reached the hourly request limit")
         reserved = RESERVATION if live else Decimal(0)
-        spent = conn.execute("""SELECT coalesce(sum(coalesce(actual_cost_usd,reserved_cost_usd)),0)
-            AS amount FROM agents.runs
-            WHERE created_at >= date_trunc('day',now() AT TIME ZONE 'UTC')
-                AT TIME ZONE 'UTC'""").fetchone()["amount"]
-        budget = Decimal(os.environ.get("PULSE_AGENT_DAILY_BUDGET_USD", "0.50"))
-        if not budget.is_finite() or budget < 0 or spent + reserved > budget:
-            raise AdmissionError("The application daily model budget is exhausted")
+        if live:
+            spent = conn.execute("""SELECT
+                coalesce(sum(coalesce(actual_cost_usd,reserved_cost_usd)),0)
+                AS amount FROM agents.runs
+                WHERE created_at >= date_trunc('day',now() AT TIME ZONE 'UTC')
+                    AT TIME ZONE 'UTC'""").fetchone()["amount"]
+            budget = Decimal(os.environ.get("PULSE_AGENT_DAILY_BUDGET_USD", "0.50"))
+            if not budget.is_finite() or budget < 0 or spent + reserved > budget:
+                raise AdmissionError("The application daily model budget is exhausted")
         if conversation_id:
             conversation = conn.execute(
                 "SELECT * FROM agents.conversations WHERE id=%s", (conversation_id,)
@@ -137,7 +139,10 @@ def finish(request_id, result, state):
             "answer": "Evidence exceeds the response budget",
             "evidence": None,
         }
-    actual = result.get("trace", {}).get("cost_usd") if result["status"] != "error" else None
+    trace = result.get("trace", {})
+    actual = trace.get("cost_usd") if result["status"] != "error" else None
+    if trace.get("mode") == "direct":
+        actual = "0.00"
     with audit_connection() as conn:
         run = conn.execute(
             """UPDATE agents.runs SET status=%s,result=%s,actual_cost_usd=%s,

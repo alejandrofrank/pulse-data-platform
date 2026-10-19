@@ -14,7 +14,7 @@ from fastapi import APIRouter, Depends, Header, HTTPException, Request
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator
 
 from pulse_agents import runtime
-from pulse_agents.schemas import QueryPlan
+from pulse_agents.schemas import InvestigationTarget, QueryPlan
 from pulse_agents.store import AdmissionError
 
 router = APIRouter(prefix="/api/v1/agents", tags=["Agents"])
@@ -102,6 +102,12 @@ class AskResponse(BaseModel):
     trace: dict[str, Any]
 
 
+class ExactInvestigationRequest(InvestigationTarget):
+    request_id: UUID
+    conversation_id: UUID | None = None
+    agent: Literal["investigation"] = "investigation"
+
+
 @router.get("/status")
 def agent_status(principal: Annotated[dict, Depends(identity)]):
     return {
@@ -119,6 +125,28 @@ def ask(body: AskRequest, principal: Annotated[dict, Depends(identity)]):
     try:
         result = runtime.ask(
             body.request_id, body.conversation_id, body.agent, body.question, **principal
+        )
+        return response(AskResponse.model_validate(result).model_dump(mode="json"))
+    except AdmissionError as exc:
+        raise HTTPException(exc.status_code, str(exc), headers={"Retry-After": "5"}) from exc
+    except (psycopg.Error, ValueError, OSError) as exc:
+        raise HTTPException(503, "Agent storage or configuration is unavailable") from exc
+
+
+@router.post("/investigate", dependencies=[Depends(same_origin)], response_model=AskResponse)
+def investigate_exact(
+    body: ExactInvestigationRequest, principal: Annotated[dict, Depends(identity)]
+):
+    from pulse_api.app import response
+
+    try:
+        result = runtime.ask(
+            body.request_id,
+            body.conversation_id,
+            "investigation",
+            "",
+            target=InvestigationTarget(firm_id=body.firm_id, month=body.month),
+            **principal,
         )
         return response(AskResponse.model_validate(result).model_dump(mode="json"))
     except AdmissionError as exc:

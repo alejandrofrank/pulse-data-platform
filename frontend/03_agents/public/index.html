@@ -43,13 +43,18 @@
             id="firm-id"
             type="text"
             required
+            inputmode="numeric"
+            pattern="[0-9]{1,10}"
+            maxlength="10"
             autocomplete="off"
-            placeholder="Exact firm identifier"
+            placeholder="Numeric ID, e.g. 42"
           />
           <label for="month">Month</label>
-          <input id="month" type="month" required />
-          <button id="build-question" type="submit">Use in question</button>
-          <p class="note">Creates an editable question below.</p>
+          <input id="month" type="month" min="0001-01" max="9999-12" required />
+          <button id="build-question" type="submit">Run investigation</button>
+          <p class="note">
+            Checks the current publication directly, with no model call.
+          </p>
         </form>
         <form id="ask-form">
           <label for="question">Question or clarification</label>

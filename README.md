@@ -425,7 +425,10 @@ delivery keys, keeping publication transactional and retries idempotent.
 
 Open `/agents` from the dashboard's **Agentes** link. Choose Business assistant
 for metrics or Data investigator for one firm's revenue in one month. Each has an
-independent conversation. Expand SQL, coverage, findings, source versions and the
+independent conversation. The exact investigation form accepts a numeric firm ID
+and a calendar month. **Run investigation** checks the current publication directly
+without a model call, including in demo mode. Free-form questions use **Ask agent**.
+Expand SQL, coverage, findings, source versions and the
 raw evidence to inspect the answer. The workbench uses the main reporting database;
 the CSV playback lab remains separate.
 
@@ -441,6 +444,11 @@ it does not substitute fictional answers. `POST /api/v1/agents/ask` accepts a UU
 `request_id`, optional `conversation_id`, `agent` (`business` or `investigation`)
 and `question`. Browser actions require `X-Pulse-Agent: assistant-v1` and same origin.
 Repeat a request ID only to retrieve the same saved answer; use a new ID for fresh data.
+
+`POST /api/v1/agents/investigate` accepts `request_id`, optional `conversation_id`,
+numeric `firm_id` and `month` (`YYYY-MM`). It shares the agent identity, scope,
+same-origin, audit and retry controls. The server constructs the revenue investigation
+plan, so exact controls are independent of model interpretation and model budget.
 
 The examples are "Network revenue in March 2026", "Active clients by month in 2025",
 and "Investigate revenue for firm 42 in January 2024". Run the actual HTTP smoke

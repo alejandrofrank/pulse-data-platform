@@ -76,6 +76,20 @@ CASES = (
             "end": "2024-01",
         },
     ),
+    (
+        "investigation_lineage",
+        "investigation",
+        "Investigate total billed revenue for firm ID 42 in 2024-01. "
+        "Reconcile the current publication with its archived source and reporting API.",
+        {
+            "action": "investigate",
+            "metric": "revenue_eur",
+            "firm_id": 42,
+            "firm_name": None,
+            "start": "2024-01",
+            "end": "2024-01",
+        },
+    ),
     ("ambiguous", "business", "Our churn looks wrong. What is it?", None),
     (
         "history",
@@ -102,8 +116,16 @@ CASES = (
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--base", default="http://127.0.0.1:8000")
-    parser.add_argument("--live", action="store_true", help="Authorize nine bounded live requests")
+    parser.add_argument(
+        "--live", action="store_true", help="Authorize 10 bounded live evaluation cases"
+    )
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument(
+        "--case",
+        action="append",
+        choices=[case[0] for case in CASES],
+        help="Run selected cases; followup includes its preceding question",
+    )
     args = parser.parse_args()
     if not args.live:
         parser.error("This evaluation spends model tokens. Pass --live explicitly.")
@@ -111,7 +133,12 @@ def main():
     reference = request(args.base, "/api/v1/network/metrics?start=2026-02&end=2026-03")
     by_month = {row["mes"][:7]: row for row in reference["items"]}
     results, previous_conversation = [], None
+    selected = set(args.case) if args.case else {case[0] for case in CASES}
+    if "followup" in selected:
+        selected.add("spanish_clients")
     for name, agent, question, expected in CASES:
+        if name not in selected:
+            continue
         result = request(
             args.base,
             "/api/v1/agents/ask",
@@ -139,7 +166,7 @@ def main():
                 observed = result["evidence"]["rows"][0]["value"]
                 expected_value = by_month[expected["start"]][expected["metric"]]
                 passed = Decimal(str(observed)) == Decimal(str(expected_value))
-            if passed and name == "investigation":
+            if passed and name in ("investigation", "investigation_lineage"):
                 passed = result["evidence"]["status"] == "consistent"
         results.append(
             {

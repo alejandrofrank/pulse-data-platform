@@ -34,8 +34,9 @@ flowchart LR
     EVIDENCE --> UI
 ```
 
-The runtime performs at most one Decisions routing request and one Responses
-planning request. There are no autonomous loops, model-written SQL, shell tools,
+Natural-language requests perform at most one Decisions routing request and one
+Responses planning request. Exact firm/month controls call the same investigator
+through a typed endpoint without either model request. There are no autonomous loops, model-written SQL, shell tools,
 automatic repairs or automatic provider retries. Decisions confidence is recorded
 for diagnostics; it grants no authority. `PULSE_USE_DECISIONS=false` disables that
 optional routing call while retaining deterministic validation and authorization.
@@ -113,6 +114,10 @@ timeouts and 100 result rows; investigation has its own explicit evidence limits
 No unbounded background queue is created. Capacity errors are visible and repeated
 request IDs do not trigger a second accepted model execution.
 
+Exact investigations retain ownership, scope, request replay, hourly limits and
+shared concurrency control, but reserve no model budget and record zero model cost.
+They also work when no provider key is loaded or the model budget is exhausted.
+
 Cost estimates use the documented GPT-6 Luna rates checked on 2026-10-19:
 USD 0.10 per million input tokens and USD 0.50 per million Responses output tokens;
 Decisions has no output charge. Unknown usage remains unknown. Region premiums,
@@ -158,7 +163,7 @@ semantic accuracy. Maintain labeled typical, ambiguous and adversarial questions
 and rerun them when the model, prompt, schema or data contract changes.
 
 The workbench keeps results and revenue comparisons above expandable evidence.
-Its 34 DOM cases include literal rendering of hostile content, independent agent
+Its 36 DOM cases include literal rendering of hostile content, independent agent
 conversations, response validation, credential changes during in-flight work,
 request recovery with the exact original payload, and decimal-string cost display.
 An isolated browser check also exercised both real demo workflows at desktop and

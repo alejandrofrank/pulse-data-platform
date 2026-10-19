@@ -119,7 +119,11 @@ async function setup(
   w.crypto.randomUUID = randomUUID;
   w.fetch = async (url, options = {}) => {
     assert.ok(
-      ["/api/v1/agents/status", "/api/v1/agents/ask"].includes(url),
+      [
+        "/api/v1/agents/status",
+        "/api/v1/agents/ask",
+        "/api/v1/agents/investigate",
+      ].includes(url),
       "Only the specified API endpoints are used",
     );
     const body = options.body ? JSON.parse(options.body) : null;
@@ -264,17 +268,19 @@ test("clarification, mode switches, drafts, and resets keep conversations isolat
   assert.equal(new Set(ui.posts().map((call) => call.body.request_id)).size, 4);
 });
 
-test("exact firm/month prepares a question and investigator shows the complete report", async (t) => {
+test("exact firm/month posts typed controls directly and investigator shows the complete report", async (t) => {
   const ui = await setup(t);
   ui.select("investigation");
-  ui.get("firm-id").value = "F-01";
-  ui.get("month").value = "2025-03";
+  ui.get("firm-id").value = "0042";
+  ui.get("month").value = "2024-01";
   ui.get("investigation-form").dispatchEvent(
     new ui.w.Event("submit", { cancelable: true }),
   );
-  assert.equal(ui.posts().length, 0);
-  assert.match(ui.get("question").value, /firm "F-01" for month 2025-03/);
-  ui.submit();
+  assert.equal(ui.posts().length, 1);
+  assert.equal(ui.posts()[0].url, "/api/v1/agents/investigate");
+  assert.equal(ui.posts()[0].body.firm_id, 42);
+  assert.equal(ui.posts()[0].body.month, "2024-01");
+  assert.equal(ui.posts()[0].body.question, undefined);
   await ui.idle();
   assert.equal(ui.posts()[0].body.agent, "investigation");
   assert.equal(ui.d.querySelectorAll(".timeline li").length, 3);
@@ -303,6 +309,35 @@ test("exact firm/month prepares a question and investigator shows the complete r
     ui.d.querySelectorAll("table")[1].querySelectorAll("tbody tr").length,
     2,
   );
+});
+
+test("exact investigation recovery reuses its route and bytes and preserves the chat draft", async (t) => {
+  let attempts = 0;
+  const ui = await setup(t, (url, options, body) => {
+    if (!body) return ok(status);
+    assert.equal(url, "/api/v1/agents/investigate");
+    if (++attempts === 1) throw new Error("Lost response");
+    return ok(
+      response(body, {
+        trace: { mode: "direct", model: null, cost_usd: "0.00" },
+      }),
+    );
+  });
+  ui.select("investigation");
+  ui.get("question").value = "Keep this follow-up draft";
+  ui.get("question").dispatchEvent(new ui.w.Event("input"));
+  ui.get("firm-id").value = "42";
+  ui.get("month").value = "2024-01";
+  ui.get("build-question").click();
+  await ui.idle();
+  assert.equal(ui.posts().length, 1);
+  ui.d.querySelector(".recover-request").click();
+  await ui.idle();
+  assert.equal(ui.posts()[1].url, ui.posts()[0].url);
+  assert.equal(ui.posts()[1].options.body, ui.posts()[0].options.body);
+  assert.equal(ui.get("question").value, "Keep this follow-up draft");
+  assert.match(ui.get("transcript").textContent, /No model call/);
+  assert.match(ui.get("transcript").textContent, /\$0.00 USD/);
 });
 
 test("double submissions are blocked and late responses stay with their original agent", async (t) => {
@@ -513,7 +548,41 @@ test("empty questions and incomplete exact forms cannot post", async (t) => {
   ui.get("investigation-form").dispatchEvent(
     new ui.w.Event("submit", { cancelable: true }),
   );
-  assert.match(ui.get("error").textContent, /exact firm ID/);
+  assert.match(ui.get("error").textContent, /numeric firm ID/);
+  assert.equal(ui.posts().length, 0);
+});
+
+test("exact investigation rejects names, malformed IDs and values outside the API contract", async (t) => {
+  const ui = await setup(t);
+  ui.select("investigation");
+  ui.get("month").value = "2024-01";
+  for (const invalid of [
+    "F-01",
+    '"42"',
+    "0",
+    "-1",
+    "4.2",
+    "4e2",
+    "2147483648",
+    "99999999999",
+    "42; DROP TABLE x",
+  ]) {
+    ui.get("firm-id").value = invalid;
+    ui.get("investigation-form").dispatchEvent(
+      new ui.w.Event("submit", { cancelable: true }),
+    );
+    assert.match(ui.get("error").textContent, /numeric firm ID/);
+    assert.equal(ui.get("question").value, "");
+  }
+  ui.get("firm-id").value = "42";
+  for (const invalid of ["", "0000-01", "10000-01"]) {
+    ui.get("month").value = invalid;
+    ui.get("investigation-form").dispatchEvent(
+      new ui.w.Event("submit", { cancelable: true }),
+    );
+    assert.match(ui.get("error").textContent, /valid YYYY-MM/);
+    assert.equal(ui.get("question").value, "");
+  }
   assert.equal(ui.posts().length, 0);
 });
 

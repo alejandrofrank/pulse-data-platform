@@ -256,7 +256,9 @@
     badge(badges, trace.mode || "Mode unavailable", trace.mode);
     badge(
       badges,
-      `Provider / model: ${trace.provider ? `${trace.provider} / ` : ""}${display(trace.model)}`,
+      trace.mode === "direct"
+        ? "No model call"
+        : `Provider / model: ${trace.provider ? `${trace.provider} / ` : ""}${display(trace.model)}`,
     );
     badge(
       badges,
@@ -303,7 +305,7 @@
     });
     $("new-conversation").disabled = session.busy;
     $("question").disabled = session.busy;
-    $("build-question").disabled = session.busy;
+    $("build-question").disabled = session.busy || !available();
     $("transcript").setAttribute("aria-busy", String(session.busy));
     $("request-status").textContent = session.busy
       ? "Running… switching agents keeps this request active."
@@ -313,7 +315,9 @@
           ? "Outcome uncertain. Recover a prior request or start a new execution."
           : session.turns.at(-1)?.result?.status === "clarification"
             ? "Awaiting your clarification."
-            : "Ready. Questions run only when you press Ask agent.";
+            : active === "investigation"
+              ? "Ready. Run an exact investigation or ask a question."
+              : "Ready. Questions run only when you press Ask agent.";
     const error = session.error || statusError;
     $("error").textContent = error;
     $("error").hidden = !error;
@@ -499,7 +503,7 @@
     render();
     try {
       const result = await request(
-        "/api/v1/agents/ask",
+        turn.endpoint || "/api/v1/agents/ask",
         {
           method: "POST",
           headers: { ...headers(), "Content-Type": "application/json" },
@@ -526,6 +530,7 @@
       turn.result = result;
       if (
         result.status !== "error" &&
+        !turn.endpoint &&
         (!recovery || session.draft === turn.question)
       )
         session.draft = "";
@@ -584,21 +589,39 @@
   });
   $("investigation-form").addEventListener("submit", (event) => {
     event.preventDefault();
-    if (active !== "investigation" || sessions[active].busy) return;
+    if (syncCredential()) return;
+    if (active !== "investigation" || sessions[active].busy || !available())
+      return;
     const firm = $("firm-id").value.trim();
     const month = $("month").value;
-    if (!firm || !/^\d{4}-(0[1-9]|1[0-2])$/.test(month)) {
+    if (
+      !/^[0-9]{1,10}$/.test(firm) ||
+      Number(firm) < 1 ||
+      Number(firm) > 2147483647 ||
+      !/^\d{4}-(0[1-9]|1[0-2])$/.test(month) ||
+      month.startsWith("0000")
+    ) {
       sessions[active].error =
-        "Enter an exact firm ID and a month in YYYY-MM format.";
+        "Enter a numeric firm ID from 1 to 2147483647 and a valid YYYY-MM month.";
       renderControls();
       return;
     }
-    sessions[active].draft =
-      `Investigate revenue for firm ${JSON.stringify(firm)} for month ${month}. Compare published, API, and original revenue, and explain the findings and record versions.`;
-    sessions[active].error = "";
-    $("question").value = sessions[active].draft;
-    renderControls();
-    $("question").focus();
+    const session = sessions[active];
+    const payload = Object.freeze({
+      request_id: crypto.randomUUID(),
+      conversation_id: session.conversation,
+      agent: "investigation",
+      firm_id: Number(firm),
+      month,
+    });
+    const turn = {
+      question: `Investigate total billed revenue for firm ID ${payload.firm_id} in ${month}.`,
+      endpoint: "/api/v1/agents/investigate",
+      payload,
+      serializedPayload: JSON.stringify(payload),
+    };
+    session.turns.push(turn);
+    executeTurn("investigation", session, turn);
   });
   $("refresh-status").addEventListener("click", loadStatus);
   $("access-token").addEventListener("input", syncCredential);
