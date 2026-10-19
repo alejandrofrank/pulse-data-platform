@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Pulse · Test dashboard</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script src="app.js" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#cases-title">Skip to test cases</a>
+    <header>
+      <h1>Pulse / Tests</h1>
+      <nav aria-label="Main navigation">
+        <a href="/">Dashboard</a>
+        <a href="/agents">Agents</a>
+        <a href="https://github.com/alejandrofrank/pulse-data-platform/actions"
+          >GitHub Actions</a
+        >
+      </nav>
+    </header>
+    <main>
+      <section class="panel" aria-labelledby="report-title">
+        <div class="heading">
+          <h2 id="report-title">Backend + frontend checks</h2>
+          <span id="run-status" class="badge" data-state="loading"
+            >Loading</span
+          >
+          <div class="refresh-controls">
+            <span id="refresh-status" role="status">Loading report…</span>
+            <button id="refresh" type="button">Refresh</button>
+          </div>
+        </div>
+        <p class="note">
+          Report refreshes every 5 seconds. Totals update per completed suite;
+          individual cases appear when that suite finishes.
+        </p>
+        <p id="report-message" role="status">Loading the latest test report…</p>
+        <p id="error" role="alert" hidden></p>
+        <p id="heartbeat-warning" role="status" hidden></p>
+        <div
+          id="totals"
+          class="counts"
+          aria-label="All completed suite counts"
+        ></div>
+        <p id="completion" class="note"></p>
+        <details id="run-details" hidden>
+          <summary>Run details · revision and timestamps</summary>
+          <div id="run-metadata" class="metadata" hidden></div>
+        </details>
+      </section>
+
+      <div id="suites" class="suites" aria-label="Test suites"></div>
+
+      <section id="case-panel" class="panel" aria-labelledby="cases-title">
+        <div class="heading">
+          <h2 id="cases-title" tabindex="-1">Individual test cases</h2>
+          <span id="case-count" class="note">No cases loaded</span>
+        </div>
+        <p class="note">
+          Counts are individual test cases; nested group headings are not
+          counted twice.
+        </p>
+        <details id="area-breakdown" hidden>
+          <summary>Counts by area</summary>
+          <div id="area-counts" class="area-counts"></div>
+        </details>
+        <form id="filters" role="search" aria-label="Filter test cases">
+          <label class="search"
+            >Search tests
+            <input
+              id="search"
+              type="search"
+              placeholder="Name, module, area or message"
+              autocomplete="off"
+            />
+          </label>
+          <label
+            >Suite
+            <select id="suite-filter">
+              <option value="">All suites</option>
+              <option value="backend">Backend</option>
+              <option value="frontend">Frontend</option>
+            </select>
+          </label>
+          <label
+            >Status
+            <select id="status-filter">
+              <option value="">All statuses</option>
+              <option value="passed">Passed</option>
+              <option value="failed">Failed</option>
+              <option value="skipped">Skipped</option>
+              <option value="error">Error</option>
+            </select>
+          </label>
+          <label
+            >Area
+            <select id="area-filter">
+              <option value="">All areas</option>
+            </select>
+          </label>
+          <button id="clear-filters" type="button">Clear filters</button>
+        </form>
+        <div
+          class="table-wrap"
+          role="region"
+          aria-label="Individual test results"
+          tabindex="0"
+        >
+          <table>
+            <caption class="sr-only">
+              Finalized individual cases, up to 100 per page. Expand details for
+              failure output.
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col">Test / module</th>
+                <th scope="col">Suite</th>
+                <th scope="col">Area</th>
+                <th scope="col">Status</th>
+                <th scope="col">Duration</th>
+              </tr>
+            </thead>
+            <tbody id="cases"></tbody>
+          </table>
+        </div>
+        <p id="table-message" role="status">Loading test cases…</p>
+        <div class="pagination">
+          <span id="page-info" role="status">0 cases</span>
+          <span class="note">100 per page</span>
+          <button id="previous" type="button" disabled>Previous</button>
+          <button id="next" type="button" disabled>Next</button>
+        </div>
+      </section>
+
+      <aside class="panel runner" aria-label="Run tests from the terminal">
+        <h2>Run both suites from the repository root</h2>
+        <code>python backend/03_scripts/test_dashboard.py</code>
+        <p class="note">
+          The runner executes safely outside the web app. This page only reads
+          the report.
+        </p>
+        <p class="note">
+          Automated tests are not a production coverage certificate. External
+          paid live evaluations are not rerun by this command.
+        </p>
+      </aside>
+      <noscript
+        ><p class="panel">
+          JavaScript is required to read and filter the test report.
+        </p></noscript
+      >
+    </main>
+  </body>
+</html>

@@ -350,6 +350,43 @@ tables retain their column headers, and coverage/error colors reflect API values
 
 ## Tests and CI
 
+Open **[Tests](http://127.0.0.1:8000/tests/)** from the dashboard or agent workbench
+to inspect the latest backend and frontend test results. Start a new run from the
+repository root with:
+
+```bash
+python backend/03_scripts/test_dashboard.py
+```
+
+This requires Python, Docker Compose, Node 24+ and the running application on port
+8000 (the frontend suite includes real HTTP checks). It builds the current test
+image, starts the database if needed, runs pytest against the isolated `pulse_test`
+database, then runs the frontend tests. It installs frontend development packages
+if absent. No paid model evaluation is run. Do not run another database test
+process concurrently; dashboard runs enforce a local lock between themselves.
+
+The page refreshes every five seconds. Counts and individual cases appear when
+each suite finishes; the runner publishes a heartbeat during execution. Search
+or filter by suite, status and component, including Phase 1 pipeline checks and
+Phase 2 agents. Counts represent individual cases, excluding nested group headers
+that Node's terminal summary also counts. A missing report, runner failure, stale
+heartbeat or failed refresh is visible; no result is assumed to be a pass.
+Node 24 supplies source filenames in JUnit reports; CI uses the same version so
+frontend component filters have the same source information as local reports.
+
+Reports include timestamps, Git revision and whether the checkout had uncommitted
+changes at run start. They are evidence of that run, not proof that later edits
+pass. Generated JUnit XML, logs and JSON live under ignored `test-results/dashboard/`.
+The web application exposes only the latest JSON through a read-only mount and
+cannot execute tests. Reports are local development evidence, not a production
+monitoring or code-coverage dashboard. Full Compose/sensor/playback smoke checks
+remain separately visible in GitHub Actions.
+
+CI uploads a `test-dashboard` artifact even on failure, with the individual test
+reports and a copy of the interface. After downloading and extracting it, run
+`python -m http.server 8010` inside the extracted folder and open
+`http://localhost:8010/`. CI links remain available for the full workflow result.
+
 ```sh
 docker compose build test
 docker compose run --rm test ruff check 01_pipeline 02_api 04_agents tests 03_scripts
