@@ -1,4 +1,4 @@
-name: Phase 1 verification
+name: Platform verification
 on:
   push:
     branches: [main]
@@ -23,8 +23,8 @@ jobs:
           docker compose up -d --wait db
       - name: Lint and formatting
         run: |
-          docker compose run --rm test ruff check 01_pipeline 02_api tests 03_scripts
-          docker compose run --rm test ruff format --check 01_pipeline 02_api tests 03_scripts
+          docker compose run --rm test ruff check 01_pipeline 02_api 04_agents tests 03_scripts
+          docker compose run --rm test ruff format --check 01_pipeline 02_api 04_agents tests 03_scripts
       - name: Unit and PostgreSQL integration tests
         run: docker compose run --rm test pytest -q -p no:cacheprovider
       - name: Build and start the actual application
@@ -34,6 +34,8 @@ jobs:
           python backend/03_scripts/smoke.py --save /tmp/pulse-before.json
           docker compose run --rm bootstrap pulse ingest
           python backend/03_scripts/smoke.py --compare /tmp/pulse-before.json
+      - name: Verify both agents with real database evidence in explicit demo mode
+        run: python backend/03_scripts/agent_smoke.py
       - uses: actions/setup-node@v4
         with:
           node-version: '22'

@@ -20,7 +20,7 @@ dev = ["pytest==8.4.2", "httpx==0.28.1", "ruff==0.14.0"]
 pulse = "pulse.cli:main"
 
 [tool.setuptools.packages.find]
-where = ["01_pipeline/src", "02_api/src"]
+where = ["01_pipeline/src", "02_api/src", "04_agents/src"]
 namespaces = false
 
 [tool.setuptools.package-data]
@@ -29,7 +29,7 @@ pulse = ["migrations/*.sql", "lab_migrations/*.sql"]
 [tool.ruff]
 line-length = 100
 target-version = "py312"
-src = ["01_pipeline/src", "02_api/src"]
+src = ["01_pipeline/src", "02_api/src", "04_agents/src"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]

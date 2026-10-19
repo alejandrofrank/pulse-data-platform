@@ -7,6 +7,7 @@ RUN useradd --create-home --uid 10001 pulse && mkdir -p /opt/dagster && chown pu
 COPY backend/pyproject.toml ./
 COPY backend/01_pipeline ./01_pipeline
 COPY backend/02_api ./02_api
+COPY backend/04_agents ./04_agents
 RUN pip install --no-deps --no-build-isolation .
 COPY backend/00_infrastructure/dagster/dagster.yaml /opt/dagster/dagster.yaml
 COPY backend/00_infrastructure/dagster/workspace.yaml ./workspace.yaml
