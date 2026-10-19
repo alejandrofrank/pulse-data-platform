@@ -19,7 +19,7 @@ def main():
         from pulse.definitions import defs
 
         with DagsterInstance.get() as instance:
-            result = defs.get_job_def("ingest_all").execute_in_process(instance=instance)
+            result = defs.resolve_job_def("ingest_all").execute_in_process(instance=instance)
         if not result.success:
             raise SystemExit(1)
 

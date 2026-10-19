@@ -56,9 +56,13 @@ def file_error(conn, path, content, checksum, reason, run_id):
     )
 
 
-def load_file(conn, path, firms, run_id):
+def load_file(conn, path, firms, run_id, expected_sha256=None):
     content = path.read_bytes()
     checksum = hashlib.sha256(content).hexdigest()
+    if expected_sha256 is not None and checksum != expected_sha256:
+        raise FileContractError(
+            f"{path.name} changed after sensor inspection; wait for a new stable delivery"
+        )
     existing = conn.execute(
         "SELECT sha256,policy_version FROM raw.deliveries WHERE filename=%s", (path.name,)
     ).fetchone()
@@ -157,7 +161,9 @@ def publish(conn, run_id):
     )
 
 
-def ingest(data_dir=None, dagster_run_id=None, *, file_names=None, database_url=None):
+def ingest(
+    data_dir=None, dagster_run_id=None, *, file_names=None, database_url=None, expected_sha256=None
+):
     root = Path(data_dir or os.environ.get("PULSE_DATA_DIR", "data"))
     if file_names is None:
         paths = sorted((root / "drops").glob("*.csv"))
@@ -178,6 +184,10 @@ def ingest(data_dir=None, dagster_run_id=None, *, file_names=None, database_url=
             ):
                 raise ValueError("Selected CSV must exist directly inside drops/")
             paths.append(path)
+    if expected_sha256 is not None and (
+        file_names is None or set(expected_sha256) != set(file_names)
+    ):
+        raise ValueError("Expected checksums must match the explicitly selected filenames")
     run_id = uuid.uuid4()
     counts = Counter(loaded=0, skipped=0, failed=0)
     with connect(database_url) as conn:
@@ -199,7 +209,15 @@ def ingest(data_dir=None, dagster_run_id=None, *, file_names=None, database_url=
                 raise FileContractError("No CSV deliveries found in drops/")
             for path in paths:
                 with conn.transaction():
-                    counts[load_file(conn, path, firms, run_id)] += 1
+                    counts[
+                        load_file(
+                            conn,
+                            path,
+                            firms,
+                            run_id,
+                            expected_sha256.get(path.name) if expected_sha256 is not None else None,
+                        )
+                    ] += 1
             with conn.transaction():
                 publish(conn, run_id)
                 status = "partial" if counts["failed"] else "success"
