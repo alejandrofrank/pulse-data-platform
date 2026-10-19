@@ -54,6 +54,17 @@ assert first["counts"]["duplicate_rows"] == 31
 assert first["counts"]["gaps"] == 12
 # Private fixture aggregate removed when preparing the public history.
 assert all(check["passed"] for check in first["checks"])
+query = call(
+    "/api/lab/sql",
+    {
+        "sql": """SELECT
+    (SELECT count(*) FROM raw.records) AS raw_rows,
+    (SELECT count(*) FROM mart.firm_month) AS published_rows"""
+    },
+)
+assert query["role"] == "pulse_reader" and query["rows"] == [["18087", "17988"]]
+assert call("/api/lab/sql/schema")["database"].endswith("_lab")
+assert call("/api/lab/sql", {"sql": "SELECT * FROM mart.firm_month", "explain": True})["explain"]
 second = play(list(reversed(files)))
 assert first["business_hash"] == second["business_hash"]
 assert first["counts"] == second["counts"]

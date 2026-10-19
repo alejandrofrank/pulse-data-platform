@@ -1,0 +1,203 @@
+#sql-console {
+  scroll-margin-top: 20px;
+}
+.sql-workspace {
+  display: grid;
+  grid-template-columns: 270px minmax(0, 1fr);
+}
+.sql-schema {
+  padding: 16px;
+  border-right: 1px solid var(--line);
+  max-height: 500px;
+  overflow: auto;
+}
+.sql-schema-heading,
+.sql-toolbar,
+.sql-result-heading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.sql-schema-heading {
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-size: 12px;
+}
+.sql-schema-heading button {
+  min-height: 28px;
+  padding: 2px 9px;
+}
+#sql-tables {
+  margin-top: 12px;
+}
+.sql-table {
+  border-top: 1px solid var(--line-soft);
+  padding: 7px 0;
+}
+.sql-table summary {
+  cursor: pointer;
+  font: 11px/1.7 var(--mono);
+  color: var(--fg);
+  overflow-wrap: anywhere;
+}
+.sql-table button {
+  border: 0;
+  background: transparent;
+  min-height: 26px;
+  padding: 3px 2px;
+  font: 10px var(--mono);
+  color: var(--accent);
+  text-align: left;
+}
+.sql-column {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px 8px;
+  align-items: baseline;
+  padding-left: 10px;
+}
+.sql-column small {
+  font: 9px var(--mono);
+  color: var(--subtle);
+  overflow-wrap: anywhere;
+}
+.sql-query {
+  padding: 18px 22px;
+  min-width: 0;
+}
+.sql-query > label {
+  display: block;
+  font-size: 12px;
+  margin-bottom: 8px;
+}
+#sql-editor {
+  display: block;
+  width: 100%;
+  min-height: 205px;
+  resize: vertical;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: #101720;
+  color: var(--fg);
+  font: 12px/1.7 var(--mono);
+  padding: 14px;
+  tab-size: 2;
+}
+#sql-editor:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.sql-toolbar {
+  margin: 12px 0;
+}
+.sql-toolbar button {
+  min-height: 36px;
+  font-size: 12px;
+}
+.sql-toolbar label {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.sql-toolbar select {
+  min-height: 36px;
+}
+.sql-examples {
+  margin-top: 12px;
+  color: var(--muted);
+  font-size: 12px;
+}
+.sql-examples summary {
+  cursor: pointer;
+}
+#sql-examples {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 8px 0;
+}
+#sql-examples button {
+  font-size: 11px;
+  padding: 5px 9px;
+  min-height: 30px;
+}
+.sql-result-heading {
+  border-top: 1px solid var(--line);
+  justify-content: space-between;
+  padding: 14px 18px;
+}
+#sql-status {
+  font: 11px/1.6 var(--mono);
+  font-weight: 400;
+}
+#sql-results-wrap {
+  max-height: 450px;
+}
+#sql-results {
+  width: max-content;
+  min-width: 100%;
+}
+#sql-results th {
+  position: sticky;
+  top: 0;
+  background: var(--surface-raised);
+  z-index: 1;
+}
+#sql-results th small {
+  display: block;
+  color: var(--subtle);
+  font: 9px var(--mono);
+  text-transform: none;
+}
+#sql-results td {
+  font: 11px/1.7 var(--mono);
+  max-width: 620px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  vertical-align: top;
+}
+#sql-results td[data-null] {
+  font-style: italic;
+  color: var(--subtle);
+}
+#sql-error {
+  color: var(--error);
+  background: #281d24;
+  border-top: 1px solid var(--line);
+  padding: 14px 18px;
+  font: 12px/1.7 var(--mono);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+#sql-executed {
+  border-top: 1px solid var(--line-soft);
+  padding: 12px 18px;
+  color: var(--muted);
+  font-size: 12px;
+}
+#sql-executed summary {
+  cursor: pointer;
+}
+#sql-executed-text {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font: 11px/1.7 var(--mono);
+  margin: 10px 0 0;
+}
+@media (max-width: 800px) {
+  .sql-workspace {
+    grid-template-columns: 1fr;
+  }
+  .sql-schema {
+    max-height: 190px;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .sql-query {
+    padding: 14px;
+  }
+}

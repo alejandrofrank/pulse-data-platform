@@ -7,7 +7,9 @@
     <title>Pulse · Laboratorio de ingesta</title>
     <link rel="stylesheet" href="/static/styles.css" />
     <link rel="stylesheet" href="/static/lab.css" />
+    <link rel="stylesheet" href="/static/sql.css" />
     <script defer src="/static/lab.js"></script>
+    <script defer src="/static/sql.js"></script>
   </head>
   <body>
     <a class="skip-link" href="#lab-main">Ir al laboratorio</a>
@@ -19,6 +21,7 @@
         </div>
       </div>
       <nav aria-label="Herramientas">
+        <a href="#sql-console">SQL</a>
         <a href="/dashboard">Dashboard principal</a
         ><a href="/docs">API del laboratorio</a
         ><span id="connection-status" role="status">Conectando…</span>
@@ -114,6 +117,94 @@
             CSV en curso.
           </p>
         </div>
+      </section>
+      <section id="sql-console" class="panel" aria-labelledby="sql-title">
+        <div class="panel-title">
+          <div class="panel-heading">
+            <h2 id="sql-title">PostgreSQL / SQL</h2>
+          </div>
+          <span id="sql-connection" class="panel-meta">Conectando…</span>
+        </div>
+        <div class="sql-workspace">
+          <aside class="sql-schema" aria-label="Esquema de PostgreSQL">
+            <div class="sql-schema-heading">
+              <strong>Tablas y columnas</strong
+              ><button
+                id="sql-schema-refresh"
+                title="Actualizar esquema"
+                aria-label="Actualizar esquema"
+              >
+                ↻
+              </button>
+            </div>
+            <p class="note">Pulsa un nombre para insertarlo en el editor.</p>
+            <div id="sql-tables"></div>
+          </aside>
+          <div class="sql-query">
+            <label for="sql-editor">Consulta SQL</label>
+            <textarea
+              id="sql-editor"
+              rows="10"
+              spellcheck="false"
+              autocapitalize="off"
+              autocomplete="off"
+              aria-describedby="sql-help"
+            >
+SELECT *
+FROM core.firms
+ORDER BY id
+LIMIT 100;</textarea
+            >
+            <div class="sql-toolbar">
+              <button id="sql-run" class="primary-button">Ejecutar SQL</button>
+              <button id="sql-plan">Ver plan</button>
+              <label for="sql-limit"
+                >Máx. filas
+                <select id="sql-limit">
+                  <option value="100">100</option>
+                  <option value="500" selected>500</option>
+                  <option value="1000">1.000</option>
+                </select></label
+              >
+            </div>
+            <p id="sql-help" class="note">
+              Ctrl/⌘ + Enter ejecuta la selección o todo el editor. Una consulta
+              SELECT, WITH o VALUES · solo lectura · 5 s. «Ver plan» explica la
+              consulta sin ejecutarla.
+            </p>
+            <details class="sql-examples">
+              <summary>SQL de ejemplo para investigar</summary>
+              <div id="sql-examples"></div>
+              <p class="note">
+                Los ejemplos se pueden editar. Ninguno se ejecuta al
+                seleccionarlo.
+              </p>
+            </details>
+          </div>
+        </div>
+        <div class="sql-result-heading">
+          <strong id="sql-status" role="status"
+            >Escribe SQL y pulsa Ejecutar.</strong
+          ><span id="sql-snapshot" class="panel-meta"></span>
+        </div>
+        <p id="sql-error" role="alert" hidden></p>
+        <div
+          id="sql-results-wrap"
+          class="table-wrap"
+          tabindex="0"
+          role="region"
+          aria-label="Resultados de SQL"
+          hidden
+        >
+          <table id="sql-results">
+            <thead></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <details id="sql-executed" hidden>
+          <summary>Consulta ejecutada</summary>
+          <pre id="sql-executed-text"></pre>
+        </details>
       </section>
       <section class="cards lab-cards" aria-label="Estado del laboratorio">
         <article>

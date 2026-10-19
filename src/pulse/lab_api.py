@@ -6,12 +6,14 @@ from typing import Annotated, Literal
 from urllib.parse import urlsplit
 from uuid import UUID
 
+import psycopg
 from fastapi import Depends, FastAPI, Header, HTTPException, Request
 from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, ConfigDict, Field
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
+from pulse import lab_sql
 from pulse.api import DB, STATIC, response, router
 from pulse.lab import LabConflict, Playback
 
@@ -60,6 +62,34 @@ class PlayRequest(BaseModel):
 
 class ResetRequest(BaseModel):
     confirmation: Literal["RESET LAB"]
+
+
+class SQLRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    sql: str = Field(min_length=1, max_length=50000)
+    limit: int = Field(default=500, ge=1, le=1000, strict=True)
+    explain: bool = False
+
+
+@app.get("/api/lab/sql/schema")
+def sql_schema():
+    try:
+        return response(lab_sql.schema())
+    except (lab_sql.QueryUnavailable, psycopg.Error) as exc:
+        raise HTTPException(503, lab_sql.error_detail(exc)) from exc
+
+
+@app.post("/api/lab/sql", dependencies=[Depends(local_action)])
+def run_sql(body: SQLRequest):
+    if not body.sql.strip():
+        raise HTTPException(422, {"message": "Write a SELECT query first"})
+    try:
+        return response(lab_sql.query(body.sql, body.limit, body.explain))
+    except lab_sql.QueryUnavailable as exc:
+        raise HTTPException(503, lab_sql.error_detail(exc)) from exc
+    except psycopg.Error as exc:
+        status = 408 if exc.sqlstate == "57014" else 400
+        raise HTTPException(status, lab_sql.error_detail(exc)) from exc
 
 
 def action(call):

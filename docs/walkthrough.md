@@ -156,6 +156,14 @@ business hash stay identical. Reset the lab, load May before April, and use the 
 API for firm 218 in April to show that delivery precedence beats arrival order. Pause
 after a file, refresh the browser and continue to demonstrate persisted progress.
 
+The lab's **SQL** panel lets a reviewer investigate beyond the dashboard's filters.
+Write joins between `mart.firm_month`, `raw.records` and `raw.deliveries` to inspect
+which source row won. Query raw JSON, quality issues, execution history or playback
+evidence directly. All SQL uses the reader role; PostgreSQL enforces read-only access,
+while bounded cursor fetching avoids returning an entire large result to the browser.
+Use **Ver plan** for a non-executing plan and run a query again after playback to see
+the new snapshot. Precision is preserved as text rather than converted to JavaScript numbers.
+
 1. Start with `docker compose up`; open the dashboard and explain coverage.
 2. Inspect a row error, a backlog warning and a duplicate.
 3. Select firm 218 and inspect April 2023 lineage to show a later correction.
