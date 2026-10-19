@@ -185,6 +185,23 @@ def test_large_valid_payload_is_unavailable_evidence_not_false_corruption(
     assert "mismatch" not in checks.values()
 
 
+def test_recovered_whitespace_identity_is_included_in_investigation_history(
+    investigation, published, tmp_path, fetch_api
+):
+    drops, _, _ = published
+    malformed = make_csv([{"asesoria_id": "\t001 ", "mes": "\t2025-10 \n"}])
+    (drops / "metricas_2025-11.csv").write_bytes(malformed.rstrip(b"\r\n") + b",extra\n")
+    ingest(tmp_path)
+    report = investigation.investigate(1, MONTH, fetch_api)
+    assert report["status"] == "consistent", report["findings"]
+    versions = report["evidence"]["versions"]
+    assert versions["total"] == 2
+    assert len(versions["items"]) == 2
+    rejected = next(row for row in versions["items"] if row["status"] == "rejected")
+    assert rejected["normalized"] == {}
+    assert report["evidence"]["published"]["has_rejected_newer_delivery"] is True
+
+
 def test_corrupt_delivery_revision_cannot_certify_a_wrong_published_winner(
     investigation, tmp_path, fetch_api
 ):

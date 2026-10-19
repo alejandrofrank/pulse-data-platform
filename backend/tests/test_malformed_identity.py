@@ -131,7 +131,11 @@ def test_malformed_metrics_never_compete_with_a_valid_row(version):
 
 
 def test_supplied_fixture_still_matches_independent_policy_one_parser():
-    root = Path(__file__).resolve().parents[2] / "data"
+    test_file = Path(__file__).resolve()
+    # Checkouts keep data beside backend; the Docker test image copies it inside backend.
+    fixture_roots = (test_file.parents[2] / "data", test_file.parents[1] / "data")
+    root = next((path for path in fixture_roots if (path / "asesorias.csv").is_file()), None)
+    assert root is not None, f"Supplied CSV fixture not found in {fixture_roots}"
     firms = parse_master((root / "asesorias.csv").read_bytes())
     statuses = Counter()
     for path in sorted((root / "drops").glob("*.csv")):

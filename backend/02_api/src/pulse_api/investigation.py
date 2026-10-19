@@ -25,7 +25,8 @@ MAX_VERSIONS = 50
 MAX_ARCHIVE_BYTES = 2 * 1024 * 1024
 MAX_TOTAL_ARCHIVE_BYTES = 8 * 1024 * 1024
 SLOTS = threading.BoundedSemaphore(2)
-KEY_FILTER = """(r.normalized->>'asesoria_id'=%s AND r.normalized->>'mes'=%s)
+KEY_FILTER = """r.id IN (SELECT record_id FROM raw.record_identity
+    WHERE asesoria_id=%s AND mes=%s)
     OR (ltrim(btrim(r.payload->>'asesoria_id'),'0')=%s AND btrim(r.payload->>'mes')=%s)"""
 
 
