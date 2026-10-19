@@ -110,7 +110,8 @@ budget, not the provider account's balance or a billing guarantee across other a
 Each provider call has a 15-second socket timeout and a 256 KiB response limit.
 The two encoded provider requests share a 24 KiB input budget; Responses generates
 at most 1,200 tokens. The request has at most two provider calls. Analytics has a bounded execution budget, statement/lock
-timeouts and 100 result rows; investigation has its own explicit evidence limits.
+timeouts, at most 120 monthly series rows, and at most 100 ranking/decline rows;
+investigation has its own explicit evidence limits.
 No unbounded background queue is created. Capacity errors are visible and repeated
 request IDs do not trigger a second accepted model execution.
 

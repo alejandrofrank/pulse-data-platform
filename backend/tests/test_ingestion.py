@@ -203,7 +203,20 @@ def independent_reference(root):
     return latest, totals
 
 
-def test_full_fixture_idempotency_reconciliation_and_api(database):
+def test_full_fixture_idempotency_reconciliation_and_api(database, monkeypatch):
+    import importlib
+
+    module = importlib.import_module("pulse.ingest")
+    publish = module.publish
+
+    def bounded_publication(conn, run_id):
+        # A full-sized fixture must catch per-fact repeated identity scans that
+        # tiny correctness examples cannot reveal. This is a generous statement
+        # budget for 18k rows, not a production latency SLA.
+        conn.execute("SET LOCAL statement_timeout='30s'")
+        publish(conn, run_id)
+
+    monkeypatch.setattr(module, "publish", bounded_publication)
     root = Path("data")
     assert ingest(root)["loaded"] == 36
     before = fingerprint()

@@ -149,6 +149,8 @@ def parse_drop(content: bytes, name: str, firms: dict[int, dict]):
         row = ParsedRow(line=line, raw=raw)
         parsed.append(row)
         if None in raw or any(value is None for value in raw.values()):
+            # Policy 1 archives malformed rows with no normalized fields. Preserve
+            # that contract; raw.record_identity recovers rejection identity separately.
             row.issue("column_count", "Row has a different number of columns than its header")
             continue
         clean = {k: v.strip() for k, v in raw.items()}

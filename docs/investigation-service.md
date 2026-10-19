@@ -40,6 +40,13 @@ quoted records can span several lines. All executed evidence SQL and parameters
 are returned. The evidence digest identifies this collected packet; operational
 IDs and observation times mean it is not a business fingerprint across rebuilds.
 
+Expected delivery precedence is parsed independently from filenames and compared
+with stored delivery month/revision metadata. The full accepted candidate set must
+fit the verification budget before a winner can be certified. An omitted payload
+or normalized field remains unavailable evidence, never an empty value to compare
+as if it were complete. API item counts and missing-month markers are checked
+against the same database snapshot's coverage, including when no accepted row exists.
+
 Each check is `match`, `mismatch` or `unavailable`. The overall outcome is
 `discrepancy` if any check disagrees, `inconclusive` if evidence is unavailable,
 otherwise `consistent`. A consistent result only means that the checked layers

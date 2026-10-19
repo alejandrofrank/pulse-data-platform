@@ -137,7 +137,12 @@ def publish(conn, run_id):
     projection = ",".join(f"n.{name}" for name in METRICS)
     declarations = ",".join(f"{name} {kind}" for name, kind in types.items())
     conn.execute(
-        f"""WITH winners AS (
+        f"""WITH rejected_keys AS MATERIALIZED (
+        SELECT bi.asesoria_id,bi.mes,bd.delivery_month,bd.revision
+        FROM raw.records bad JOIN raw.deliveries bd ON bd.id=bad.delivery_id
+        JOIN raw.record_identity bi ON bi.record_id=bad.id
+        WHERE bad.status='rejected'
+    ), winners AS (
         SELECT DISTINCT ON (r.normalized->>'asesoria_id',r.normalized->>'mes')
             r.*,d.delivery_month,d.revision
         FROM raw.records r JOIN raw.deliveries d ON d.id=r.delivery_id
@@ -149,11 +154,10 @@ def publish(conn, run_id):
        has_rejected_newer_delivery,published_run_id)
     SELECT n.asesoria_id,n.mes,{projection},w.id,
       EXISTS (
-        SELECT 1 FROM raw.records bad JOIN raw.deliveries bd ON bd.id=bad.delivery_id
-        WHERE bad.status='rejected'
-          AND bad.normalized->>'asesoria_id'=w.normalized->>'asesoria_id'
-          AND bad.normalized->>'mes'=w.normalized->>'mes'
-          AND (bd.delivery_month,bd.revision)>(w.delivery_month,w.revision)
+        SELECT 1 FROM rejected_keys bad
+        WHERE bad.asesoria_id=w.normalized->>'asesoria_id'
+          AND bad.mes=w.normalized->>'mes'
+          AND (bad.delivery_month,bad.revision)>(w.delivery_month,w.revision)
       ), %s
     FROM winners w CROSS JOIN LATERAL jsonb_to_record(w.normalized)
          AS n(asesoria_id integer,mes date,{declarations})""",

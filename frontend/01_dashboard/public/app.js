@@ -13,6 +13,9 @@ const dateText = (value) =>
   value ? new Date(value).toLocaleString("es-ES") : "Sin cargas";
 let offset = 0;
 let requestVersion = 0;
+let qualityRequestVersion = 0;
+let firmRequestVersion = 0;
+const errors = new Map();
 
 async function get(url) {
   const response = await fetch(url);
@@ -22,15 +25,22 @@ async function get(url) {
   }
   return response.json();
 }
-function showError(error) {
-  el("error").textContent = error.message;
-  el("error").hidden = false;
+function showError(error, source = "details") {
+  if (error) errors.set(source, error.message);
+  else errors.delete(source);
+  el("error").textContent = [...errors.values()].join(" · ");
+  el("error").hidden = errors.size === 0;
 }
 function showDetails(value) {
   el("detail-content").textContent = JSON.stringify(value, null, 2);
   el("details").showModal();
 }
-function table(id, columns, rows) {
+function table(
+  id,
+  columns,
+  rows,
+  emptyMessage = "No hay registros para esta selección.",
+) {
   const head = el(id).querySelector("thead");
   const body = el(id).querySelector("tbody");
   head.replaceChildren();
@@ -48,7 +58,7 @@ function table(id, columns, rows) {
     const td = document.createElement("td");
     td.colSpan = columns.length;
     td.className = "empty";
-    td.textContent = "No hay registros para esta selección.";
+    td.textContent = emptyMessage;
     tr.append(td);
     body.append(tr);
   }
@@ -120,10 +130,22 @@ function drawChart(rows) {
   });
   el("chart").replaceChildren(svg);
 }
+function clearMetrics(message) {
+  document
+    .querySelectorAll(".latest-month")
+    .forEach((n) => (n.textContent = "—"));
+  for (const id of ["revenue", "clients", "coverage"]) el(id).textContent = "—";
+  el("coverage-detail").textContent = message;
+  el("coverage-card").dataset.state = "unknown";
+  el("chart").textContent = message;
+  table("metrics", [{ label: "Métricas" }], [], message);
+}
 async function loadMain() {
   const version = ++requestVersion;
   el("loading").textContent = "Cargando…";
-  el("error").hidden = true;
+  showError(null, "metrics");
+  showError(null, "details");
+  clearMetrics("Cargando métricas de esta selección…");
   try {
     const params = new URLSearchParams({ limit: 500 });
     if (el("start").value) params.set("start", el("start").value);
@@ -196,6 +218,17 @@ async function loadMain() {
         numeric: true,
         render: (r) => format(r.horas_trabajadas),
       },
+      ...(!firm
+        ? [
+            {
+              label: "Cobertura de horas",
+              render: (r) =>
+                r.hours_reporting_firms == null
+                  ? "Sin información"
+                  : `${r.hours_reporting_firms}/${r.expected_firms} asesorías${r.hours_reporting_firms < r.expected_firms ? " · Parcial" : ""}`,
+            },
+          ]
+        : []),
       {
         label: "Satisfacción",
         numeric: true,
@@ -203,7 +236,7 @@ async function loadMain() {
           format(firm ? r.satisfaccion_cliente : r.satisfaction_firm_average),
       },
       {
-        label: "Cobertura",
+        label: "Cobertura de asesorías",
         render: (r) =>
           firm ? r.coverage_status : `${r.reporting_firms}/${r.expected_firms}`,
       },
@@ -212,6 +245,7 @@ async function loadMain() {
       cols.push({
         label: "Origen",
         action: async (r) => {
+          showError(null, "details");
           try {
             showDetails(
               await get(`/api/v1/lineage/${firm}/${r.mes.slice(0, 7)}`),
@@ -225,22 +259,39 @@ async function loadMain() {
     el("loading").textContent = `${rows.length} meses`;
   } catch (error) {
     if (version === requestVersion) {
-      showError(error);
+      clearMetrics("No se pudieron cargar las métricas de esta selección.");
+      showError(error, "metrics");
       el("loading").textContent = "Error de carga";
     }
   }
 }
 async function loadQuality() {
+  const version = ++qualityRequestVersion;
   const selection = el("quality-view").value;
+  const pageOffset = offset;
+  showError(null, "quality");
+  table("quality", [{ label: "Calidad" }], [], "Cargando…");
+  el("page-info").textContent = "Cargando…";
   try {
     const data = await get(
-      `/api/v1/quality/${selection}${selection.includes("?") ? "&" : "?"}limit=20&offset=${offset}`,
+      `/api/v1/quality/${selection}${selection.includes("?") ? "&" : "?"}limit=20&offset=${pageOffset}`,
     );
+    if (version !== qualityRequestVersion) return;
     let columns;
     if (selection.startsWith("issues"))
       columns = [
         { label: "Archivo", key: "filename" },
         { label: "Fila", key: "line_number" },
+        {
+          label: "Asesoría",
+          render: (r) =>
+            r.normalized?.asesoria_id ?? r.identified_firm_id ?? "—",
+        },
+        {
+          label: "Mes",
+          render: (r) =>
+            (r.normalized?.mes ?? r.identified_month)?.slice(0, 7) ?? "—",
+        },
         { label: "Regla", key: "code" },
         { label: "Campo", key: "field" },
         { label: "Motivo", key: "message" },
@@ -279,11 +330,42 @@ async function loadQuality() {
     columns.push({ label: "Detalle", action: showDetails });
     table("quality", columns, data.items);
     el("page-info").textContent =
-      `${data.total ? offset + 1 : 0}–${Math.min(offset + 20, data.total)} de ${data.total}`;
-    el("previous").disabled = offset === 0;
-    el("next").disabled = offset + 20 >= data.total;
+      `${data.items.length ? pageOffset + 1 : 0}–${data.items.length ? pageOffset + data.items.length : 0} de ${data.total}`;
+    el("previous").disabled = pageOffset === 0;
+    el("next").disabled = pageOffset + 20 >= data.total;
   } catch (error) {
-    showError(error);
+    if (version !== qualityRequestVersion) return;
+    table(
+      "quality",
+      [{ label: "Calidad" }],
+      [],
+      "No se pudo cargar esta selección.",
+    );
+    el("page-info").textContent = "Error de carga";
+    showError(error, "quality");
+  }
+}
+async function loadFirms() {
+  const version = ++firmRequestVersion;
+  showError(null, "firms");
+  try {
+    const data = await get("/api/v1/firms?limit=500");
+    if (version !== firmRequestVersion) return;
+    // Preserve the current choice, including changes made while this request was pending.
+    const selected = el("firm").value;
+    const options = data.items.map((f) => {
+      const option = document.createElement("option");
+      option.value = f.id;
+      option.textContent = `${f.id} · ${f.nombre}`;
+      return option;
+    });
+    el("firm").replaceChildren(new Option("Toda la red", ""), ...options);
+    el("firm").value = options.some((option) => option.value === selected)
+      ? selected
+      : "";
+    if (el("firm").value !== selected) loadMain();
+  } catch (error) {
+    if (version === firmRequestVersion) showError(error, "firms");
   }
 }
 el("filters").onsubmit = (e) => {
@@ -293,6 +375,7 @@ el("filters").onsubmit = (e) => {
 el("refresh").onclick = () => {
   loadMain();
   loadQuality();
+  loadFirms();
 };
 el("quality-view").onchange = () => {
   offset = 0;
@@ -307,15 +390,6 @@ el("next").onclick = () => {
   loadQuality();
 };
 el("close-dialog").onclick = () => el("details").close();
-get("/api/v1/firms?limit=500")
-  .then((data) =>
-    data.items.forEach((f) => {
-      const option = document.createElement("option");
-      option.value = f.id;
-      option.textContent = `${f.id} · ${f.nombre}`;
-      el("firm").append(option);
-    }),
-  )
-  .catch(showError);
+loadFirms();
 loadMain();
 loadQuality();

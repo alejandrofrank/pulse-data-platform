@@ -4,6 +4,22 @@ storage:
       env: DAGSTER_DB_URL
 telemetry:
   enabled: false
+# Explicit MVP execution budgets, not worker-death detection. DefaultRunLauncher in
+# Dagster 1.11.16 cannot health-check workers or terminate execute_in_process runs.
+# cli.py enforces a 900s hard process deadline before these 960s deadlines. Monitoring
+# then marks orphaned runs failed and releases the single queue slot, normally within
+# 990s of run start (960s budget + 30s poll), while the daemon/database are available.
+# Scheduled/UI runs also have a 960s budget; the launcher attempts their termination.
+# Raising these limits requires raising the CLI budget consistently (CLI < monitor).
+# No automatic run retries: inspect failure, then re-run full ingestion to republish
+# retained raw data. Existing asset retries still handle transient step exceptions.
+run_monitoring:
+  enabled: true
+  start_timeout_seconds: 960
+  max_runtime_seconds: 960
+  cancel_timeout_seconds: 180
+  poll_interval_seconds: 30
+  max_resume_run_attempts: 0
 run_coordinator:
   module: dagster.core.run_coordinator
   class: QueuedRunCoordinator

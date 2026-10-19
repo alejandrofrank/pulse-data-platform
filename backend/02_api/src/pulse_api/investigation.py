@@ -3,6 +3,7 @@
 import hashlib
 import json
 import os
+import re
 import threading
 import time
 from datetime import UTC, date, datetime
@@ -24,7 +25,8 @@ MAX_VERSIONS = 50
 MAX_ARCHIVE_BYTES = 2 * 1024 * 1024
 MAX_TOTAL_ARCHIVE_BYTES = 8 * 1024 * 1024
 SLOTS = threading.BoundedSemaphore(2)
-KEY_FILTER = """(r.normalized->>'asesoria_id'=%s AND r.normalized->>'mes'=%s)
+KEY_FILTER = """r.id IN (SELECT record_id FROM raw.record_identity
+    WHERE asesoria_id=%s AND mes=%s)
     OR (ltrim(btrim(r.payload->>'asesoria_id'),'0')=%s AND btrim(r.payload->>'mes')=%s)"""
 
 
@@ -63,6 +65,14 @@ def finding(code, status, detail, **evidence):
     return {"code": code, "status": status, "detail": detail, **evidence}
 
 
+def delivery_order(filename):
+    """Parse the source naming contract independently of ingestion metadata."""
+    match = re.fullmatch(r"metricas_([0-9]{4}-[0-9]{2})(?:__([0-9]{3}))?\.csv", filename)
+    if match is None:
+        raise ValueError("Unsupported delivery filename")
+    return date.fromisoformat(match[1] + "-01"), int(match[2] or 0)
+
+
 def _collect(firm_id, month):
     from pulse_api.reconciliation import VERIFIER_VERSION, VerificationLimit, verify_delivery
 
@@ -96,6 +106,11 @@ def _collect(firm_id, month):
             (firm_id, month),
             one=True,
         )
+        coverage = query(
+            "SELECT asesoria_id,mes,status FROM mart.coverage WHERE asesoria_id=%s AND mes=%s",
+            (firm_id, month),
+            one=True,
+        )
         selected_id = published["source_record_id"] if published else None
         key = (str(firm_id), str(month), str(firm_id), month.strftime("%Y-%m"))
         total = query(f"SELECT count(*) AS n FROM raw.records r WHERE {KEY_FILTER}", key, one=True)[
@@ -106,6 +121,8 @@ def _collect(firm_id, month):
                  ELSE '{}'::jsonb END AS payload,
             CASE WHEN octet_length(r.normalized::text)<=16384 THEN r.normalized
                  ELSE '{}'::jsonb END AS normalized,
+            octet_length(r.payload::text)>16384 AS payload_omitted,
+            octet_length(r.normalized::text)>16384 AS normalized_omitted,
             (octet_length(r.payload::text)>16384 OR octet_length(r.normalized::text)>16384)
                 AS oversized_record,
             d.filename,d.delivery_month,d.revision,d.sha256,
@@ -123,32 +140,79 @@ def _collect(firm_id, month):
             "ORDER BY d.delivery_month DESC,d.revision DESC,r.line_number LIMIT %s",
             (publication_id, *key, MAX_VERSIONS),
         )
-        expected = query(
-            select
-            + """ WHERE r.normalized->>'asesoria_id'=%s
+        # Read a bounded, lightweight accepted-candidate set. Ordering it by stored
+        # precedence must not decide the expected winner: that is derived below
+        # from filenames only, and only when the complete set fits this budget.
+        accepted = query(
+            """SELECT r.id,r.delivery_id,r.line_number,
+            d.filename,d.delivery_month,d.revision
+            FROM raw.records r JOIN raw.deliveries d ON d.id=r.delivery_id
+            WHERE r.normalized->>'asesoria_id'=%s
             AND r.normalized->>'mes'=%s AND r.status='accepted'
             AND EXISTS(SELECT 1 FROM ops.publication_deliveries pd
                 WHERE pd.delivery_id=d.id AND pd.publication_id=%s)
-            ORDER BY d.delivery_month DESC,d.revision DESC,r.line_number LIMIT 1""",
-            (publication_id, str(firm_id), str(month), publication_id),
-            one=True,
+            ORDER BY d.delivery_month DESC,d.revision DESC,r.line_number LIMIT %s""",
+            (str(firm_id), str(month), publication_id, MAX_VERSIONS + 1),
+        )
+        orders, checked_deliveries = {}, set()
+
+        def check_order(row):
+            if row["delivery_id"] in checked_deliveries:
+                return
+            checked_deliveries.add(row["delivery_id"])
+            try:
+                order = delivery_order(row["filename"])
+            except ValueError:
+                order = None
+            orders[row["delivery_id"]] = order
+            matches = order == (row["delivery_month"], row["revision"])
+            checks.append(
+                finding(
+                    "delivery_order",
+                    "match" if matches else "mismatch",
+                    "Stored delivery month and revision compared with the filename contract.",
+                    delivery_id=row["delivery_id"],
+                    filename=row["filename"],
+                    expected=order,
+                    actual=(row["delivery_month"], row["revision"]),
+                )
+            )
+
+        for row in accepted:
+            check_order(row)
+        selection_complete = bool(publication) and len(accepted) <= MAX_VERSIONS
+        selection_complete = selection_complete and all(orders[r["delivery_id"]] for r in accepted)
+        # Different deliveries with the same logical filename order are ambiguous.
+        accepted_deliveries = {r["delivery_id"] for r in accepted}
+        selection_complete = selection_complete and len(
+            {orders[delivery_id] for delivery_id in accepted_deliveries}
+        ) == len(accepted_deliveries)
+        expected_id = None
+        if selection_complete and accepted:
+            expected_id = max(
+                accepted, key=lambda r: (orders[r["delivery_id"]], -r["line_number"])
+            )["id"]
+        expected = (
+            query(select + " WHERE r.id=%s", (publication_id, expected_id), one=True)
+            if expected_id is not None
+            else None
         )
         selected = (
             query(select + " WHERE r.id=%s", (publication_id, selected_id), one=True)
             if selected_id is not None
             else None
         )
-        expected_id = expected["id"] if expected else None
         checks.append(
             finding(
                 "winner_selection",
                 "match"
-                if publication and selected_id == expected_id
+                if selection_complete and selected_id == expected_id
                 else "mismatch"
-                if publication
+                if selection_complete
                 else "unavailable",
-                "Latest accepted record within the publication manifest; recorded eligibility "
-                "is independently checked below for the bounded evidence set.",
+                "Latest accepted record ordered independently by filename within the publication "
+                "manifest. Selection is withheld if the accepted-candidate set is incomplete "
+                "or its filename ordering is ambiguous; eligibility is checked below.",
                 expected_record_id=expected_id,
                 selected_record_id=selected_id,
             )
@@ -209,6 +273,8 @@ def _collect(firm_id, month):
         for row in (selected, expected):
             if row:
                 candidates[row["id"]] = row
+        for row in candidates.values():
+            check_order(row)
         if any(row["oversized_record"] for row in candidates.values()):
             checks.append(
                 finding("record_budget", "unavailable", "Oversized record fields omitted.")
@@ -301,7 +367,11 @@ def _collect(firm_id, month):
             checks.append(
                 finding(
                     "source_payload",
-                    "match" if matches_payload else "mismatch",
+                    "unavailable"
+                    if row["payload_omitted"]
+                    else "match"
+                    if matches_payload
+                    else "mismatch",
                     "Archived CSV record compared with the stored raw payload.",
                     record_id=row["id"],
                     filename=row["filename"],
@@ -309,15 +379,23 @@ def _collect(firm_id, month):
                 )
             )
             left, right = canonical(oracle["normalized"]), row["normalized"]
-            differing = [
-                k
-                for k in left.keys() | right.keys()
-                if k not in left or k not in right or not equivalent(left.get(k), right.get(k))
-            ]
+            differing = (
+                [
+                    k
+                    for k in left.keys() | right.keys()
+                    if k not in left or k not in right or not equivalent(left.get(k), right.get(k))
+                ]
+                if not row["normalized_omitted"]
+                else []
+            )
             checks.append(
                 finding(
                     "revenue_normalization",
-                    "mismatch" if any(k in REVENUE for k in differing) else "match",
+                    "unavailable"
+                    if row["normalized_omitted"]
+                    else "mismatch"
+                    if any(k in REVENUE for k in differing)
+                    else "match",
                     "Independent Decimal parsing of the original revenue fields.",
                     record_id=row["id"],
                     differing_fields=differing,
@@ -326,7 +404,11 @@ def _collect(firm_id, month):
             checks.append(
                 finding(
                     "row_validation",
-                    "match" if not differing and oracle["status"] == row["status"] else "mismatch",
+                    "mismatch"
+                    if differing or oracle["status"] != row["status"]
+                    else "unavailable"
+                    if row["normalized_omitted"]
+                    else "match",
                     "Independent full-row normalization and duplicate eligibility.",
                     record_id=row["id"],
                     expected_status=oracle["status"],
@@ -339,6 +421,9 @@ def _collect(firm_id, month):
 
         published_revenue = money(published) if published else None
         expected_revenue = money(expected["normalized"]) if expected else None
+        components_available = selection_complete and not (
+            expected and expected["normalized_omitted"]
+        )
         components_match = (published is None and expected is None) or bool(
             published
             and expected
@@ -348,16 +433,16 @@ def _collect(firm_id, month):
             finding(
                 "mart_revenue",
                 "match"
-                if publication and components_match
+                if components_available and components_match
                 else "mismatch"
-                if publication
+                if components_available
                 else "unavailable",
                 "All four published revenue components compared with the selected input.",
                 expected=expected_revenue,
                 actual=published_revenue,
             )
         )
-        if not expected:
+        if selection_complete and not expected:
             checks.append(
                 finding(
                     "no_accepted_source",
@@ -379,6 +464,7 @@ def _collect(firm_id, month):
                 "truncated": error_count > 20,
             },
             "published": published,
+            "expected_coverage": coverage,
             "published_revenue_eur": published_revenue,
             "original_revenue_eur": original_revenue,
             "api_revenue_eur": None,
@@ -461,6 +547,23 @@ def investigate(firm_id: int, month: date, fetch_api=None):
                 break
             item = items[0] if len(items) == 1 else None
             evidence["api_revenue_eur"] = item.get("revenue_eur") if item else None
+            expected_count = int(evidence["expected_coverage"] is not None)
+            if (
+                type(body.get("total")) is not int
+                or body["total"] != expected_count
+                or len(items) != expected_count
+            ):
+                checks.append(
+                    finding(
+                        "api_revenue",
+                        "mismatch",
+                        "HTTP item count and total disagree with snapshot coverage.",
+                        expected_items=expected_count,
+                        actual_items=len(items),
+                        actual_total=body.get("total"),
+                    )
+                )
+                break
             published = evidence["published"]
             if published:
                 matches = bool(
@@ -476,7 +579,7 @@ def investigate(firm_id: int, month: date, fetch_api=None):
                     and equivalent(item.get("revenue_eur"), evidence["published_revenue_eur"])
                 )
             else:
-                matches = not items or bool(
+                matches = (expected_count == 0 and not items) or bool(
                     item
                     and item.get("asesoria_id") == firm_id
                     and item.get("mes") == str(month)

@@ -53,6 +53,8 @@ jobs:
           python backend/03_scripts/smoke.py --compare /tmp/pulse-before.json
       - name: Verify automatic pickup through the Dagster daemon
         run: python backend/03_scripts/sensor_smoke.py --data-dir data --disposable
+      - name: Verify diagnostic startup with quarantined input
+        run: python backend/03_scripts/bootstrap_smoke.py --disposable
       - name: Collect service logs
         if: always()
         run: docker compose --profile lab logs --no-color > compose.log

@@ -20,6 +20,13 @@ data through Dagster, and starts the API/dashboard, Dagster UI and scheduler dae
 No `.env` file or manual database setup is needed. Startup waits for healthy database
 and successful bootstrap. For background mode: `docker compose up -d --build --wait`.
 
+Known input-quality failures do not hide the diagnostics. If ingestion committed a
+verified, internally consistent publication, bootstrap can start the API and Dagster
+UI while the ingestion remains visibly **FAILED** in Dagster. This includes a valid
+empty publication when every supplied row/file was rejected. The quality endpoints
+explain what happened. Manual `pulse ingest` still exits unsuccessfully for those
+outcomes; migration, infrastructure and unexpected integrity failures block startup.
+
 - Dashboard: http://localhost:8000
 - Agent workbench: http://localhost:8000/agents — business questions and revenue investigation
 - Interactive API documentation: http://localhost:8000/docs
@@ -57,6 +64,14 @@ resubmitted by the sensor. The daily **06:00 Europe/Madrid** schedule and manual
 command remain available for reconciliation and recovery, including archived data whose
 publication previously failed. The lab's playback stays manual and isolated; this sensor
 does not automatically fill the lab database.
+
+Manual/bootstrap ingestion has a hard 15-minute process budget. Dagster monitoring
+enforces 16-minute start/runtime budgets with a 30-second poll, so an interrupted
+run cannot hold the one-run queue indefinitely while the daemon and database remain
+available. This is an explicit MVP execution limit, not proof that a worker died.
+Scheduled/UI workers have the same 16-minute runtime budget. Failed runs are visible;
+the next full ingestion reconciles retained raw data and marks abandoned `ops.runs`
+entries. Increase these budgets together if measured workloads require longer runs.
 
 By default, only loopback ports 8000 and 3000 are exposed. PostgreSQL has no published
 port. If those ports are busy, set `PULSE_PORT` and/or `DAGSTER_PORT` in your environment
@@ -359,9 +374,11 @@ stack, verifies real HTTP responses, ingests again and compares stable published
 results. It uploads service logs and tears down its disposable database. There is
 no automatic deployment to an external server because no target was supplied.
 
-Dependencies are pinned transitively in `backend/requirements*.txt`. From `backend/`,
-update the adjacent `.in` files and regenerate with pip-tools under Python 3.12, then
-run the complete CI. Dagster's
+Dependencies, including the `setuptools` runtime/build dependency, are pinned in
+`backend/requirements*.txt`. From `backend/`, update the adjacent `.in` files and
+regenerate with pip-tools under Python 3.12 using `pip-compile --allow-unsafe
+requirements.in` and `pip-compile --allow-unsafe requirements-dev.in`, then run the
+complete CI. Omitting `--allow-unsafe` would leave setuptools outside the lock. Dagster's
 PostgreSQL metadata connection explicitly uses psycopg2; business ingestion uses
 psycopg 3. SQLAlchemy 2.0 is pinned for the selected Dagster release.
 
@@ -484,6 +501,13 @@ coverage accompanies observed totals. Unsupported metrics and historical screen
 states are explicitly unavailable. Model interpretation can still be wrong: inspect
 the visible plan/SQL and maintain labeled evaluations for semantic accuracy.
 
+For the brief's campaign example, income-tax declarations support a monthly series
+or a total over explicit dates. A campaign-versus-rest-of-year comparison is not a
+single supported operation: agree the campaign period and use separate queries.
+Likewise, "losing clients" needs a definition (stock decline or departures) and a
+period; three stock declines require four contiguous observations. The no-key demo
+recognizes only the three documented English examples, not arbitrary paraphrases.
+
 ### 6. What can the natural-language layer do?
 
 Only the business query and revenue investigation tools exist. Neither executes
@@ -523,3 +547,4 @@ coherent, verified change in a separate commit. CI runs for pull requests and `m
 this workflow does not imply that branch protection or human approval is configured.
 
 This history has been prepared for a public portfolio edition.
+confirmed findings, regression evidence and outstanding reviewer access.

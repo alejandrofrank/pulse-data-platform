@@ -169,6 +169,85 @@ def test_original_revenue_matches_real_api(
     assert_consistent(report, record_id(filename), api["publication_id"], expected, 1)
 
 
+def test_large_valid_payload_is_unavailable_evidence_not_false_corruption(
+    investigation, tmp_path, fetch_api
+):
+    drops = source(tmp_path)
+    (drops / "metricas_2025-10.csv").write_bytes(
+        make_csv([{"facturacion_asesoria_eur": " " * 17000 + "100"}])
+    )
+    ingest(tmp_path)
+    assert fetch_api(1, "2025-10")["body"]["items"][0]["revenue_eur"] == "120.00"
+    report = investigation.investigate(1, MONTH, fetch_api)
+    checks = findings(report)
+    assert report["status"] == "inconclusive"
+    assert checks["source_payload"] == "unavailable"
+    assert "mismatch" not in checks.values()
+
+
+def test_recovered_whitespace_identity_is_included_in_investigation_history(
+    investigation, published, tmp_path, fetch_api
+):
+    drops, _, _ = published
+    malformed = make_csv([{"asesoria_id": "\t001 ", "mes": "\t2025-10 \n"}])
+    (drops / "metricas_2025-11.csv").write_bytes(malformed.rstrip(b"\r\n") + b",extra\n")
+    ingest(tmp_path)
+    report = investigation.investigate(1, MONTH, fetch_api)
+    assert report["status"] == "consistent", report["findings"]
+    versions = report["evidence"]["versions"]
+    assert versions["total"] == 2
+    assert len(versions["items"]) == 2
+    rejected = next(row for row in versions["items"] if row["status"] == "rejected")
+    assert rejected["normalized"] == {}
+    assert report["evidence"]["published"]["has_rejected_newer_delivery"] is True
+
+
+def test_corrupt_delivery_revision_cannot_certify_a_wrong_published_winner(
+    investigation, tmp_path, fetch_api
+):
+    drops = source(tmp_path)
+    (drops / "metricas_2025-10.csv").write_bytes(make_csv([{"facturacion_asesoria_eur": "100"}]))
+    (drops / "metricas_2025-10__001.csv").write_bytes(
+        make_csv([{"facturacion_asesoria_eur": "200"}])
+    )
+    ingest(tmp_path)
+    assert fetch_api(1, "2025-10")["body"]["items"][0]["revenue_eur"] == "220.00"
+    # Simulate a processing/storage defect using only the guarded test database.
+    # The archived CSV names/bytes remain intact, but their precedence is corrupted.
+    with connect() as conn:
+        conn.execute("UPDATE raw.deliveries SET revision=999 WHERE revision=0")
+        conn.execute("UPDATE raw.deliveries SET revision=0 WHERE revision=1")
+        conn.execute("UPDATE raw.deliveries SET revision=1 WHERE revision=999")
+    ingest(tmp_path)
+    assert fetch_api(1, "2025-10")["body"]["items"][0]["revenue_eur"] == "120.00"
+    report = investigation.investigate(1, MONTH, fetch_api)
+    assert report["status"] == "discrepancy"
+    assert any(
+        item["status"] == "mismatch" and "delivery" in item["code"] for item in report["findings"]
+    ), report["findings"]
+
+
+@pytest.mark.parametrize("reported_total", [0, 1])
+def test_missing_eligible_month_marker_cannot_pass_api_reconciliation(
+    investigation, tmp_path, fetch_api, reported_total
+):
+    drops = source(tmp_path)
+    (drops / "metricas_2025-10.csv").write_bytes(make_csv([{"satisfaccion_cliente": "99"}]))
+    ingest(tmp_path)
+
+    def omitted_item(firm_id, month):
+        result = fetch_api(firm_id, month)
+        assert result["body"]["total"] == 1
+        assert result["body"]["items"][0]["coverage_status"] == "missing"
+        result["body"]["items"] = []
+        result["body"]["total"] = reported_total
+        return result
+
+    report = investigation.investigate(1, MONTH, omitted_item)
+    assert report["status"] == "discrepancy"
+    assert findings(report)["api_revenue"] == "mismatch"
+
+
 def test_corrections_choose_delivery_order_not_arrival_order(
     investigation, published, tmp_path, fetch_api
 ):
