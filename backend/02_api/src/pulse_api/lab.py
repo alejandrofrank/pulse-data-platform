@@ -352,7 +352,8 @@ class Playback:
                 raise LabConflict("An ingestion is running; wait before resetting the lab")
             # Explicit table list, fixed lab connection, no database/schema drop or source deletion.
             conn.execute("""TRUNCATE lab.steps,lab.jobs,mart.firm_month,ops.issues,
-                ops.file_errors,raw.records,raw.deliveries,ops.runs RESTART IDENTITY""")
+                ops.file_errors,ops.publication_deliveries,ops.publications,
+                raw.records,raw.deliveries,ops.runs RESTART IDENTITY""")
 
     def get_job(self, job_id):
         with connect(self.url) as conn:

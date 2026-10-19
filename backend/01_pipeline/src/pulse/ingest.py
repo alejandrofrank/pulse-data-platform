@@ -159,6 +159,16 @@ def publish(conn, run_id):
          AS n(asesoria_id integer,mes date,{declarations})""",
         (run_id,),
     )
+    conn.execute(
+        """INSERT INTO ops.publications(id,policy_version,record_count)
+        SELECT %s,%s,count(*) FROM mart.firm_month""",
+        (run_id, POLICY_VERSION),
+    )
+    conn.execute(
+        """INSERT INTO ops.publication_deliveries(publication_id,delivery_id)
+        SELECT %s,id FROM raw.deliveries""",
+        (run_id,),
+    )
 
 
 def ingest(

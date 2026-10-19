@@ -311,6 +311,7 @@ docker compose exec lab-db psql -U pulse_reader -d pulse_lab
 | `GET /api/v1/quality/gaps` | Missing eligible firm-months |
 | `GET /api/v1/quality/file-errors` | Malformed or mutated file incidents, including resolution status |
 | `GET /api/v1/lineage/{id}/{YYYY-MM}` | Delivery versions, reasons and the selected source record |
+| `GET /api/v1/investigations/{id}/{YYYY-MM}` | Independent source-to-API revenue reconciliation |
 
 List responses use `{items,total,limit,offset}`; limit is 1–500. Month bounds are
 inclusive. Invalid parameters return 422, unknown firms return 404. Money is an
@@ -394,6 +395,11 @@ missing expected deliveries need a delivery-calendar SLA, not a guessed warning.
    correct it and test the endpoint. Finally inspect dashboard formatting/filtering.
 
 The source is never silently edited to make a test pass.
+
+This procedure is executable through the deterministic investigation endpoint.
+It returns each comparison, exact SQL, source evidence and explicit uncertainty.
+Metrics expose their publication ID so simultaneous corrections cannot create a
+false API mismatch. See [the service design and limits](docs/investigation-service.md).
 
 ### 4. What changes at 5,000 firms submitting daily?
 

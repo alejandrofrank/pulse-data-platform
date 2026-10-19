@@ -66,8 +66,15 @@ Limit = Annotated[int, Query(ge=1, le=500)]
 Offset = Annotated[int, Query(ge=0)]
 
 
-def response(data):
-    return JSONResponse(jsonable_encoder(data, custom_encoder={Decimal: str}))
+def response(data, headers=None):
+    return JSONResponse(jsonable_encoder(data, custom_encoder={Decimal: str}), headers=headers)
+
+
+def publication_headers(conn):
+    row = conn.execute(
+        "SELECT id FROM ops.publications ORDER BY published_at DESC LIMIT 1"
+    ).fetchone()
+    return {"X-Pulse-Publication-ID": str(row["id"])} if row else {}
 
 
 def month_value(value):
@@ -90,7 +97,10 @@ def month_filter(start, end, column="mes"):
 def page(conn, query, params, limit, offset):
     total = conn.execute(f"SELECT count(*) AS n FROM ({query}) q", params).fetchone()["n"]
     items = conn.execute(query + " LIMIT %s OFFSET %s", [*params, limit, offset]).fetchall()
-    return response({"items": items, "total": total, "limit": limit, "offset": offset})
+    return response(
+        {"items": items, "total": total, "limit": limit, "offset": offset},
+        headers=publication_headers(conn),
+    )
 
 
 @app.get("/", include_in_schema=False)
@@ -273,7 +283,7 @@ def file_errors(conn: DB, limit: Limit = 50, offset: Offset = 0):
 
 
 @router.get("/api/v1/lineage/{firm_id}/{month}", tags=["Lineage"])
-def lineage(firm_id: int, month: str, conn: DB):
+def lineage(firm_id: int, month: str, conn: DB, limit: Limit = 100, offset: Offset = 0):
     metric_month = month_value(month)
     winner = conn.execute(
         """SELECT source_record_id FROM mart.firm_month
@@ -282,15 +292,21 @@ def lineage(firm_id: int, month: str, conn: DB):
     ).fetchone()
     rows = conn.execute(
         """SELECT r.*,d.filename,d.delivery_month,d.revision,d.sha256,
+        d.loaded_at,d.policy_version,d.schema_version,d.run_id,
         coalesce((SELECT jsonb_agg(jsonb_build_object('severity',severity,'code',code,
           'field',field,'message',message)) FROM ops.issues i
           WHERE i.record_id=r.id),'[]') AS issues
         FROM raw.records r JOIN raw.deliveries d ON d.id=r.delivery_id
         WHERE r.normalized->>'asesoria_id'=%s AND r.normalized->>'mes'=%s
-        ORDER BY d.delivery_month DESC,d.revision DESC,r.line_number LIMIT 500""",
-        (str(firm_id), str(metric_month)),
+        ORDER BY d.delivery_month DESC,d.revision DESC,r.line_number LIMIT %s OFFSET %s""",
+        (str(firm_id), str(metric_month), limit, offset),
     ).fetchall()
-    if not rows:
+    total = conn.execute(
+        """SELECT count(*) AS n FROM raw.records
+        WHERE normalized->>'asesoria_id'=%s AND normalized->>'mes'=%s""",
+        (str(firm_id), str(metric_month)),
+    ).fetchone()["n"]
+    if not total:
         raise HTTPException(404, "No source rows for this firm-month")
     return response(
         {
@@ -298,8 +314,29 @@ def lineage(firm_id: int, month: str, conn: DB):
             "mes": metric_month,
             "selected_record_id": winner["source_record_id"] if winner else None,
             "versions": rows,
-        }
+            "total": total,
+            "limit": limit,
+            "offset": offset,
+            "truncated": offset + len(rows) < total,
+        },
+        headers=publication_headers(conn),
     )
+
+
+@router.get("/api/v1/investigations/{firm_id}/{month}", tags=["Investigation"])
+def investigate_revenue(firm_id: int, month: str):
+    from pulse_api.investigation import InvestigationBusy, InvestigationMissing, investigate
+
+    try:
+        return response(investigate(firm_id, month_value(month)))
+    except InvestigationMissing as exc:
+        raise HTTPException(404, str(exc)) from exc
+    except InvestigationBusy as exc:
+        raise HTTPException(429, str(exc), headers={"Retry-After": "5"}) from exc
+    except PermissionError as exc:
+        raise HTTPException(503, "Investigation reader is not configured safely") from exc
+    except ValueError as exc:
+        raise HTTPException(422, str(exc)) from exc
 
 
 app.include_router(router)
