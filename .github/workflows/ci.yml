@@ -48,6 +48,8 @@ jobs:
           docker compose --profile lab up -d --build --wait lab
           python scripts/lab_smoke.py --disposable
           python scripts/smoke.py --compare /tmp/pulse-before.json
+      - name: Verify automatic pickup through the Dagster daemon
+        run: python scripts/sensor_smoke.py --data-dir data --disposable
       - name: Collect service logs
         if: always()
         run: docker compose --profile lab logs --no-color > compose.log
