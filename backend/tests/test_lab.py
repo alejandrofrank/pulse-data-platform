@@ -9,8 +9,8 @@ from test_parsing import make_csv
 from pulse.db import connect
 from pulse.ingest import LOCK as INGEST_LOCK
 from pulse.ingest import ingest
-from pulse.lab import Playback, validate_target
-from pulse.lab_api import app
+from pulse_api.lab import Playback, validate_target
+from pulse_api.lab_api import app
 
 pytestmark = pytest.mark.integration
 HEADERS = {"X-Pulse-Lab": "playback-v1"}

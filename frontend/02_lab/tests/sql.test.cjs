@@ -2,8 +2,8 @@ const { test } = require("node:test");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const { JSDOM } = require("jsdom");
-const html = fs.readFileSync("src/pulse/static/lab.html", "utf8");
-const script = fs.readFileSync("src/pulse/static/sql.js", "utf8");
+const html = fs.readFileSync("02_lab/public/lab.html", "utf8");
+const script = fs.readFileSync("02_lab/public/sql.js", "utf8");
 const schema = {
   database: "pulse_lab",
   role: "pulse_reader",

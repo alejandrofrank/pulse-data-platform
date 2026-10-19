@@ -3,8 +3,8 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const { JSDOM, VirtualConsole } = require("jsdom");
 const base = process.env.PULSE_TEST_URL || "http://127.0.0.1:8000";
-const html = fs.readFileSync("src/pulse/static/index.html", "utf8");
-const script = fs.readFileSync("src/pulse/static/app.js", "utf8");
+const html = fs.readFileSync("01_dashboard/public/index.html", "utf8");
+const script = fs.readFileSync("01_dashboard/public/app.js", "utf8");
 
 async function until(predicate) {
   for (let i = 0; i < 100; i++) {

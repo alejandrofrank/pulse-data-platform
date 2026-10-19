@@ -4,6 +4,7 @@ x-app: &app
   image: pulse-app:local
   build:
     context: .
+    dockerfile: backend/00_infrastructure/Dockerfile
     target: runtime
   environment: &environment
     DATABASE_URL: postgresql://pulse:pulse_local@db:5432/pulse
@@ -22,7 +23,7 @@ services:
       POSTGRES_DB: pulse
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./orchestration/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+      - ./backend/00_infrastructure/postgres/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
     healthcheck:
       test: [CMD-SHELL, "pg_isready -U pulse -d pulse"]
       interval: 3s
@@ -90,6 +91,7 @@ services:
     image: pulse-test:local
     build:
       context: .
+      dockerfile: backend/00_infrastructure/Dockerfile
       target: test
     environment:
       <<: *environment
@@ -107,7 +109,7 @@ services:
       POSTGRES_DB: pulse_lab
     volumes:
       - lab_postgres_data:/var/lib/postgresql/data
-      - ./orchestration/init-lab.sql:/docker-entrypoint-initdb.d/init-lab.sql:ro
+      - ./backend/00_infrastructure/postgres/init-lab.sql:/docker-entrypoint-initdb.d/init-lab.sql:ro
     networks: [lab]
     healthcheck:
       test: [CMD-SHELL, "pg_isready -U lab_owner -d pulse_lab"]
@@ -119,7 +121,7 @@ services:
   lab:
     <<: *app
     profiles: [lab]
-    command: [uvicorn, "pulse.lab_api:app", --host, 0.0.0.0, --port, "8001", --workers, "1"]
+    command: [uvicorn, "pulse_api.lab_api:app", --host, 0.0.0.0, --port, "8001", --workers, "1"]
     environment:
       DATABASE_URL: postgresql://pulse_reader:pulse_reader_local@lab-db:5432/pulse_lab
       LAB_DATABASE_URL: postgresql://lab_owner:lab_owner_local@lab-db:5432/pulse_lab

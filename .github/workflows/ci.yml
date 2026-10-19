@@ -23,33 +23,34 @@ jobs:
           docker compose up -d --wait db
       - name: Lint and formatting
         run: |
-          docker compose run --rm test ruff check src tests scripts
-          docker compose run --rm test ruff format --check src tests scripts
+          docker compose run --rm test ruff check 01_pipeline 02_api tests 03_scripts
+          docker compose run --rm test ruff format --check 01_pipeline 02_api tests 03_scripts
       - name: Unit and PostgreSQL integration tests
         run: docker compose run --rm test pytest -q -p no:cacheprovider
       - name: Build and start the actual application
         run: docker compose up -d --build --wait
       - name: Verify API, dashboard assets and repeatable ingestion
         run: |
-          python scripts/smoke.py --save /tmp/pulse-before.json
+          python backend/03_scripts/smoke.py --save /tmp/pulse-before.json
           docker compose run --rm bootstrap pulse ingest
-          python scripts/smoke.py --compare /tmp/pulse-before.json
+          python backend/03_scripts/smoke.py --compare /tmp/pulse-before.json
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
           cache: npm
+          cache-dependency-path: frontend/package-lock.json
       - name: Dashboard DOM integration checks against the live API
         run: |
-          npm ci
-          npm run lint
-          npm test
+          npm --prefix frontend ci
+          npm --prefix frontend run lint
+          npm --prefix frontend test
       - name: Verify isolated CSV playback and reverse replay
         run: |
           docker compose --profile lab up -d --build --wait lab
-          python scripts/lab_smoke.py --disposable
-          python scripts/smoke.py --compare /tmp/pulse-before.json
+          python backend/03_scripts/lab_smoke.py --disposable
+          python backend/03_scripts/smoke.py --compare /tmp/pulse-before.json
       - name: Verify automatic pickup through the Dagster daemon
-        run: python scripts/sensor_smoke.py --data-dir data --disposable
+        run: python backend/03_scripts/sensor_smoke.py --data-dir data --disposable
       - name: Collect service logs
         if: always()
         run: docker compose --profile lab logs --no-color > compose.log

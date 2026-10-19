@@ -8,7 +8,7 @@ from test_parsing import make_csv
 
 from pulse.db import connect
 from pulse.ingest import ingest
-from pulse.lab_api import app
+from pulse_api.lab_api import app
 
 pytestmark = pytest.mark.integration
 HEADERS = {"X-Pulse-Lab": "playback-v1"}
@@ -67,7 +67,7 @@ def test_sql_schema_plan_and_limits(sql_client, monkeypatch):
     assert not exact["truncated"]
     empty = run(sql_client, "SELECT id FROM core.firms WHERE false").json()
     assert empty["columns"][0]["name"] == "id" and empty["rows"] == []
-    monkeypatch.setattr("pulse.lab_sql.MAX_BYTES", 100)
+    monkeypatch.setattr("pulse_api.lab_sql.MAX_BYTES", 100)
     large = run(sql_client, "SELECT repeat('x',101)").json()
     assert large["truncation_reason"] == "byte_limit" and large["rows"] == []
 

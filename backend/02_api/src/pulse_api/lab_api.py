@@ -13,9 +13,10 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, ConfigDict, Field
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
-from pulse import lab_sql
-from pulse.api import DB, STATIC, response, router
-from pulse.lab import LabConflict, Playback
+from pulse_api import lab_sql
+from pulse_api.app import DB, response, router
+from pulse_api.assets import DASHBOARD_STATIC, LAB_STATIC
+from pulse_api.lab import LabConflict, Playback
 
 
 @asynccontextmanager
@@ -31,7 +32,8 @@ async def lifespan(app):
 
 app = FastAPI(title="Pulse playback lab", lifespan=lifespan)
 app.add_middleware(TrustedHostMiddleware, allowed_hosts=["127.0.0.1", "localhost", "testserver"])
-app.mount("/static", StaticFiles(directory=STATIC), name="static")
+app.mount("/static", StaticFiles(directory=DASHBOARD_STATIC), name="static")
+app.mount("/lab-static", StaticFiles(directory=LAB_STATIC), name="lab-static")
 app.include_router(router)
 
 
@@ -105,7 +107,7 @@ def action(call):
 
 @app.get("/", include_in_schema=False)
 def lab_page():
-    return FileResponse(STATIC / "lab.html")
+    return FileResponse(LAB_STATIC / "lab.html")
 
 
 @app.get("/api/lab/state")
