@@ -150,9 +150,10 @@ def publish(conn, run_id):
     SELECT n.asesoria_id,n.mes,{projection},w.id,
       EXISTS (
         SELECT 1 FROM raw.records bad JOIN raw.deliveries bd ON bd.id=bad.delivery_id
+        JOIN raw.record_identity bi ON bi.record_id=bad.id
         WHERE bad.status='rejected'
-          AND bad.normalized->>'asesoria_id'=w.normalized->>'asesoria_id'
-          AND bad.normalized->>'mes'=w.normalized->>'mes'
+          AND bi.asesoria_id=w.normalized->>'asesoria_id'
+          AND bi.mes=w.normalized->>'mes'
           AND (bd.delivery_month,bd.revision)>(w.delivery_month,w.revision)
       ), %s
     FROM winners w CROSS JOIN LATERAL jsonb_to_record(w.normalized)

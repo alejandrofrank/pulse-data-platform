@@ -260,11 +260,13 @@ def issues(
         raise HTTPException(422, "severity must be error, warning or info")
     return page(
         conn,
-        """SELECT i.*,r.line_number,r.status,r.payload,r.normalized,d.filename
+        """SELECT i.*,r.line_number,r.status,r.payload,r.normalized,d.filename,
+        ri.asesoria_id AS identified_firm_id,ri.mes AS identified_month
         FROM ops.issues i JOIN raw.records r ON r.id=i.record_id
         JOIN raw.deliveries d ON d.id=r.delivery_id
+        JOIN raw.record_identity ri ON ri.record_id=r.id
         WHERE (%s::text IS NULL OR i.severity=%s)
-          AND (%s::text IS NULL OR r.normalized->>'asesoria_id'=%s)
+          AND (%s::text IS NULL OR ri.asesoria_id=%s)
         ORDER BY d.delivery_month DESC,d.revision DESC,r.line_number,i.id""",
         [severity, severity, str(firm_id) if firm_id is not None else None, str(firm_id)],
         limit,
@@ -308,17 +310,19 @@ def lineage(firm_id: int, month: str, conn: DB, limit: Limit = 100, offset: Offs
     rows = conn.execute(
         """SELECT r.*,d.filename,d.delivery_month,d.revision,d.sha256,
         d.loaded_at,d.policy_version,d.schema_version,d.run_id,
+        ri.asesoria_id AS identified_firm_id,ri.mes AS identified_month,
         coalesce((SELECT jsonb_agg(jsonb_build_object('severity',severity,'code',code,
           'field',field,'message',message)) FROM ops.issues i
           WHERE i.record_id=r.id),'[]') AS issues
         FROM raw.records r JOIN raw.deliveries d ON d.id=r.delivery_id
-        WHERE r.normalized->>'asesoria_id'=%s AND r.normalized->>'mes'=%s
+        JOIN raw.record_identity ri ON ri.record_id=r.id
+        WHERE ri.asesoria_id=%s AND ri.mes=%s
         ORDER BY d.delivery_month DESC,d.revision DESC,r.line_number LIMIT %s OFFSET %s""",
         (str(firm_id), str(metric_month), limit, offset),
     ).fetchall()
     total = conn.execute(
-        """SELECT count(*) AS n FROM raw.records
-        WHERE normalized->>'asesoria_id'=%s AND normalized->>'mes'=%s""",
+        """SELECT count(*) AS n FROM raw.record_identity
+        WHERE asesoria_id=%s AND mes=%s""",
         (str(firm_id), str(metric_month)),
     ).fetchone()["n"]
     if not total:

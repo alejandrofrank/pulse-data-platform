@@ -252,6 +252,94 @@ test("Quality pagination keeps the newest rows and their captured offset", async
   assert.equal(ui.get("previous").disabled, false);
 });
 
+test("Quality issues keep malformed-row identity visible without changing archived evidence", async (t) => {
+  const malformed = {
+    filename: "metricas_2025-10.csv",
+    line_number: 7,
+    code: "column_count",
+    field: null,
+    message: "Unexpected number of fields",
+    payload: { asesoria_id: "1", mes: "2025-10", extra: ["unexpected"] },
+    normalized: {},
+    identified_firm_id: "1",
+    identified_month: "2025-10-01",
+  };
+  const items = [
+    malformed,
+    {
+      ...malformed,
+      normalized: { asesoria_id: 2, mes: "2025-11-01" },
+    },
+    {
+      ...malformed,
+      normalized: { asesoria_id: 3 },
+      identified_month: "2025-12-01",
+    },
+    {
+      ...malformed,
+      normalized: null,
+      identified_firm_id: "4",
+    },
+    {
+      ...malformed,
+      identified_firm_id: null,
+      identified_month: null,
+    },
+  ];
+  const ui = await dashboard(t, (path) =>
+    path.includes("/quality/issues?")
+      ? ok({ items, total: items.length })
+      : undefined,
+  );
+  ui.w.HTMLDialogElement.prototype.showModal = function () {
+    this.setAttribute("open", "");
+  };
+  const headings = [...ui.d.querySelectorAll("#quality th")].map(
+    (n) => n.textContent,
+  );
+  const firmColumn = headings.indexOf("Asesoría");
+  const monthColumn = headings.indexOf("Mes");
+  assert.ok(
+    firmColumn >= 0,
+    "Firm identity must be visible in the issue table",
+  );
+  assert.ok(
+    monthColumn >= 0,
+    "Metric month must be visible in the issue table",
+  );
+  const rows = [...ui.d.querySelectorAll("#quality tbody tr")];
+  assert.deepEqual(
+    rows.map((tr) => [
+      tr.cells[firmColumn].textContent,
+      tr.cells[monthColumn].textContent,
+    ]),
+    [
+      ["1", "2025-10"],
+      ["2", "2025-11"],
+      ["3", "2025-12"],
+      ["4", "2025-10"],
+      ["—", "—"],
+    ],
+  );
+  for (const [heading, value] of [
+    ["Archivo", malformed.filename],
+    ["Fila", "7"],
+    ["Regla", malformed.code],
+    ["Campo", "—"],
+    ["Motivo", malformed.message],
+  ])
+    assert.equal(rows[0].cells[headings.indexOf(heading)].textContent, value);
+  rows[0].querySelector("button").click();
+  assert.equal(ui.get("details").hasAttribute("open"), true);
+  assert.deepEqual(JSON.parse(ui.get("detail-content").textContent), malformed);
+  assert.deepEqual(
+    malformed.normalized,
+    {},
+    "Identified fields must not rewrite normalized history",
+  );
+  assert.equal(ui.get("error").hidden, true);
+});
+
 test("Hours disclose partial, complete and absent contributors without turning NULL into zero", async (t) => {
   const rows = [
     networkRow,

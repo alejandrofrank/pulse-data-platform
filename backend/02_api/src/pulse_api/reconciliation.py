@@ -110,6 +110,8 @@ def _number(token: str, version: int, *, count: bool) -> int | Decimal:
 def _normalize(payload: dict, version: int, delivered: date, firms: dict[int, dict]) -> dict:
     record = {"payload": payload, "normalized": {}, "status": "accepted", "issue_codes": []}
     if None in payload or None in payload.values():
+        # Verify the original policy-1 archive, including its empty normalization.
+        # Recovered rejection identity is a separate projection, never a metric source.
         _issue(record, "column_count")
         return record
     clean = {field: value.strip() for field, value in payload.items()}

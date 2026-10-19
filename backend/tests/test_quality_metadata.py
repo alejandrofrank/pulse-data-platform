@@ -63,7 +63,14 @@ def test_partial_publication_reports_incorporation_without_claiming_a_clean_run(
     assert result["status"] == "partial"
     assert summary["latest_run"]["status"] == "partial"
     assert summary["file_errors"] == 1
-    assert summary["last_successful_load"] is not None
+    with connect() as conn:
+        published_at = conn.execute(
+            "SELECT published_at FROM ops.publications WHERE id=%s", (result["run_id"],)
+        ).fetchone()["published_at"]
+    assert summary["last_successful_load"] == published_at.isoformat()
+    assert ingest(tmp_path)["loaded"] == 0
+    replay = TestClient(app).get("/api/v1/quality/summary").json()
+    assert replay["last_successful_load"] == summary["last_successful_load"]
 
 
 def test_issue_filter_rejects_invalid_ids_instead_of_returning_all_firms(database, tmp_path):

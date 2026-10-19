@@ -282,6 +282,16 @@ async function loadQuality() {
       columns = [
         { label: "Archivo", key: "filename" },
         { label: "Fila", key: "line_number" },
+        {
+          label: "Asesoría",
+          render: (r) =>
+            r.normalized?.asesoria_id ?? r.identified_firm_id ?? "—",
+        },
+        {
+          label: "Mes",
+          render: (r) =>
+            (r.normalized?.mes ?? r.identified_month)?.slice(0, 7) ?? "—",
+        },
         { label: "Regla", key: "code" },
         { label: "Campo", key: "field" },
         { label: "Motivo", key: "message" },
