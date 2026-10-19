@@ -15,7 +15,7 @@ def database(monkeypatch):
         raise RuntimeError("Refusing destructive tests outside a database named *_test")
     monkeypatch.setenv("DATABASE_URL", url)
     with connect() as conn:
-        conn.execute("DROP SCHEMA IF EXISTS lab,mart,core,raw,ops CASCADE")
+        conn.execute("DROP SCHEMA IF EXISTS agents,lab,mart,core,raw,ops CASCADE")
         conn.execute("DROP TABLE IF EXISTS public.schema_migrations")
     migrate()
     migrate()

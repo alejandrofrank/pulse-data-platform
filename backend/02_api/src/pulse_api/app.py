@@ -11,6 +11,7 @@ from fastapi.encoders import jsonable_encoder
 from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
+from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from pulse.db import connect
 from pulse.parsing import POLICY_VERSION
@@ -19,12 +20,14 @@ from pulse_api.models import FirmMetricPage, NetworkMetricPage
 
 app = FastAPI(
     title="Pulse",
-    version="1.0.0",
+    version="1.1.0",
     description=(
-        "Phase 1. Monthly advisory-firm metrics with lineage and quality coverage. "
-        "All endpoints are read-only. Money uses decimal strings; missing values are null."
+        "Monthly metrics, lineage, quality and bounded analytical agents. "
+        "Business data is read-only; agent conversations are audited separately. "
+        "Money uses decimal strings; missing values are null."
     ),
 )
+app.add_middleware(TrustedHostMiddleware, allowed_hosts=["127.0.0.1", "localhost", "testserver"])
 router = APIRouter()
 app.mount("/static", StaticFiles(directory=DASHBOARD_STATIC), name="static")
 
@@ -340,3 +343,7 @@ def investigate_revenue(firm_id: int, month: str):
 
 
 app.include_router(router)
+
+from pulse_api.agent_api import router as agent_router  # noqa: E402
+
+app.include_router(agent_router)

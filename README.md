@@ -1,8 +1,9 @@
 # Pulse
 
-Phase 1 of the Demo Data Engineer assignment: CSV deliveries → validated monthly
-metrics → read-only API → one internal dashboard. Runs locally or on an on-premise
-Docker host. No cloud account, API key, LLM or Phase 2 dependency.
+Pulse implements an auditable data platform: CSV deliveries → validated monthly metrics
+→ read-only API and dashboard, plus two optional Phase 2 agents for business queries
+and revenue investigation. Runs locally or on an on-premise Docker host. Phase 1
+and the explicit agent demo work without a cloud account or model API key.
 
 ## Start
 
@@ -113,8 +114,9 @@ pulse/
 │   │       ├── lab.py          # Durable playback worker and evidence
 │   │       └── lab_sql.py      # Bounded read-only PostgreSQL execution
 │   ├── 03_scripts/             # Profiling and deployed-stack smoke checks
+│   ├── 04_agents/              # Typed planning, analytical tools and durable agent runs
 │   ├── tests/                  # Python unit and PostgreSQL integration tests
-│   ├── pyproject.toml          # One Python distribution containing both packages
+│   ├── pyproject.toml          # One Python distribution containing the three packages
 │   └── requirements*.in/.txt   # Dependency inputs and pinned lock files
 ├── frontend/
 │   ├── 01_dashboard/           # public/ assets and tests/ for the main dashboard
@@ -333,8 +335,8 @@ tables retain their column headers, and coverage/error colors reflect API values
 
 ```sh
 docker compose build test
-docker compose run --rm test ruff check 01_pipeline 02_api tests 03_scripts
-docker compose run --rm test ruff format --check 01_pipeline 02_api tests 03_scripts
+docker compose run --rm test ruff check 01_pipeline 02_api 04_agents tests 03_scripts
+docker compose run --rm test ruff format --check 01_pipeline 02_api 04_agents tests 03_scripts
 docker compose run --rm test pytest -q -p no:cacheprovider
 docker compose run --rm test python 03_scripts/profile_data.py
 ```
@@ -365,7 +367,8 @@ psycopg 3. SQLAlchemy 2.0 is pinned for the selected Dagster release.
 
 ### 1. What was left out, and what comes next?
 
-Phase 2 is intentionally excluded. No cloud provisioning or Terraform bonus, SSO,
+The bounded Phase 2 agents are included. No document vector index, fine-tuning,
+cloud provisioning or Terraform bonus, SSO,
 production secret manager, managed backups, external alert routing or multi-node HA.
 For an office deployment, add reverse-proxy authentication, secrets, encrypted backups
 with restore drills, resource limits and failure notifications. Agree business ownership
@@ -415,6 +418,75 @@ grain becomes DAILY, create a daily fact and define how monthly stocks/flows agg
 do not just rename the monthly column. Partition history when measured retention/size
 warrants it, add API pooling/caching and richer source SLAs. Scale workers by nonoverlapping
 delivery keys, keeping publication transactional and retries idempotent.
+
+## Phase 2 agents
+
+`GET /api/v1/agents/status` reports explicit `demo` or `live` mode. The demo accepts
+three documented example questions and still executes the real PostgreSQL tools;
+it does not substitute fictional answers. `POST /api/v1/agents/ask` accepts a UUID
+`request_id`, optional `conversation_id`, `agent` (`business` or `investigation`)
+and `question`. Browser actions require `X-Pulse-Agent: assistant-v1` and same origin.
+Repeat a request ID only to retrieve the same saved answer; use a new ID for fresh data.
+
+The examples are "Network revenue in March 2026", "Active clients by month in 2025",
+and "Investigate revenue for firm 42 in January 2024". Run the actual HTTP smoke
+check without a provider key:
+
+```sh
+python backend/03_scripts/agent_smoke.py
+```
+
+For live free-form planning, configure an OpenAI key through a protected runtime
+file (`OPENAI_API_KEY_FILE`) or deployment secret. Never put a key in source, browser
+storage, an image build argument, or a committed environment file. On the prepared
+Windows workstation, the existing DPAPI-encrypted key can be loaded without printing
+it or writing plaintext to the repository:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File backend/03_scripts/load_openai_key.ps1
+```
+
+The helper sends decrypted bytes over stdin to a mode-0400 file in the API's tmpfs.
+The host copy stays DPAPI-encrypted. Reload after restarting/recreating the API
+container, because tmpfs intentionally does not retain secrets. Other deployments
+should mount a secret file read-only and set `OPENAI_API_KEY_FILE` to its path.
+No model call is needed to check configuration status.
+
+### 5. How do we prevent invented figures and handle ambiguity?
+
+The model outputs a validated intent, not a financial answer or SQL. Approved
+metric definitions compile to parameterized SQL; Decimal values, aggregates,
+coverage and conclusions are rendered by code. Missing fields or ambiguous firm
+names require clarification. Missing observations remain unknown, and partial
+coverage accompanies observed totals. Unsupported metrics and historical screen
+states are explicitly unavailable. Model interpretation can still be wrong: inspect
+the visible plan/SQL and maintain labeled evaluations for semantic accuracy.
+
+### 6. What can the natural-language layer do?
+
+Only the business query and revenue investigation tools exist. Neither executes
+model-written SQL or arbitrary code. Queries use reader credentials; a separate
+role writes only conversation/run audit tables. Server-defined identities own
+conversations and define firm scope. The investigator requires full operator
+access to shared source evidence. A prompt requesting deletion has no corresponding
+action in the schema or tool registry. Time, row, byte and concurrency limits are
+enforced by the application and database, independently of model confidence.
+
+### 7. What does the solution cost and add to deployment?
+
+OpenAI GPT-6 Luna is the only additional external runtime dependency in live mode.
+There is at most one optional Decisions call and one Responses planning call per
+request. Questions and intent context leave the host; financial result tables and
+raw CSV evidence stay local. PostgreSQL stores conversations, run evidence and shared
+admission limits. The default estimated daily model budget is USD 0.50, with USD 0.01
+reserved per live request; unknown or interrupted usage retains that reservation.
+These are application estimates, not the OpenAI account balance or global spending.
+
+The default is a loopback-bound internal operator demo. Token-scoped agent identities
+are available, but external deployment still needs an authenticated boundary for
+all Phase 1/internal routes, real deployment credentials, TLS and operational backup
+and retention policy. See [components, scaling and RAG decisions](docs/phase2-architecture.md)
+and [the deterministic investigator](docs/investigation-service.md).
 
 ## Delivery
 

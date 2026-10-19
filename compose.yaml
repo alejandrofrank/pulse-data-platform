@@ -43,7 +43,13 @@ services:
     environment:
       <<: *environment
       DATABASE_URL: postgresql://pulse_reader:pulse_reader_local@db:5432/pulse
+      PULSE_AGENT_AUDIT_URL: postgresql://pulse_agent_writer:pulse_agent_writer_local@db:5432/pulse
+      OPENAI_API_KEY_FILE: /run/pulse/openai-api-key
+      PULSE_AGENT_DAILY_BUDGET_USD: ${PULSE_AGENT_DAILY_BUDGET_USD:-0.50}
+      PULSE_USE_DECISIONS: ${PULSE_USE_DECISIONS:-true}
       PULSE_LAB_PORT: ${LAB_PORT:-8001}
+    tmpfs:
+      - /run/pulse:rw,noexec,nosuid,size=64k,uid=10001,gid=10001,mode=0700
     ports:
       - "127.0.0.1:${PULSE_PORT:-8000}:8000"
     depends_on:
