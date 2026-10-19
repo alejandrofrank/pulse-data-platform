@@ -144,3 +144,101 @@ test("A disconnected lab shows an error and does not enable playback", async () 
     dom.window.close();
   }
 });
+
+test("Lab reconnect clears only the connectivity failure and preserves action and worker errors", async (t) => {
+  const dom = new JSDOM(html, {
+    url: "http://localhost:8001",
+    runScripts: "outside-only",
+  });
+  t.after(() => dom.window.close());
+  const w = dom.window,
+    d = w.document;
+  w.crypto.randomUUID = randomUUID;
+  let poll,
+    offline = true,
+    actionCalls = 0;
+  const state = initial();
+  w.setInterval = (callback) => {
+    poll = callback;
+    return 1;
+  };
+  w.fetch = async (path, options = {}) => {
+    if (options.method === "POST") {
+      actionCalls++;
+      assert.equal(path, "/api/lab/play");
+      return {
+        ok: false,
+        status: 409,
+        json: async () => ({ detail: "Playback request rejected" }),
+      };
+    }
+    assert.equal(path, "/api/lab/state");
+    if (offline) throw new Error("Lab connection interrupted");
+    return { ok: true, json: async () => structuredClone(state) };
+  };
+  w.eval(script);
+  await until(
+    () => d.getElementById("connection-status").textContent === "Sin conexión",
+  );
+  assert.match(
+    d.getElementById("error").textContent,
+    /Lab connection interrupted/,
+  );
+  assert.equal(d.getElementById("play").disabled, true);
+  offline = false;
+  await poll();
+  assert.equal(d.getElementById("error").hidden, true);
+  assert.equal(d.getElementById("error").textContent, "");
+  assert.equal(d.getElementById("play").disabled, false);
+  d.getElementById("play").click();
+  await until(() =>
+    d.getElementById("error").textContent.includes("Playback request rejected"),
+  );
+  await poll();
+  assert.equal(d.getElementById("error").hidden, false);
+  assert.match(
+    d.getElementById("error").textContent,
+    /Playback request rejected/,
+  );
+  offline = true;
+  await poll();
+  assert.match(
+    d.getElementById("error").textContent,
+    /Lab connection interrupted/,
+  );
+  assert.match(
+    d.getElementById("error").textContent,
+    /Playback request rejected/,
+  );
+  offline = false;
+  state.worker_alive = false;
+  state.worker_error = "Worker stopped unexpectedly";
+  await poll();
+  assert.doesNotMatch(
+    d.getElementById("error").textContent,
+    /Lab connection interrupted/,
+  );
+  assert.match(
+    d.getElementById("error").textContent,
+    /Playback request rejected/,
+  );
+  assert.match(
+    d.getElementById("error").textContent,
+    /Worker stopped unexpectedly/,
+  );
+  assert.equal(
+    d.getElementById("connection-status").textContent,
+    "Worker detenido",
+  );
+  assert.equal(d.getElementById("play").disabled, true);
+  await poll();
+  assert.match(
+    d.getElementById("error").textContent,
+    /Worker stopped unexpectedly/,
+  );
+  assert.equal(
+    actionCalls,
+    1,
+    "Reconnection must not retry the rejected action",
+  );
+});

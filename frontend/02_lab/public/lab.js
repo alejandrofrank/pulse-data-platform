@@ -30,6 +30,7 @@ let pollTimer;
 let pendingPlay = null;
 let lastPaint = "";
 const catalogNodes = new Map();
+const errors = new Map();
 
 function element(tag, text, className) {
   const item = document.createElement(tag);
@@ -62,9 +63,11 @@ async function api(path, body) {
   }
   return result;
 }
-function errorMessage(error) {
-  node("error").textContent = error.message;
-  node("error").hidden = false;
+function errorMessage(error, source = "action") {
+  if (error) errors.set(source, error.message);
+  else errors.delete(source);
+  node("error").textContent = [...errors.values()].join(" · ");
+  node("error").hidden = errors.size === 0;
 }
 function details(value, title = "Evidencia de la entrega") {
   node("evidence-title").textContent = title;
@@ -382,8 +385,12 @@ function render() {
       node("issues").append(row);
     });
   }
-  if (state.worker_error)
-    errorMessage(new Error(`El worker se ha detenido: ${state.worker_error}`));
+  errorMessage(
+    state.worker_error
+      ? new Error(`El worker se ha detenido: ${state.worker_error}`)
+      : null,
+    "worker",
+  );
   controls();
 }
 async function refresh() {
@@ -392,6 +399,7 @@ async function refresh() {
   try {
     state = await api("/api/lab/state");
     connected = true;
+    errorMessage(null, "connection");
     if (
       pendingPlay &&
       state.jobs.some((j) => j.id === pendingPlay.body.request_id)
@@ -405,7 +413,7 @@ async function refresh() {
     connected = false;
     controls();
     node("connection-status").textContent = "Sin conexión";
-    errorMessage(e);
+    errorMessage(e, "connection");
   } finally {
     polling = false;
   }
@@ -413,7 +421,7 @@ async function refresh() {
 async function act(path, body = {}) {
   busy = true;
   controls();
-  node("error").hidden = true;
+  errorMessage(null, "action");
   try {
     const result = await api(path, body);
     await refresh();
