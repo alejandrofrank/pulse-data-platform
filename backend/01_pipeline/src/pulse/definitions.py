@@ -19,6 +19,9 @@ from pulse.db import connect
 from pulse.file_sensor import evaluate_files
 from pulse.ingest import ingest
 
+QUARANTINE_FAILURE = "pulse/file_quarantine"
+EMPTY_PUBLICATION_FAILURE = "pulse/empty_publication"
+
 
 class IngestionConfig(Config):
     file_names: list[str] | None = None
@@ -36,12 +39,14 @@ def monthly_metrics(context, config: IngestionConfig):
         expected_sha256=config.expected_sha256,
     )
     context.log.info(str(result))
-    if result["status"] != "success":
+    if result["status"] == "partial":
         raise Failure(
             "Some files were quarantined. Inspect /api/v1/quality/file-errors.",
-            metadata=result,
+            metadata={**result, QUARANTINE_FAILURE: True},
             allow_retries=False,
         )
+    if result["status"] != "success":
+        raise RuntimeError(f"Unexpected ingestion outcome: {result['status']}")
     return MaterializeResult(metadata=result)
 
 
@@ -53,7 +58,11 @@ def publication_integrity():
         count = conn.execute("SELECT count(*) AS n FROM mart.firm_month").fetchone()["n"]
     return AssetCheckResult(
         passed=bad["n"] == 0 and count > 0,
-        metadata={"curated_rows": count, "invalid_sources": bad["n"]},
+        metadata={
+            "curated_rows": count,
+            "invalid_sources": bad["n"],
+            EMPTY_PUBLICATION_FAILURE: count == 0 and bad["n"] == 0,
+        },
     )
 
 
