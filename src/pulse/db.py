@@ -10,8 +10,8 @@ def connect(url=None):
     return psycopg.connect(url or os.environ["DATABASE_URL"], row_factory=dict_row)
 
 
-def migrate():
-    with connect() as conn:
+def migrate(url=None, *, include_lab=False):
+    with connect(url) as conn:
         conn.execute("SELECT pg_advisory_xact_lock(7281901)")
         conn.execute("""CREATE TABLE IF NOT EXISTS public.schema_migrations (
             name text PRIMARY KEY, sha256 text NOT NULL,
@@ -20,19 +20,24 @@ def migrate():
             r["name"]: r["sha256"]
             for r in conn.execute("SELECT name,sha256 FROM public.schema_migrations")
         }
-        for path in sorted(files("pulse").joinpath("migrations").iterdir(), key=lambda p: p.name):
+        paths = [(p.name, p) for p in files("pulse").joinpath("migrations").iterdir()]
+        if include_lab:
+            paths.extend(
+                (f"lab/{p.name}", p) for p in files("pulse").joinpath("lab_migrations").iterdir()
+            )
+        for name, path in sorted(paths):
             if not path.name.endswith(".sql"):
                 continue
             body = path.read_bytes()
             checksum = hashlib.sha256(body).hexdigest()
-            if path.name in applied:
-                if applied[path.name] != checksum:
-                    raise RuntimeError(f"Applied migration changed: {path.name}")
+            if name in applied:
+                if applied[name] != checksum:
+                    raise RuntimeError(f"Applied migration changed: {name}")
                 continue
             conn.execute(body.decode("utf-8"))
             conn.execute(
                 "INSERT INTO public.schema_migrations(name,sha256) VALUES (%s,%s)",
-                (path.name, checksum),
+                (name, checksum),
             )
         if conn.execute("SELECT 1 FROM pg_roles WHERE rolname='pulse_reader'").fetchone():
             conn.execute("GRANT SELECT ON public.schema_migrations TO pulse_reader")

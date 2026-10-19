@@ -107,7 +107,63 @@ easier to validate than incremental aggregate updates. There is no Kafka, Spark,
 Kubernetes or dbt dependency; they would add operational burden without solving a
 current requirement. SQL transformation code is versioned in Git and tested in CI.
 
-## API
+## Optional CSV playback lab
+
+Start a separate, initially empty lab alongside the normal dashboard:
+
+```sh
+docker compose --profile lab up -d --build --wait lab
+```
+
+Open **http://localhost:8001** (or the dashboard's **Laboratorio** link). The lab has
+its own PostgreSQL service, Docker network and persistent volume. Its writer cannot
+address the main database through that network. `LAB_PORT` changes the browser port.
+The original CSV mount remains read-only. Starting the lab loads the firm master,
+but does not ingest any monthly delivery until requested.
+
+1. Move the playhead to a delivery. Scrubbing never writes or rewinds the database.
+2. Choose **Seleccionar hasta el cursor**, individual checkboxes, or **Todos**.
+3. Reorder the selected queue with ↑/↓ or **Invertir selección** to test late arrivals.
+4. Choose a delay and **Reproducir selección**, or load just the CSV at the cursor.
+5. Watch counts, monthly totals, quality issues and per-file evidence update live.
+6. Replay the same selection. Files should say **Omitido**, with unchanged raw counts
+   and the same business-data SHA-256. A new execution audit record is still expected.
+
+Pause and stop finish the current CSV before taking effect. Resume preserves the
+remaining queue; after a process restart, interrupted work becomes paused and can
+be retried. The request UUID makes an HTTP submission retry return the same job.
+Only one active playback is allowed, and the existing ingestion advisory lock still
+protects publication. Controls accept only catalog filenames, never client paths or SQL.
+
+Each CSV calls the **same `ingest()` function** as the production Dagster asset, with
+an explicit file selection and lab database connection. The lab's durable playback
+worker replaces the schedule for this experiment; it does not claim these interactive
+runs appear in the main Dagster instance. Parsing, archival, validation, winner selection
+and atomic publication are shared. Raw ingestion inserts only unseen deliveries;
+reporting still rebuilds transactionally at this small volume.
+
+Evidence records added/changed/removed firm-months, before/after raw counts and business
+hashes, run IDs, and checks for unique keys, accepted sources and latest-valid winners.
+Business hashes exclude execution/source row IDs so differing arrival orders can be
+compared. They are verification fingerprints, not tamper-proof audit signatures. A retry
+after failed publication may skip an already archived file while repairing reporting;
+that case is labeled **Recuperación**, not an unchanged replay.
+
+**Reiniciar laboratorio** explicitly confirms clearing only lab deliveries, reporting
+and playback history; it retains the master and source files. It is disabled during an
+active file. Moving the playhead backwards never performs this reset. Read-only metric,
+quality and lineage APIs are also available on port 8001, against the lab database.
+
+The optional lab is a local development tool with polling once per second and no user
+authentication. The loopback binding, same-origin action header and fixed DB connection
+are intentional; it is not a multi-user production ingestion control plane.
+
+CI starts a disposable lab, loads all 36 drops one by one, replays all 36 in reverse,
+checks every skip and unchanged hash/counts, then clears that test lab. The smoke script
+requires an initially empty lab and an explicit `--disposable` flag. Do not run it against
+an experiment whose evidence you intend to retain.
+
+## Reporting API
 
 | Endpoint | Returns |
 |---|---|

@@ -157,11 +157,30 @@ def publish(conn, run_id):
     )
 
 
-def ingest(data_dir=None, dagster_run_id=None):
+def ingest(data_dir=None, dagster_run_id=None, *, file_names=None, database_url=None):
     root = Path(data_dir or os.environ.get("PULSE_DATA_DIR", "data"))
+    if file_names is None:
+        paths = sorted((root / "drops").glob("*.csv"))
+    else:
+        if not file_names or len(set(file_names)) != len(file_names):
+            raise ValueError("Select at least one distinct CSV filename")
+        paths = []
+        for name in file_names:
+            if not isinstance(name, str):
+                raise ValueError("Selected CSV names must be strings")
+            path = root / "drops" / name
+            if (
+                "/" in name
+                or "\\" in name
+                or not name.endswith(".csv")
+                or path.resolve().parent != (root / "drops").resolve()
+                or not path.is_file()
+            ):
+                raise ValueError("Selected CSV must exist directly inside drops/")
+            paths.append(path)
     run_id = uuid.uuid4()
     counts = Counter(loaded=0, skipped=0, failed=0)
-    with connect() as conn:
+    with connect(database_url) as conn:
         conn.autocommit = True
         locked = conn.execute("SELECT pg_try_advisory_lock(%s) AS locked", (LOCK,)).fetchone()
         if not locked["locked"]:
@@ -176,7 +195,6 @@ def ingest(data_dir=None, dagster_run_id=None):
         try:
             with conn.transaction():
                 firms = load_master(conn, root)
-            paths = sorted((root / "drops").glob("*.csv"))
             if not paths:
                 raise FileContractError("No CSV deliveries found in drops/")
             for path in paths:

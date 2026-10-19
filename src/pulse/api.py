@@ -1,14 +1,15 @@
 """Read-only, bounded reporting endpoints. Money is serialized as exact decimal strings."""
 
+import os
 import re
 from datetime import date
 from decimal import Decimal
 from pathlib import Path
 from typing import Annotated, Any
 
-from fastapi import Depends, FastAPI, HTTPException, Query
+from fastapi import APIRouter, Depends, FastAPI, HTTPException, Query
 from fastapi.encoders import jsonable_encoder
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
@@ -24,6 +25,7 @@ app = FastAPI(
         "All endpoints are read-only. Money uses decimal strings; missing values are null."
     ),
 )
+router = APIRouter()
 STATIC = Path(__file__).parent / "static"
 app.mount("/static", StaticFiles(directory=STATIC), name="static")
 
@@ -97,13 +99,18 @@ def dashboard():
     return FileResponse(STATIC / "index.html")
 
 
-@app.get("/health", tags=["Operations"])
+@app.get("/lab", include_in_schema=False)
+def playback_lab():
+    return RedirectResponse(f"http://127.0.0.1:{int(os.environ.get('PULSE_LAB_PORT', '8001'))}")
+
+
+@router.get("/health", tags=["Operations"])
 def health(conn: DB):
     conn.execute("SELECT 1 FROM public.schema_migrations LIMIT 1")
     return {"status": "ok"}
 
 
-@app.get("/api/v1/firms", response_model=FirmPage, tags=["Metrics"])
+@router.get("/api/v1/firms", response_model=FirmPage, tags=["Metrics"])
 def firms(conn: DB, search: str = "", limit: Limit = 100, offset: Offset = 0):
     if len(search) > 200:
         raise HTTPException(422, "Search too long")
@@ -116,7 +123,7 @@ def firms(conn: DB, search: str = "", limit: Limit = 100, offset: Offset = 0):
     )
 
 
-@app.get("/api/v1/firms/{firm_id}/metrics", response_model=FirmMetricPage, tags=["Metrics"])
+@router.get("/api/v1/firms/{firm_id}/metrics", response_model=FirmMetricPage, tags=["Metrics"])
 def firm_metrics(
     firm_id: int,
     conn: DB,
@@ -151,7 +158,7 @@ def firm_metrics(
     )
 
 
-@app.get("/api/v1/network/metrics", response_model=NetworkMetricPage, tags=["Metrics"])
+@router.get("/api/v1/network/metrics", response_model=NetworkMetricPage, tags=["Metrics"])
 def network(
     conn: DB,
     start: str | None = None,
@@ -165,7 +172,7 @@ def network(
     )
 
 
-@app.get("/api/v1/quality/summary", tags=["Quality"])
+@router.get("/api/v1/quality/summary", tags=["Quality"])
 def summary(conn: DB):
     counts = conn.execute("""SELECT count(*) AS raw_rows,
         count(*) FILTER (WHERE status='accepted') AS accepted_rows,
@@ -195,12 +202,12 @@ def summary(conn: DB):
     return response(counts)
 
 
-@app.get("/api/v1/quality/runs", response_model=Page, tags=["Quality"])
+@router.get("/api/v1/quality/runs", response_model=Page, tags=["Quality"])
 def runs(conn: DB, limit: Limit = 50, offset: Offset = 0):
     return page(conn, "SELECT * FROM ops.runs ORDER BY started_at DESC", [], limit, offset)
 
 
-@app.get("/api/v1/quality/deliveries", response_model=Page, tags=["Quality"])
+@router.get("/api/v1/quality/deliveries", response_model=Page, tags=["Quality"])
 def deliveries(conn: DB, limit: Limit = 50, offset: Offset = 0):
     return page(
         conn,
@@ -217,7 +224,7 @@ def deliveries(conn: DB, limit: Limit = 50, offset: Offset = 0):
     )
 
 
-@app.get("/api/v1/quality/issues", response_model=Page, tags=["Quality"])
+@router.get("/api/v1/quality/issues", response_model=Page, tags=["Quality"])
 def issues(
     conn: DB,
     severity: str | None = None,
@@ -241,7 +248,7 @@ def issues(
     )
 
 
-@app.get("/api/v1/quality/gaps", response_model=Page, tags=["Quality"])
+@router.get("/api/v1/quality/gaps", response_model=Page, tags=["Quality"])
 def gaps(conn: DB, limit: Limit = 50, offset: Offset = 0):
     return page(
         conn,
@@ -254,7 +261,7 @@ def gaps(conn: DB, limit: Limit = 50, offset: Offset = 0):
     )
 
 
-@app.get("/api/v1/quality/file-errors", response_model=Page, tags=["Quality"])
+@router.get("/api/v1/quality/file-errors", response_model=Page, tags=["Quality"])
 def file_errors(conn: DB, limit: Limit = 50, offset: Offset = 0):
     return page(
         conn,
@@ -266,7 +273,7 @@ def file_errors(conn: DB, limit: Limit = 50, offset: Offset = 0):
     )
 
 
-@app.get("/api/v1/lineage/{firm_id}/{month}", tags=["Lineage"])
+@router.get("/api/v1/lineage/{firm_id}/{month}", tags=["Lineage"])
 def lineage(firm_id: int, month: str, conn: DB):
     metric_month = month_value(month)
     winner = conn.execute(
@@ -294,3 +301,6 @@ def lineage(firm_id: int, month: str, conn: DB):
             "versions": rows,
         }
     )
+
+
+app.include_router(router)

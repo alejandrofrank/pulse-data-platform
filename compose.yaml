@@ -42,6 +42,7 @@ services:
     environment:
       <<: *environment
       DATABASE_URL: postgresql://pulse_reader:pulse_reader_local@db:5432/pulse
+      PULSE_LAB_PORT: ${LAB_PORT:-8001}
     ports:
       - "127.0.0.1:${PULSE_PORT:-8000}:8000"
     depends_on:
@@ -97,6 +98,50 @@ services:
       db:
         condition: service_healthy
 
+  lab-db:
+    profiles: [lab]
+    image: postgres:17.6-bookworm
+    environment:
+      POSTGRES_USER: lab_owner
+      POSTGRES_PASSWORD: lab_owner_local
+      POSTGRES_DB: pulse_lab
+    volumes:
+      - lab_postgres_data:/var/lib/postgresql/data
+      - ./orchestration/init-lab.sql:/docker-entrypoint-initdb.d/init-lab.sql:ro
+    networks: [lab]
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U lab_owner -d pulse_lab"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+    restart: unless-stopped
+
+  lab:
+    <<: *app
+    profiles: [lab]
+    command: [uvicorn, "pulse.lab_api:app", --host, 0.0.0.0, --port, "8001", --workers, "1"]
+    environment:
+      DATABASE_URL: postgresql://pulse_reader:pulse_reader_local@lab-db:5432/pulse_lab
+      LAB_DATABASE_URL: postgresql://lab_owner:lab_owner_local@lab-db:5432/pulse_lab
+      PULSE_DASHBOARD_PORT: ${PULSE_PORT:-8000}
+      PULSE_DATA_DIR: /data
+    ports:
+      - "127.0.0.1:${LAB_PORT:-8001}:8001"
+    networks: [lab]
+    depends_on:
+      lab-db:
+        condition: service_healthy
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://localhost:8001/api/lab/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
 volumes:
   postgres_data:
+  lab_postgres_data:
+
+networks:
+  lab:
 
