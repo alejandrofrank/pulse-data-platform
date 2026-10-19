@@ -21,6 +21,7 @@ No `.env` file or manual database setup is needed. Startup waits for healthy dat
 and successful bootstrap. For background mode: `docker compose up -d --build --wait`.
 
 - Dashboard: http://localhost:8000
+- Agent workbench: http://localhost:8000/agents — business questions and revenue investigation
 - Interactive API documentation: http://localhost:8000/docs
 - Dagster: http://localhost:3000 — asset `monthly_metrics`, job `ingest_all`
 
@@ -109,7 +110,7 @@ pulse/
 │   │   └── src/pulse_api/
 │   │       ├── app.py          # Read-only reporting API and dashboard hosting
 │   │       ├── models.py       # Public response contracts
-│   │       ├── assets.py       # Locations of the two frontend source trees
+│   │       ├── assets.py       # Locations of the frontend source trees
 │   │       ├── lab_api.py      # Playback and SQL HTTP endpoints
 │   │       ├── lab.py          # Durable playback worker and evidence
 │   │       └── lab_sql.py      # Bounded read-only PostgreSQL execution
@@ -121,6 +122,7 @@ pulse/
 ├── frontend/
 │   ├── 01_dashboard/           # public/ assets and tests/ for the main dashboard
 │   ├── 02_lab/                 # public/ assets and tests/ for playback and SQL
+│   ├── 03_agents/              # public/ workbench and DOM tests for both agents
 │   └── package.json            # Shared development-only frontend verification
 ├── data/                       # Original master and incoming drops/
 ├── docs/                       # Assignment, quality decisions and defense guide
@@ -130,7 +132,7 @@ pulse/
 
 `01_pipeline` owns business rules and storage. `02_api` imports those rules for the
 lab and reads the reporting tables; the pipeline never imports the HTTP application.
-The Python package names are `pulse` and `pulse_api`: numeric directory prefixes
+The Python package names are `pulse`, `pulse_api` and `pulse_agents`: numeric directory prefixes
 organize the repository and are not part of import paths. One backend dependency
 lock and distribution keep the runtime coherent without duplicated library versions.
 
@@ -420,6 +422,18 @@ warrants it, add API pooling/caching and richer source SLAs. Scale workers by no
 delivery keys, keeping publication transactional and retries idempotent.
 
 ## Phase 2 agents
+
+Open `/agents` from the dashboard's **Agentes** link. Choose Business assistant
+for metrics or Data investigator for one firm's revenue in one month. Each has an
+independent conversation. Expand SQL, coverage, findings, source versions and the
+raw evidence to inspect the answer. The workbench uses the main reporting database;
+the CSV playback lab remains separate.
+
+If a response is lost, **Recover request** reuses the exact original request ID and
+payload. **Start new execution** deliberately creates another run. Model cost is an
+estimate, and unknown usage is shown as unavailable. Changing deployment credentials
+clears both conversations from the page and discards late responses from the old
+identity. The optional access field is for deployment authentication, not an OpenAI key.
 
 `GET /api/v1/agents/status` reports explicit `demo` or `live` mode. The demo accepts
 three documented example questions and still executes the real PostgreSQL tools;

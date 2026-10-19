@@ -18,6 +18,22 @@ but execute different tools. Financial figures never come from generated prose.
 | `backend/04_agents/src/pulse_agents/store.py` | Conversations, run evidence, retry identity and shared admission |
 | `frontend/03_agents` | Chat, investigation controls and inspectable SQL/evidence |
 
+```mermaid
+flowchart LR
+    UI[Agent workbench] --> API[Identity and typed HTTP contract]
+    API --> RUN[Admission and durable run]
+    RUN --> PLAN[Decisions routing and typed intent]
+    PLAN --> BUSINESS[Business agent: fixed SQL]
+    PLAN --> INVESTIGATE[Investigator: deterministic reconciliation]
+    BUSINESS --> PG[(Published PostgreSQL data)]
+    INVESTIGATE --> ARCHIVE[Archived CSV and recorded policy]
+    INVESTIGATE --> PG
+    INVESTIGATE --> HTTP[Actual reporting API]
+    BUSINESS --> EVIDENCE[Answer with evidence]
+    INVESTIGATE --> EVIDENCE
+    EVIDENCE --> UI
+```
+
 The runtime performs at most one Decisions routing request and one Responses
 planning request. There are no autonomous loops, model-written SQL, shell tools,
 automatic repairs or automatic provider retries. Decisions confidence is recorded
@@ -140,5 +156,13 @@ corrected and absent data, ownership, retries, limits, hostile inputs and provid
 errors. A live model check is a separate opt-in evaluation, not proof of general
 semantic accuracy. Maintain labeled typical, ambiguous and adversarial questions
 and rerun them when the model, prompt, schema or data contract changes.
+
+The workbench keeps results and revenue comparisons above expandable evidence.
+Its 34 DOM cases include literal rendering of hostile content, independent agent
+conversations, response validation, credential changes during in-flight work,
+request recovery with the exact original payload, and decimal-string cost display.
+An isolated browser check also exercised both real demo workflows at desktop and
+mobile widths, with no JavaScript errors or document overflow. CI checks all three
+frontend interfaces and verifies that the deployed workbench assets are reachable.
 
 Historical live evaluation results and private source evidence are omitted from this public history.

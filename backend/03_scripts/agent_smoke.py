@@ -5,6 +5,8 @@ import json
 from urllib.request import Request, urlopen
 from uuid import uuid4
 
+from check_assets import check_assets
+
 
 def request(base, path, body=None):
     payload = json.dumps(body).encode() if body is not None else None
@@ -21,6 +23,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--base", default="http://127.0.0.1:8000")
     args = parser.parse_args()
+    check_assets(args.base, "/agents")
     status = request(args.base, "/api/v1/agents/status")
     assert status["mode"] == "demo", "Smoke tests must not spend a model API key"
     for example in status["examples"]:

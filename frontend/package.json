@@ -3,7 +3,7 @@
   "private": true,
   "description": "Development-only DOM integration tests; no Node runtime or frontend build required",
   "scripts": {
-    "test": "node --test 01_dashboard/tests/*.test.cjs 02_lab/tests/*.test.cjs",
+    "test": "node --test 01_dashboard/tests/*.test.cjs 02_lab/tests/*.test.cjs 03_agents/tests/*.test.cjs",
     "lint": "prettier --check \"*/public/*.{html,css,js}\" \"*/tests/*.test.cjs\" package.json"
   },
   "devDependencies": {
