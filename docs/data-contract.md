@@ -17,6 +17,17 @@ UTF-8 with an optional BOM is supported. Quoted fields are parsed by the CSV par
 Extra/missing row fields are quarantined. Unknown headers or encodings quarantine
 the entire file with its bytes; they do not silently map to the wrong columns.
 
+Column-count rejections retain policy 1's empty normalized JSON. Migration 005 adds
+`raw.record_identity`, a separate projection that recovers a known firm and valid
+metric month from the archived payload when safely attributable. It does not accept
+or infer any metrics, rewrite source history, or change the validation policy.
+Quality issues and lineage expose `identified_firm_id` / `identified_month` separately
+from the original payload/normalization. Recovery does not assign unknown firm IDs
+or invalid months. Previously normalized keys retain their recorded values; a known
+firm can remain identified even when its month is unusable.
+After upgrading, the normal ingestion command refreshes prior fallback flags even
+when every delivery is skipped; no raw reprocessing is required.
+
 ## Grain and precedence
 
 One published row per `(asesoria_id, mes)`. `mes` is the metric month, independent
