@@ -358,7 +358,7 @@ repository root with:
 python backend/03_scripts/test_dashboard.py
 ```
 
-This requires Python, Docker Compose, Node 22+ and the running application on port
+This requires Python, Docker Compose, Node 24+ and the running application on port
 8000 (the frontend suite includes real HTTP checks). It builds the current test
 image, starts the database if needed, runs pytest against the isolated `pulse_test`
 database, then runs the frontend tests. It installs frontend development packages
@@ -371,6 +371,8 @@ or filter by suite, status and component, including Phase 1 pipeline checks and
 Phase 2 agents. Counts represent individual cases, excluding nested group headers
 that Node's terminal summary also counts. A missing report, runner failure, stale
 heartbeat or failed refresh is visible; no result is assumed to be a pass.
+Node 24 supplies source filenames in JUnit reports; CI uses the same version so
+frontend component filters have the same source information as local reports.
 
 Reports include timestamps, Git revision and whether the checkout had uncommitted
 changes at run start. They are evidence of that run, not proof that later edits

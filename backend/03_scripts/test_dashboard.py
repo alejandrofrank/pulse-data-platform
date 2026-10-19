@@ -1,6 +1,6 @@
 """Run the two test suites and atomically publish inspectable, key-free results.
 
-Run from the repository root with Docker, Python and Node 22+ installed. The API
+Run from the repository root with Docker, Python and Node 24+ installed. The API
 only reads report.json; it cannot launch commands or access the Docker socket.
 """
 
@@ -209,6 +209,9 @@ def complete_suite(suite, path, exit_code):
 
 
 def run(report):
+    node_version = subprocess.check_output(["node", "--version"], text=True).strip()
+    if int(node_version.removeprefix("v").split(".")[0]) < 24:
+        raise RuntimeError("Node 24+ is required for source filenames in the test dashboard")
     # Build the current checkout; never silently test an older packaged image.
     for args, log in (
         (["docker", "compose", "build", "test"], "build.log"),
