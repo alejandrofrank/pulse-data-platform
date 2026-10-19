@@ -17,8 +17,8 @@ class AssetLinks(HTMLParser):
             self.paths.add(path)
 
 
-def check_assets(base):
-    with urllib.request.urlopen(base + "/", timeout=15) as response:
+def check_assets(base, page="/"):
+    with urllib.request.urlopen(base + page, timeout=15) as response:
         assert response.status == 200
         parser = AssetLinks()
         parser.feed(response.read().decode("utf-8"))

@@ -1,0 +1,358 @@
+:root {
+  color-scheme: dark;
+  --bg: #10151c;
+  --surface: #171f29;
+  --raised: #1c2735;
+  --line: #354352;
+  --line-soft: #263342;
+  --fg: #e6edf3;
+  --muted: #b4c1d0;
+  --subtle: #94a6ba;
+  --accent: #8cbcff;
+  --success: #b6ddb5;
+  --warning: #e8bd76;
+  --error: #ffa89e;
+  --mono: Consolas, "Liberation Mono", monospace;
+  font:
+    14px/1.55 system-ui,
+    sans-serif;
+  background: var(--bg);
+  color: var(--fg);
+}
+* {
+  box-sizing: border-box;
+}
+[hidden] {
+  display: none !important;
+}
+body {
+  margin: 0;
+}
+a {
+  color: var(--accent);
+  text-underline-offset: 3px;
+}
+header,
+main {
+  max-width: 1440px;
+  margin: auto;
+  padding: 18px 24px;
+}
+header,
+.service-controls,
+.actions,
+.panel-heading,
+.badges {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+header {
+  justify-content: space-between;
+  border-bottom: 1px solid var(--line);
+}
+h1 {
+  font: 500 20px/1.3 var(--mono);
+  margin: 0;
+}
+h2 {
+  font-size: 14px;
+  margin: 0 0 8px;
+}
+h3 {
+  font-size: 13px;
+  margin: 14px 0 6px;
+}
+p {
+  margin: 8px 0;
+}
+main {
+  display: grid;
+  grid-template-columns: minmax(280px, 330px) minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+}
+.panel {
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+}
+.controls {
+  padding: 16px;
+  display: grid;
+  gap: 16px;
+}
+fieldset {
+  margin: 0;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+legend,
+label {
+  font-size: 12px;
+  color: var(--muted);
+}
+label {
+  display: block;
+  margin-bottom: 6px;
+}
+.mode {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  min-height: 36px;
+  color: var(--fg);
+}
+button,
+input,
+textarea {
+  font: inherit;
+  color: var(--fg);
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 8px 10px;
+}
+button {
+  min-height: 38px;
+  cursor: pointer;
+  font-size: 12px;
+}
+button:hover {
+  background: var(--raised);
+  border-color: var(--subtle);
+}
+button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+input:not([type="radio"]),
+textarea {
+  width: 100%;
+  min-height: 40px;
+  margin-bottom: 10px;
+}
+input[type="radio"] {
+  accent-color: var(--accent);
+}
+textarea {
+  resize: vertical;
+  min-height: 110px;
+}
+.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--bg);
+}
+.primary:hover {
+  background: #bad5ff;
+}
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+.note {
+  color: var(--subtle);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+.badge {
+  font: 11px/1.6 var(--mono);
+  color: var(--muted);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 3px 7px;
+  overflow-wrap: anywhere;
+}
+[data-state="match"],
+[data-state="answered"],
+[data-state="live"] {
+  color: var(--success);
+}
+[data-state="mismatch"],
+[data-state="error"] {
+  color: var(--error);
+}
+[data-state="unavailable"],
+[data-state="clarification"],
+[data-state="unsupported"],
+[data-state="demo"] {
+  color: var(--warning);
+}
+#error,
+.turn-error {
+  color: var(--error);
+  border-left: 3px solid var(--error);
+  padding: 8px 10px;
+  overflow-wrap: anywhere;
+}
+.recovery-actions {
+  margin: 12px 0;
+}
+.recover-request {
+  color: var(--accent);
+}
+.request-id {
+  font: 10px/1.6 var(--mono);
+}
+#execution-note {
+  border-left: 2px solid var(--warning);
+  padding-left: 10px;
+}
+.examples {
+  display: grid;
+  gap: 6px;
+}
+.examples button {
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+details {
+  border-top: 1px solid var(--line-soft);
+  padding: 10px 0;
+}
+summary {
+  cursor: pointer;
+  color: var(--accent);
+  font-size: 12px;
+}
+.access label {
+  margin-top: 12px;
+}
+.panel-heading {
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--line);
+}
+.panel-heading h2 {
+  margin: 0;
+}
+#conversation-id {
+  font: 10px/1.6 var(--mono);
+}
+.empty {
+  padding: 28px 18px;
+  color: var(--muted);
+}
+.turn {
+  padding: 18px;
+  border-bottom: 1px solid var(--line);
+  min-width: 0;
+}
+.turn:last-child {
+  border-bottom: 0;
+}
+.question {
+  margin: 0 0 12px;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.answer {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.clarification-note {
+  color: var(--warning);
+  font-size: 12px;
+}
+pre {
+  margin: 8px 0;
+  padding: 12px;
+  background: var(--bg);
+  border: 1px solid var(--line-soft);
+  border-radius: 4px;
+  font: 12px/1.7 var(--mono);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-height: 420px;
+  overflow: auto;
+}
+.table-wrap {
+  overflow: auto;
+  max-height: 360px;
+  border: 1px solid var(--line-soft);
+  margin: 8px 0;
+}
+table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font: 12px/1.6 var(--mono);
+  white-space: nowrap;
+}
+caption {
+  text-align: left;
+  padding: 8px 10px;
+  color: var(--muted);
+}
+th {
+  position: sticky;
+  top: 0;
+  background: #131c28;
+  text-align: left;
+  color: var(--muted);
+  font-weight: 500;
+}
+th,
+td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--line-soft);
+}
+tbody tr:hover {
+  background: var(--raised);
+}
+.timeline {
+  padding-left: 22px;
+  margin: 12px 0;
+}
+.timeline li {
+  padding: 0 0 14px 10px;
+  border-left: 1px solid var(--line);
+  overflow-wrap: anywhere;
+}
+.timeline li::marker {
+  color: var(--subtle);
+  font: 11px var(--mono);
+}
+.timeline p {
+  white-space: pre-wrap;
+}
+.skip-link {
+  position: absolute;
+  left: 16px;
+  top: -100px;
+  padding: 10px;
+  background: var(--fg);
+  color: var(--bg);
+  z-index: 3;
+}
+.skip-link:focus {
+  top: 10px;
+}
+@media (max-width: 850px) {
+  main {
+    grid-template-columns: 1fr;
+  }
+  header,
+  main {
+    padding: 14px;
+  }
+}
+@media (max-width: 420px) {
+  .actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  h1 {
+    font-size: 17px;
+  }
+  .turn {
+    padding: 12px;
+  }
+}

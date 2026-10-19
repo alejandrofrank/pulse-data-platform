@@ -15,7 +15,7 @@ from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from pulse.db import connect
 from pulse.parsing import POLICY_VERSION
-from pulse_api.assets import DASHBOARD_STATIC
+from pulse_api.assets import AGENT_STATIC, DASHBOARD_STATIC
 from pulse_api.models import FirmMetricPage, NetworkMetricPage
 
 app = FastAPI(
@@ -30,6 +30,7 @@ app = FastAPI(
 app.add_middleware(TrustedHostMiddleware, allowed_hosts=["127.0.0.1", "localhost", "testserver"])
 router = APIRouter()
 app.mount("/static", StaticFiles(directory=DASHBOARD_STATIC), name="static")
+app.mount("/agent-static", StaticFiles(directory=AGENT_STATIC), name="agent-static")
 
 
 class Page(BaseModel):
@@ -109,6 +110,11 @@ def page(conn, query, params, limit, offset):
 @app.get("/", include_in_schema=False)
 def dashboard():
     return FileResponse(DASHBOARD_STATIC / "index.html")
+
+
+@app.get("/agents", include_in_schema=False)
+def agent_workbench():
+    return FileResponse(AGENT_STATIC / "index.html")
 
 
 @app.get("/lab", include_in_schema=False)

@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Pulse · Agent workbench</title>
+    <link rel="stylesheet" href="/agent-static/style.css" />
+    <script src="/agent-static/app.js" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#question">Skip to question</a>
+    <header>
+      <h1>Pulse / Agent workbench</h1>
+      <div class="service-controls">
+        <a href="/">Dashboard</a>
+        <a href="/docs">API</a>
+        <span id="service-status" class="badge" role="status"
+          >Checking service…</span
+        >
+        <button id="refresh-status" type="button">Refresh status</button>
+      </div>
+    </header>
+    <main>
+      <aside class="panel controls" aria-label="Agent controls">
+        <fieldset id="agent-picker">
+          <legend>Agent</legend>
+          <label class="mode"
+            ><input type="radio" name="agent" value="business" checked />
+            Business assistant</label
+          >
+          <label class="mode"
+            ><input type="radio" name="agent" value="investigation" /> Data
+            investigator</label
+          >
+        </fieldset>
+        <p id="agent-description" class="note">
+          Ask business questions and inspect the supporting data.
+        </p>
+        <form id="investigation-form" hidden>
+          <h2>Exact firm / month</h2>
+          <label for="firm-id">Firm ID</label>
+          <input
+            id="firm-id"
+            type="text"
+            required
+            autocomplete="off"
+            placeholder="Exact firm identifier"
+          />
+          <label for="month">Month</label>
+          <input id="month" type="month" required />
+          <button id="build-question" type="submit">Use in question</button>
+          <p class="note">Creates an editable question below.</p>
+        </form>
+        <form id="ask-form">
+          <label for="question">Question or clarification</label>
+          <textarea
+            id="question"
+            rows="5"
+            maxlength="2000"
+            required
+            placeholder="Ask a question…"
+          ></textarea>
+          <div class="actions">
+            <button id="send" class="primary" type="submit" disabled>
+              Ask agent
+            </button>
+            <button id="new-conversation" type="button">
+              New conversation
+            </button>
+          </div>
+          <p id="execution-note" class="note" hidden>
+            An earlier request has an uncertain outcome. Use Recover request on
+            its turn to reuse its ID. Start new execution sends a new request
+            and may incur another charge.
+          </p>
+        </form>
+        <p id="request-status" role="status" class="note">
+          Checking availability…
+        </p>
+        <p id="error" role="alert" hidden></p>
+        <section aria-labelledby="examples-title">
+          <h2 id="examples-title">Example questions</h2>
+          <div id="examples" class="examples"></div>
+        </section>
+        <details class="access">
+          <summary>Deployment access</summary>
+          <label for="access-token">Optional deployment bearer token</label>
+          <input
+            id="access-token"
+            type="password"
+            autocomplete="off"
+            spellcheck="false"
+            aria-describedby="token-note"
+          />
+          <p id="token-note" class="note">
+            Use only a deployment access token, never a model provider API key.
+            Kept in this page only. Changing it clears both conversations and
+            stops local requests; server work may continue. Refresh status to
+            verify access before asking again.
+          </p>
+          <p id="service-identity" class="note">Identity not verified</p>
+          <button id="clear-token" type="button">Clear token</button>
+        </details>
+      </aside>
+      <section class="panel conversation" aria-labelledby="conversation-title">
+        <div class="panel-heading">
+          <h2 id="conversation-title">Business assistant</h2>
+          <span id="conversation-id" class="note">New conversation</span>
+        </div>
+        <div id="transcript" aria-busy="false"></div>
+      </section>
+    </main>
+  </body>
+</html>
