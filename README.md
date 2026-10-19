@@ -133,6 +133,12 @@ The screen shows the last month's values within the selected range, not a mislea
 sum of active customers over time. Quality counts refer to ALL ingested deliveries,
 as explicitly labeled, independently of the chart filter.
 
+The dashboard's dark slate palette, blue accents and typography follow the author's
+[technical portfolio](https://me.alejandrofranks.workers.dev/tech). Inter Tight and
+JetBrains Mono are bundled locally with their SIL Open Font Licenses in
+`src/pulse/static/`; loading the dashboard makes no font/CDN requests. Scrollable
+tables retain their column headers, and coverage/error colors reflect API values.
+
 ## Tests and CI
 
 ```sh

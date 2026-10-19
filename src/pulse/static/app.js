@@ -90,7 +90,7 @@ function drawChart(rows) {
   const width = 980 / rows.length;
   for (let i = 0; i < 4; i++) {
     const y = 20 + i * 60;
-    add("line", { x1: 85, y1: y, x2: 1080, y2: y, stroke: "#e2e8ed" });
+    add("line", { x1: 85, y1: y, x2: 1080, y2: y, class: "chart-grid" });
     add(
       "text",
       { x: 75, y: y + 4, "text-anchor": "end" },
@@ -105,11 +105,11 @@ function drawChart(rows) {
         y: 200 - h,
         width: Math.max(2, width - 4),
         height: h,
-        fill: r.missing_firms > 0 ? "#ba862e" : "#247a74",
+        class: r.missing_firms > 0 ? "chart-bar is-partial" : "chart-bar",
         rx: 2,
       });
       const title = document.createElementNS(ns, "title");
-      title.textContent = `${r.mes.slice(0, 7)}: ${format(r.revenue_eur, "money")}`;
+      title.textContent = `${r.mes.slice(0, 7)}: ${format(r.revenue_eur, "money")}${r.missing_firms > 0 ? " · Cobertura parcial" : ""}`;
       bar.append(title);
     }
     if (
@@ -151,7 +151,18 @@ async function loadMain() {
     el("coverage-detail").textContent = firm
       ? "Estado del mes de la asesoría"
       : `${latest?.reporting_firms ?? 0} / ${latest?.expected_firms ?? 0} asesorías con datos`;
+    el("coverage-card").dataset.state = !latest
+      ? "unknown"
+      : (
+            firm
+              ? latest.coverage_status === "available"
+              : latest.missing_firms === 0
+          )
+        ? "success"
+        : "warning";
     el("rejected").textContent = format(quality.rejected_rows);
+    el("rejected-card").dataset.state =
+      quality.rejected_rows > 0 ? "error" : "success";
     el("quality-detail").textContent =
       `${format(quality.warning_rows)} filas con advertencias · ${quality.file_errors} errores de archivo`;
     el("quality-summary").textContent =
