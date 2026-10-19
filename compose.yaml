@@ -127,6 +127,7 @@ services:
       LAB_DATABASE_URL: postgresql://lab_owner:lab_owner_local@lab-db:5432/pulse_lab
       PULSE_DASHBOARD_PORT: ${PULSE_PORT:-8000}
       PULSE_DATA_DIR: /data
+      PULSE_INTERNAL_API_PORT: '8001'
     ports:
       - "127.0.0.1:${LAB_PORT:-8001}:8001"
     networks: [lab]
