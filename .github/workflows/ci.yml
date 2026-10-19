@@ -26,7 +26,16 @@ jobs:
           docker compose run --rm test ruff check 01_pipeline 02_api 04_agents tests 03_scripts
           docker compose run --rm test ruff format --check 01_pipeline 02_api 04_agents tests 03_scripts
       - name: Unit and PostgreSQL integration tests
-        run: docker compose run --rm test pytest -q -p no:cacheprovider
+        run: |
+          mkdir -p test-results/dashboard
+          chmod a+rwx test-results/dashboard
+          date -u +%Y-%m-%dT%H:%M:%SZ > test-results/dashboard/backend.started
+          set +e
+          docker compose run --rm -v "$PWD/test-results/dashboard:/reports" test pytest -q -p no:cacheprovider --junitxml=/reports/backend.xml
+          code=$?
+          echo "$code" > test-results/dashboard/backend.exit
+          date -u +%Y-%m-%dT%H:%M:%SZ > test-results/dashboard/backend.finished
+          exit "$code"
       - name: Build and start the actual application
         run: docker compose up -d --build --wait
       - name: Verify API, dashboard assets and repeatable ingestion
@@ -45,7 +54,13 @@ jobs:
         run: |
           npm --prefix frontend ci
           npm --prefix frontend run lint
-          npm --prefix frontend test
+          date -u +%Y-%m-%dT%H:%M:%SZ > test-results/dashboard/frontend.started
+          set +e
+          (cd frontend && node --test --test-reporter=spec --test-reporter=junit --test-reporter-destination=stdout --test-reporter-destination=../test-results/dashboard/frontend.xml */tests/*.test.cjs)
+          code=$?
+          echo "$code" > test-results/dashboard/frontend.exit
+          date -u +%Y-%m-%dT%H:%M:%SZ > test-results/dashboard/frontend.finished
+          exit "$code"
       - name: Verify isolated CSV playback and reverse replay
         run: |
           docker compose --profile lab up -d --build --wait lab
@@ -58,6 +73,14 @@ jobs:
       - name: Collect service logs
         if: always()
         run: docker compose --profile lab logs --no-color > compose.log
+      - name: Collect test dashboard
+        if: always()
+        run: python backend/03_scripts/test_dashboard.py --collect
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-dashboard
+          path: test-results/dashboard/
       - uses: actions/upload-artifact@v4
         if: always()
         with:

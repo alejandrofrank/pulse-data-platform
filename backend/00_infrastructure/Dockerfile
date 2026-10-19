@@ -14,6 +14,7 @@ COPY backend/00_infrastructure/dagster/workspace.yaml ./workspace.yaml
 COPY frontend/01_dashboard/public /app/frontend/01_dashboard/public
 COPY frontend/02_lab/public /app/frontend/02_lab/public
 COPY frontend/03_agents/public /app/frontend/03_agents/public
+COPY frontend/04_tests/public /app/frontend/04_tests/public
 USER pulse
 CMD ["uvicorn", "pulse_api.app:app", "--host", "0.0.0.0", "--port", "8000"]
 

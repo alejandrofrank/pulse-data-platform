@@ -4,6 +4,7 @@ import os
 import re
 from datetime import date
 from decimal import Decimal
+from pathlib import Path
 from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, FastAPI, HTTPException, Query
@@ -15,7 +16,7 @@ from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from pulse.db import connect
 from pulse.parsing import POLICY_VERSION
-from pulse_api.assets import AGENT_STATIC, DASHBOARD_STATIC
+from pulse_api.assets import AGENT_STATIC, DASHBOARD_STATIC, TEST_STATIC
 from pulse_api.models import FirmMetricPage, NetworkMetricPage
 
 app = FastAPI(
@@ -31,6 +32,21 @@ app.add_middleware(TrustedHostMiddleware, allowed_hosts=["127.0.0.1", "localhost
 router = APIRouter()
 app.mount("/static", StaticFiles(directory=DASHBOARD_STATIC), name="static")
 app.mount("/agent-static", StaticFiles(directory=AGENT_STATIC), name="agent-static")
+TEST_REPORT = (
+    Path(os.environ.get("PULSE_TEST_REPORT_DIR", "../test-results/dashboard")) / "report.json"
+)
+
+
+@app.get("/tests/report.json", include_in_schema=False)
+def test_report():
+    if not TEST_REPORT.is_file():
+        raise HTTPException(404, "No test run yet. Run python backend/03_scripts/test_dashboard.py")
+    return FileResponse(
+        TEST_REPORT, media_type="application/json", headers={"Cache-Control": "no-store"}
+    )
+
+
+app.mount("/tests", StaticFiles(directory=TEST_STATIC, html=True), name="test-dashboard")
 
 
 class Page(BaseModel):
