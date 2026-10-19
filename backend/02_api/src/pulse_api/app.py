@@ -214,8 +214,14 @@ def summary(conn: DB):
     counts["latest_run"] = conn.execute(
         "SELECT * FROM ops.runs ORDER BY started_at DESC LIMIT 1"
     ).fetchone()
-    counts["last_successful_load"] = conn.execute("""SELECT max(finished_at) AS t FROM ops.runs
-        WHERE status IN ('success','partial') AND files_loaded>0""").fetchone()["t"]
+    # A retry can publish archived deliveries while loading zero new files. Use
+    # first publication membership, not the worker's file counter, so recovery
+    # advances incorporation time and a no-op replay does not make data look newer.
+    counts["last_successful_load"] = conn.execute("""SELECT max(first_published_at) AS t
+        FROM (SELECT min(p.published_at) AS first_published_at
+              FROM ops.publication_deliveries pd
+              JOIN ops.publications p ON p.id=pd.publication_id
+              GROUP BY pd.delivery_id) incorporated""").fetchone()["t"]
     counts["policy_version"] = POLICY_VERSION
     return response(counts)
 
@@ -246,7 +252,7 @@ def deliveries(conn: DB, limit: Limit = 50, offset: Offset = 0):
 def issues(
     conn: DB,
     severity: str | None = None,
-    firm_id: int | None = None,
+    firm_id: Annotated[int | None, Query(ge=1, le=2_147_483_647)] = None,
     limit: Limit = 50,
     offset: Offset = 0,
 ):
@@ -260,7 +266,7 @@ def issues(
         WHERE (%s::text IS NULL OR i.severity=%s)
           AND (%s::text IS NULL OR r.normalized->>'asesoria_id'=%s)
         ORDER BY d.delivery_month DESC,d.revision DESC,r.line_number,i.id""",
-        [severity, severity, str(firm_id) if firm_id else None, str(firm_id)],
+        [severity, severity, str(firm_id) if firm_id is not None else None, str(firm_id)],
         limit,
         offset,
     )
