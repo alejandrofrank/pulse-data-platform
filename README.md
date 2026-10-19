@@ -31,9 +31,30 @@ docker compose run --rm bootstrap pulse ingest
 
 Place new deliveries in `data/drops/`. The directory is mounted read-only in the
 application containers; no image rebuild is necessary for new CSV files. Write to
-a temporary filename then atomically rename it to `.csv` once the delivery is complete.
-The enabled Dagster schedule checks all drops daily at **06:00 Europe/Madrid** while
-the daemon runs. A manual run and scheduled run cannot publish simultaneously.
+a temporary filename such as `.partial`, then atomically rename it to `.csv` once
+the delivery is complete. Do not write an unfinished delivery directly to a `.csv` path.
+
+The enabled Dagster **`csv_delivery_sensor`** checks the folder at a minimum interval
+of 30 seconds. A file must have the same size, modification timestamp and SHA-256 in
+two consecutive observations before it becomes eligible. New stable files are batched
+into one `ingest_all` run with explicit filenames and expected checksums. Typically
+pickup takes around 30–60 seconds plus daemon/queue overhead; it is not a latency SLA.
+Open Dagster → Automation → Sensors to inspect ticks, skip reasons, runs or pause it.
+
+The sensor consults the ingestion ledger, so loaded files and unchanged quarantined
+contents do not trigger repeated ingestion. Its persisted cursor and run keys deduplicate
+repeated observations. It defers while an ingestion job is queued or active, and the
+database lock still protects overlapping entry points. A file changed after inspection
+fails its expected-checksum check before archival. Two stable observations are a heuristic;
+the producer's atomic rename is the file-completion contract.
+
+Transient ingestion/publication exceptions receive two step retries, five seconds apart.
+Known file-quarantine outcomes fail visibly without automatic step retries. Fix the input
+or re-execute the failed run in Dagster. An exhausted unchanged arrival is not endlessly
+resubmitted by the sensor. The daily **06:00 Europe/Madrid** schedule and manual full-run
+command remain available for reconciliation and recovery, including archived data whose
+publication previously failed. The lab's playback stays manual and isolated; this sensor
+does not automatically fill the lab database.
 
 By default, only loopback ports 8000 and 3000 are exposed. PostgreSQL has no published
 port. If those ports are busy, set `PULSE_PORT` and/or `DAGSTER_PORT` in your environment
@@ -162,6 +183,11 @@ CI starts a disposable lab, loads all 36 drops one by one, replays all 36 in rev
 checks every skip and unchanged hash/counts, then clears that test lab. The smoke script
 requires an initially empty lab and an explicit `--disposable` flag. Do not run it against
 an experiment whose evidence you intend to retain.
+
+CI also adds a temporary revision to its disposable main stack and verifies that the
+actual Dagster daemon ingests it automatically, records the sensor trigger, and does not
+launch more ingestions on subsequent unchanged observations. `scripts/sensor_smoke.py`
+requires `--disposable`; its database keeps the test revision until the test stack is removed.
 
 ### Query the lab with PostgreSQL
 

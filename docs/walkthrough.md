@@ -110,6 +110,19 @@ log files inside individual containers are not a long-term log archive.
 The SQL `ops.runs` ledger provides a stable application-facing status independent of
 Dagster's internal schema. The dashboard can show failures without knowing GraphQL.
 
+`csv_delivery_sensor` observes the drop directory at a minimum interval of 30 seconds.
+Two matching size/mtime/checksum observations make a file eligible; the ledger excludes
+loaded files and unchanged file quarantines. One run receives the ready filenames and
+their checksums, so it cannot accidentally pick up a different unfinished file from the
+directory. Run keys and the persisted sensor cursor deduplicate dispatch; the ingestion
+ledger and lock protect the data itself. These are separate layers of idempotency.
+
+The producer must atomically rename a completed temporary file to `.csv`: stability
+checks alone cannot prove that a paused writer has finished. A checksum mismatch at
+ingestion fails before archival. Transient exceptions get two step retries; explicit
+file-quarantine failures do not. The daily schedule remains a reconciliation fallback.
+The sensor and its ticks are visible in Dagster; the interactive lab keeps its own worker.
+
 ## 7. API and dashboard: consuming one source of truth
 
 Files: `src/pulse/api.py`, `src/pulse/static/`.
