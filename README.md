@@ -443,12 +443,21 @@ psycopg 3. SQLAlchemy 2.0 is pinned for the selected Dagster release.
 ### 1. What was left out, and what comes next?
 
 The bounded Phase 2 agents are included. No document vector index, fine-tuning,
-cloud provisioning or Terraform bonus, SSO,
+Terraform/Pulumi provisioning bonus, SSO,
 production secret manager, managed backups, external alert routing or multi-node HA.
 For an office deployment, add reverse-proxy authentication, secrets, encrypted backups
 with restore drills, resource limits and failure notifications. Agree business ownership
 of the quality rules before tightening them. A changed master currently needs an
 explicit controlled migration; add versioned master deliveries/SCD only when required.
+
+The Dockerfiles and `compose.yaml` version the application environment: service
+images, configuration, container networks, persistent volumes and startup dependencies.
+They assume an existing Docker-ready host; they do not provision VMs or configure
+the host OS, firewall or backup destination. Infrastructure as code is useful on
+premises too, but adding Terraform just to duplicate Compose would add another
+tool without addressing those host-level gaps. The optional Terraform/Pulumi bonus
+is not implemented. With an agreed office deployment target, automate host setup
+and add VM, network and storage provisioning against that platform where needed.
 
 ### 2. What is most fragile?
 
