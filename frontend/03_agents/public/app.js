@@ -416,6 +416,9 @@
       : "New conversation";
     $("starter-section").hidden =
       !!session.turns.length || session.loading || !!session.loadError;
+    document
+      .querySelector(".chat")
+      .classList.toggle("is-empty", !$("starter-section").hidden);
     $("earlier-messages").hidden =
       session.historyOffset >= session.historyTotal;
     $("earlier-messages").disabled = session.loading || session.busy;
@@ -424,6 +427,15 @@
     $("examples").replaceChildren();
     const examples =
       service?.examples.filter((example) => example.agent === active) || [];
+    if (service?.mode === "live" && active === "business") {
+      [
+        "Which 3 firms billed the most in March 2026?",
+        "What was the network’s billed revenue in 2025?",
+      ].forEach((question) => {
+        if (!examples.some((example) => example.question === question))
+          examples.push({ agent: active, question });
+      });
+    }
     examples.forEach((example) => {
       const button = node("button", example.question);
       button.type = "button";
@@ -446,6 +458,10 @@
       active === "business"
         ? "Ask business questions and inspect the supporting data."
         : "Investigate a firm and month through findings, record versions, and revenue comparisons.";
+    $("composer-description").textContent =
+      active === "business"
+        ? "Explore your published business metrics"
+        : "Trace a number from source to reporting";
     $("investigation-form").hidden = active !== "investigation";
     $("exact-controls").hidden = active !== "investigation";
     document.querySelectorAll('input[name="agent"]').forEach((radio) => {
@@ -473,7 +489,7 @@
   function resizeComposer() {
     $("question").style.height = "auto";
     $("question").style.height =
-      `${Math.max(50, Math.min(160, $("question").scrollHeight))}px`;
+      `${Math.max(36, Math.min(160, $("question").scrollHeight))}px`;
   }
   function scrollToLatest() {
     $("chat-scroll").scrollTop = $("chat-scroll").scrollHeight;

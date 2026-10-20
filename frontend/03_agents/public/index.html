@@ -42,22 +42,6 @@
     </header>
     <main class="workspace">
       <section class="chat" aria-labelledby="conversation-title">
-        <div class="chat-toolbar">
-          <fieldset id="agent-picker" class="agent-picker">
-            <legend class="sr-only">Choose an assistant</legend>
-            <label class="mode"
-              ><input type="radio" name="agent" value="business" checked /><span
-                >Business assistant</span
-              ></label
-            >
-            <label class="mode"
-              ><input type="radio" name="agent" value="investigation" /><span
-                >Data investigator</span
-              ></label
-            >
-          </fieldset>
-          <span class="read-only-label">Read-only data</span>
-        </div>
         <div class="chat-scroll" id="chat-scroll">
           <div class="conversation-heading">
             <h1 id="conversation-title">Business assistant</h1>
@@ -89,14 +73,41 @@
             class="starter-section"
             aria-labelledby="examples-title"
           >
-            <h2 id="examples-title">Start with a question</h2>
-            <div id="examples" class="examples"></div>
-            <p class="starter-hint">
-              Every answer can be checked against its source data.
+            <h2 id="examples-title" class="terminal-prompt">
+              <span aria-hidden="true">&gt;</span> awaiting instructions<span
+                class="terminal-cursor"
+                aria-hidden="true"
+              ></span>
+            </h2>
+            <p id="starter-description" class="starter-description">
+              Ask about revenue, clients or your data.<br />Answers backed by
+              published records and inspectable sources.
             </p>
+            <div id="examples" class="examples"></div>
           </section>
         </div>
         <div class="composer-area">
+          <div class="chat-toolbar">
+            <fieldset id="agent-picker" class="agent-picker">
+              <legend class="sr-only">Choose an assistant</legend>
+              <label class="mode"
+                ><input
+                  type="radio"
+                  name="agent"
+                  value="business"
+                  checked
+                /><span>Business</span></label
+              >
+              <label class="mode"
+                ><input type="radio" name="agent" value="investigation" /><span
+                  >Investigator</span
+                ></label
+              >
+            </fieldset>
+            <span id="composer-description" class="read-only-label"
+              >Explore your published business metrics</span
+            >
+          </div>
           <details id="exact-controls" class="exact-controls" hidden>
             <summary>
               Investigate an exact firm and month
@@ -134,16 +145,13 @@
             >
             <textarea
               id="question"
-              rows="2"
+              rows="1"
               maxlength="2000"
               required
-              placeholder="Ask about your data…"
+              placeholder="Write an instruction…"
               aria-describedby="composer-hint"
             ></textarea>
             <div class="composer-actions">
-              <span id="composer-hint"
-                >Enter to send · Shift + Enter for a new line</span
-              >
               <button id="send" class="primary" type="submit" disabled>
                 Send
               </button>
@@ -155,6 +163,9 @@
             </p>
           </form>
           <div class="composer-footer">
+            <span id="composer-hint"
+              >Enter to send · Shift + Enter for a new line</span
+            >
             <p id="request-status" role="status" class="note">
               Checking availability…
             </p>
