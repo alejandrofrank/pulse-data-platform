@@ -14,15 +14,15 @@
 }
 :root {
   color-scheme: dark;
-  --bg: #10151c;
-  --surface: #171f29;
-  --raised: #202d3e;
-  --line: #354352;
-  --line-soft: #25313f;
-  --fg: #e6edf3;
-  --muted: #b4c1d0;
-  --subtle: #97a8bc;
-  --accent: #8cbcff;
+  --bg: #050608;
+  --surface: #0b0e14;
+  --raised: #141b26;
+  --line: #293344;
+  --line-soft: #1a2230;
+  --fg: #e8edf5;
+  --muted: #aebbd0;
+  --subtle: #899ab2;
+  --accent: #74aaff;
   --success: #b6ddb5;
   --warning: #e8bd76;
   --error: #ffa89e;
@@ -104,7 +104,7 @@ h3 {
   margin: 16px 0 8px;
 }
 .app-header {
-  height: 68px;
+  height: 60px;
   padding: 0 28px;
   display: flex;
   align-items: center;
@@ -117,7 +117,7 @@ h3 {
   align-items: center;
   gap: 12px;
   color: var(--fg);
-  font-size: 20px;
+  font-size: 17px;
   font-weight: 600;
 }
 .brand-icon {
@@ -170,7 +170,7 @@ h3 {
 .workspace {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 290px;
-  height: calc(100dvh - 68px);
+  height: calc(100dvh - 60px);
   min-height: 440px;
   max-width: 1760px;
   margin: 0 auto;
@@ -182,20 +182,18 @@ h3 {
   flex-direction: column;
 }
 .chat-toolbar {
-  padding: 18px 30px;
+  margin-bottom: 13px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 16px;
 }
 .agent-picker {
   display: flex;
-  padding: 4px;
-  gap: 4px;
-  border: 1px solid var(--line-soft);
-  border-radius: 10px;
+  flex-shrink: 0;
+  padding: 0;
+  gap: 6px;
+  border: 0;
   margin: 0;
-  background: #131b24;
 }
 .mode {
   position: relative;
@@ -209,15 +207,18 @@ h3 {
 }
 .mode span {
   display: block;
-  padding: 7px 12px;
-  font-size: 12px;
+  padding: 6px 13px;
+  font: 10px/1.6 var(--mono);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
   color: var(--subtle);
-  border-radius: 6px;
+  border: 1px solid var(--line-soft);
+  border-radius: 24px;
 }
 .mode input:checked + span {
-  background: #27374b;
-  color: #d5e6ff;
-  box-shadow: 0 0 0 1px #3b526e;
+  background: #111b2a;
+  color: #a8caff;
+  border-color: #2e4668;
 }
 .mode input:focus-visible + span {
   outline: 2px solid var(--accent);
@@ -225,15 +226,26 @@ h3 {
 }
 .read-only-label {
   color: var(--subtle);
-  font-size: 11px;
-  white-space: nowrap;
+  font: 10px/1.6 var(--mono);
 }
 .chat-scroll {
   overflow-y: auto;
   min-height: 0;
   flex: 1;
   scrollbar-color: var(--line) transparent;
-  padding: 18px max(30px, calc((100% - 800px) / 2)) 30px;
+  padding: 28px max(30px, calc((100% - 800px) / 2)) 30px;
+}
+.chat.is-empty .chat-scroll {
+  display: flex;
+  flex-direction: column;
+}
+.chat.is-empty .conversation-heading {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 .conversation-heading {
   margin-bottom: 28px;
@@ -270,8 +282,8 @@ h3 {
   font-weight: 400;
 }
 .question {
-  background: #243349;
-  border: 1px solid #344a64;
+  background: #131e2e;
+  border: 1px solid #26374f;
   border-radius: 15px 15px 4px 15px;
   padding: 12px 17px;
   font-size: 14px;
@@ -318,7 +330,7 @@ h3 {
 }
 .evidence-panel {
   margin-top: 18px;
-  background: #141d28;
+  background: var(--surface);
   border: 1px solid var(--line-soft);
   border-radius: 9px;
   padding: 0 14px;
@@ -378,58 +390,84 @@ summary {
   color: var(--warning);
 }
 .starter-section {
-  max-width: 640px;
-  margin: 24px 0;
+  width: 100%;
+  max-width: 740px;
+  margin: auto;
+  padding: 28px 0;
+  text-align: center;
 }
-.starter-section h2 {
+.terminal-prompt {
   color: var(--muted);
-  font-weight: 400;
-  margin-bottom: 12px;
+  font: 19px/1.6 var(--mono);
+  letter-spacing: 0.015em;
+  margin: 0 0 21px;
+}
+.terminal-prompt > span:first-child {
+  color: var(--accent);
+  margin-right: 7px;
+}
+.terminal-cursor {
+  display: inline-block;
+  width: 9px;
+  height: 20px;
+  background: #a4acb8;
+  vertical-align: -3px;
+  margin-left: 5px;
+}
+.starter-description {
+  color: var(--subtle);
+  font-size: 16px;
+  line-height: 1.8;
+  max-width: 550px;
+  margin: 0 auto 44px;
 }
 .examples {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
+  gap: 12px;
 }
 .examples button {
-  padding: 15px;
+  padding: 20px 23px;
+  min-height: 88px;
+  border-radius: 16px;
+  font-size: 16px;
   text-align: left;
   background: var(--surface);
   border-color: var(--line-soft);
   line-height: 1.6;
   overflow-wrap: anywhere;
 }
-.starter-hint {
-  font-size: 12px;
-  color: var(--subtle);
-  margin-top: 16px;
-}
 .empty {
   color: var(--muted);
   font-size: 14px;
 }
 .composer-area {
-  padding: 12px max(30px, calc((100% - 800px) / 2)) 14px;
+  padding: 20px max(30px, calc((100% - 900px) / 2)) 12px;
+  border-top: 1px solid var(--line-soft);
   flex-shrink: 0;
 }
 .composer {
-  padding: 13px 15px 11px;
-  background: #1a2532;
-  border: 1px solid #40516a;
-  border-radius: 15px;
-  box-shadow: 0 5px 25px #0002;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 12px 11px 24px;
+  background: var(--surface);
+  border: 1px solid var(--line-soft);
+  border-radius: 32px;
 }
 .composer:focus-within {
-  border-color: #789ecb;
+  border-color: #435c7c;
 }
 textarea {
   width: 100%;
   background: transparent;
   border: 0;
   resize: none;
-  min-height: 50px;
+  min-height: 36px;
   max-height: 160px;
-  padding: 3px 1px 9px;
+  padding: 6px 0;
+  font-size: 15px;
   display: block;
   line-height: 1.6;
 }
@@ -437,11 +475,10 @@ textarea:focus {
   outline: none;
 }
 textarea::placeholder {
-  color: #95a6bb;
+  color: var(--subtle);
 }
 .composer-actions {
   display: flex;
-  justify-content: space-between;
   align-items: center;
   gap: 12px;
 }
@@ -462,12 +499,34 @@ textarea::placeholder {
   background: #bdd8ff;
   border-color: #bdd8ff;
 }
+#send {
+  min-height: 44px;
+  padding: 10px 23px;
+  border: 1px solid #c8ced7;
+  border-radius: 24px;
+  background: #c8ced7;
+  color: #11151c;
+  font: 12px/1.5 var(--mono);
+  letter-spacing: 0.035em;
+  text-transform: uppercase;
+  max-width: 170px;
+}
+#send:hover:not(:disabled) {
+  background: #edf1f7;
+  border-color: #edf1f7;
+}
 .composer-footer {
-  min-height: 24px;
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 18px;
+  min-height: 26px;
+  padding: 8px 8px 0;
 }
 .composer-footer .note {
   font-size: 10px;
-  margin: 8px 0 0;
+  margin: 0;
 }
 .exact-controls {
   margin-bottom: 10px;
@@ -508,7 +567,7 @@ label {
   flex-direction: column;
   padding: 24px 18px 16px;
   border-left: 1px solid var(--line-soft);
-  background: #131a23;
+  background: #080b10;
 }
 .history-heading {
   display: flex;
@@ -518,9 +577,9 @@ label {
 }
 .new-conversation {
   text-align: left;
-  background: #1d2c40;
-  border-color: #384c66;
-  color: #d2e4ff;
+  background: #101722;
+  border-color: #29374b;
+  color: var(--fg);
   font-weight: 500;
   width: 100%;
 }
@@ -556,8 +615,8 @@ label {
   margin-bottom: 5px;
 }
 .history-item[aria-current="true"] {
-  background: #223249;
-  border-color: #3c526c;
+  background: #121e30;
+  border-color: #2a4161;
 }
 .history-item strong {
   font-size: 12px;
@@ -638,6 +697,7 @@ label {
   font: 10px/1.6 var(--mono);
 }
 #execution-note {
+  grid-column: 1 / -1;
   border-left: 2px solid var(--warning);
   padding-left: 10px;
   font-size: 11px;
@@ -676,7 +736,7 @@ caption {
 th {
   position: sticky;
   top: 0;
-  background: #1d2a3a;
+  background: #152031;
   text-align: left;
   color: var(--muted);
   font-weight: 500;
@@ -741,9 +801,6 @@ tbody tr:hover {
   .workspace {
     grid-template-columns: minmax(0, 1fr) 250px;
   }
-  .chat-toolbar {
-    padding: 16px 20px;
-  }
   .chat-scroll,
   .composer-area {
     padding-left: 22px;
@@ -792,14 +849,27 @@ tbody tr:hover {
   .history-open .history-panel {
     display: flex;
   }
-  .chat-toolbar {
-    padding: 14px 16px;
-  }
   .chat-scroll {
     padding: 16px;
   }
   .composer-area {
-    padding: 8px 16px 10px;
+    padding: 14px 16px 10px;
+  }
+  .starter-section {
+    padding: 18px 0;
+  }
+  .terminal-prompt {
+    font-size: 17px;
+    margin-bottom: 16px;
+  }
+  .starter-description {
+    font-size: 14px;
+    margin-bottom: 26px;
+  }
+  .examples button {
+    padding: 16px;
+    min-height: 80px;
+    font-size: 14px;
   }
   .conversation-heading {
     margin-bottom: 20px;
@@ -825,8 +895,19 @@ tbody tr:hover {
     grid-template-columns: 1fr;
   }
   .mode span {
-    padding: 7px 10px;
-    font-size: 11px;
+    padding: 6px 10px;
+    font-size: 10px;
+  }
+  .terminal-prompt {
+    font-size: 15px;
+  }
+  .composer {
+    padding-left: 16px;
+    gap: 8px;
+  }
+  #send {
+    padding: 10px 16px;
+    max-width: 105px;
   }
   #investigation-form {
     flex-wrap: wrap;
