@@ -15,6 +15,41 @@ from psycopg.rows import dict_row
 
 ADMISSION_LOCK = 7281903
 RESERVATION = Decimal("0.01")
+HISTORY_MAX_LIMIT = 100
+HISTORY_DETAIL_MAX_LIMIT = 10
+HISTORY_MAX_OFFSET = 10_000
+
+# Visibility covers ALL turns, not just the requested page or the last plan.
+# Questions and compact state can themselves carry privileged information.
+# Unknown legacy scope requires full operational permission, even for business.
+_VISIBLE_CONVERSATION = """
+    c.owner=%(owner)s
+    AND (
+        (%(firms)s::bigint[] IS NULL AND %(investigate)s)
+        OR EXISTS (SELECT 1 FROM agents.runs r WHERE r.conversation_id=c.id)
+    )
+    AND NOT EXISTS (
+        SELECT 1 FROM agents.runs r WHERE r.conversation_id=c.id AND (
+            r.owner<>c.owner OR r.profile<>c.profile OR NOT (
+                CASE WHEN r.authorization_can_investigate IS NULL
+                    THEN %(firms)s::bigint[] IS NULL AND %(investigate)s
+                    ELSE (
+                        %(firms)s::bigint[] IS NULL OR (
+                            r.authorization_firm_ids IS NOT NULL
+                            AND r.authorization_firm_ids <@ %(firms)s::bigint[]
+                        )
+                    ) AND (NOT r.authorization_can_investigate OR %(investigate)s)
+                END
+            )
+        )
+    )
+"""
+_CONVERSATION_COLUMNS = """
+    c.id,c.profile AS agent,c.created_at,c.updated_at,
+    coalesce((SELECT left(r.question,100) FROM agents.runs r
+        WHERE r.conversation_id=c.id ORDER BY r.created_at,r.id LIMIT 1),'') AS title,
+    (SELECT count(*) FROM agents.runs r WHERE r.conversation_id=c.id) AS turn_count
+"""
 
 
 class AdmissionError(ValueError):
@@ -37,6 +72,79 @@ def audit_connection():
     except BaseException:
         conn.close()
         raise
+
+
+def _history_params(owner, authorization):
+    # Missing caller authorization is never assumed to mean operator access.
+    firms = authorization["firms"] if authorization is not None else ()
+    return {
+        "owner": owner,
+        "firms": list(firms) if firms is not None else None,
+        "investigate": authorization["investigate"] if authorization is not None else False,
+    }
+
+
+def _pagination(limit, offset, *, max_limit=HISTORY_MAX_LIMIT):
+    if (
+        type(limit) is not int
+        or type(offset) is not int
+        or not 1 <= limit <= max_limit
+        or not 0 <= offset <= HISTORY_MAX_OFFSET
+    ):
+        raise AdmissionError("Invalid history pagination", 422)
+    return {"limit": limit, "offset": offset}
+
+
+def list_conversations(owner, *, authorization, limit=30, offset=0):
+    params = {**_history_params(owner, authorization), **_pagination(limit, offset)}
+    with audit_connection() as conn:
+        conn.execute("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY")
+        total = conn.execute(
+            f"SELECT count(*) AS n FROM agents.conversations c WHERE {_VISIBLE_CONVERSATION}",
+            params,
+        ).fetchone()["n"]
+        items = conn.execute(
+            f"""SELECT {_CONVERSATION_COLUMNS} FROM agents.conversations c
+            WHERE {_VISIBLE_CONVERSATION}
+            ORDER BY c.updated_at DESC,c.id DESC LIMIT %(limit)s OFFSET %(offset)s""",
+            params,
+        ).fetchall()
+    return {"items": items, "total": total, "limit": limit, "offset": offset}
+
+
+def get_conversation(conversation_id, owner, *, authorization, limit=10, offset=0):
+    params = {
+        **_history_params(owner, authorization),
+        **_pagination(limit, offset, max_limit=HISTORY_DETAIL_MAX_LIMIT),
+        "conversation_id": conversation_id,
+    }
+    with audit_connection() as conn:
+        conn.execute("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY")
+        conversation = conn.execute(
+            f"""SELECT {_CONVERSATION_COLUMNS} FROM agents.conversations c
+            WHERE c.id=%(conversation_id)s AND {_VISIBLE_CONVERSATION}""",
+            params,
+        ).fetchone()
+        if not conversation:
+            raise AdmissionError("Conversation not found", 404)
+        # OFFSET walks backwards in history; reverse only the selected page.
+        items = conn.execute(
+            """SELECT id AS request_id,question,status,created_at,result
+            FROM agents.runs WHERE conversation_id=%(conversation_id)s
+            ORDER BY created_at DESC,id DESC LIMIT %(limit)s OFFSET %(offset)s""",
+            params,
+        ).fetchall()
+    total = conversation.pop("turn_count")
+    return {**conversation, "items": items[::-1], "total": total, "limit": limit, "offset": offset}
+
+
+def _require_visible_conversation(conn, conversation_id, owner, authorization):
+    if not conn.execute(
+        f"""SELECT 1 FROM agents.conversations c
+        WHERE c.id=%(conversation_id)s AND {_VISIBLE_CONVERSATION}""",
+        {**_history_params(owner, authorization), "conversation_id": conversation_id},
+    ).fetchone():
+        raise AdmissionError("Conversation not found", 404)
 
 
 def begin(request_id, conversation_id, profile, question, owner, *, live, authorization=None):
@@ -68,6 +176,7 @@ def begin(request_id, conversation_id, profile, question, owner, *, live, author
                 raise AdmissionError(
                     "Request identifier is already used for a different request", 409
                 )
+            _require_visible_conversation(conn, existing["conversation_id"], owner, authorization)
             if existing["result"] is not None:
                 result = existing["result"]
                 result["trace"]["replayed"] = True
@@ -103,6 +212,7 @@ def begin(request_id, conversation_id, profile, question, owner, *, live, author
             ).fetchone()
             if not conversation or conversation["owner"] != owner:
                 raise AdmissionError("Conversation not found", 404)
+            _require_visible_conversation(conn, conversation_id, owner, authorization)
             if conversation["profile"] != profile:
                 raise AdmissionError("This conversation belongs to the other agent", 409)
             if conn.execute(
@@ -121,9 +231,26 @@ def begin(request_id, conversation_id, profile, question, owner, *, live, author
             )
         conn.execute(
             """INSERT INTO agents.runs
-            (id,conversation_id,owner,profile,question,request_hash,status,reserved_cost_usd)
-            VALUES (%s,%s,%s,%s,%s,%s,'running',%s)""",
-            (request_id, conversation_id, owner, profile, question, fingerprint, reserved),
+            (id,conversation_id,owner,profile,question,request_hash,status,reserved_cost_usd,
+             authorization_firm_ids,authorization_can_investigate)
+            VALUES (%s,%s,%s,%s,%s,%s,'running',%s,%s,%s)""",
+            (
+                request_id,
+                conversation_id,
+                owner,
+                profile,
+                question,
+                fingerprint,
+                reserved,
+                list(authorization["firms"])
+                if authorization is not None and authorization["firms"] is not None
+                else None,
+                authorization["investigate"] if authorization is not None else None,
+            ),
+        )
+        conn.execute(
+            "UPDATE agents.conversations SET updated_at=now() WHERE id=%s",
+            (conversation_id,),
         )
     return {"conversation_id": str(conversation_id), "state": state}
 

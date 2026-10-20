@@ -4,16 +4,20 @@ import hashlib
 import hmac
 import json
 import os
+from datetime import datetime
 from pathlib import Path
 from typing import Annotated, Any, Literal
 from urllib.parse import urlsplit
 from uuid import UUID
 
 import psycopg
-from fastapi import APIRouter, Depends, Header, HTTPException, Request
+from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request
+from fastapi.exception_handlers import request_validation_exception_handler
+from fastapi.exceptions import RequestValidationError
+from fastapi.routing import APIRoute
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator
 
-from pulse_agents import runtime
+from pulse_agents import runtime, store
 from pulse_agents.schemas import InvestigationTarget, QueryPlan
 from pulse_agents.store import AdmissionError
 
@@ -108,14 +112,146 @@ class ExactInvestigationRequest(InvestigationTarget):
     agent: Literal["investigation"] = "investigation"
 
 
+class ConversationSummary(BaseModel):
+    id: UUID
+    agent: Literal["business", "investigation"]
+    title: str
+    created_at: datetime
+    updated_at: datetime
+    turn_count: int
+
+
+class ConversationPage(BaseModel):
+    items: list[ConversationSummary]
+    total: int
+    limit: int
+    offset: int
+
+
+class ConversationTurn(BaseModel):
+    request_id: UUID
+    question: str
+    status: Literal["running", "complete", "error"]
+    created_at: datetime
+    result: AskResponse | None
+
+
+class ConversationDetail(BaseModel):
+    id: UUID
+    agent: Literal["business", "investigation"]
+    title: str
+    created_at: datetime
+    updated_at: datetime
+    items: list[ConversationTurn]
+    total: int
+    limit: int
+    offset: int
+
+
+class HistoryRoute(APIRoute):
+    """Never cache history, including authentication and validation failures."""
+
+    def get_route_handler(self):
+        handler = super().get_route_handler()
+
+        async def no_store(request):
+            try:
+                response = await handler(request)
+            except HTTPException as exc:
+                exc.headers = {**(exc.headers or {}), "Cache-Control": "no-store"}
+                raise
+            except RequestValidationError as exc:
+                response = await request_validation_exception_handler(request, exc)
+            response.headers["Cache-Control"] = "no-store"
+            return response
+
+        return no_store
+
+
+history_router = APIRouter(route_class=HistoryRoute)
+HistoryLimit = Annotated[int, Query(ge=1, le=store.HISTORY_MAX_LIMIT)]
+HistoryDetailLimit = Annotated[int, Query(ge=1, le=store.HISTORY_DETAIL_MAX_LIMIT)]
+HistoryOffset = Annotated[int, Query(ge=0, le=store.HISTORY_MAX_OFFSET)]
+
+
+def history_permissions(principal):
+    return runtime.effective_permissions(
+        principal["allowed_firm_ids"], principal["can_investigate"]
+    )
+
+
+@history_router.get("/conversations", response_model=ConversationPage)
+def list_conversations(
+    principal: Annotated[dict, Depends(identity)],
+    limit: HistoryLimit = 30,
+    offset: HistoryOffset = 0,
+):
+    try:
+        return store.list_conversations(
+            principal["owner"],
+            authorization=history_permissions(principal),
+            limit=limit,
+            offset=offset,
+        )
+    except AdmissionError as exc:
+        raise HTTPException(exc.status_code, str(exc)) from exc
+    except (psycopg.Error, ValueError, OSError) as exc:
+        raise HTTPException(503, "Agent storage or configuration is unavailable") from exc
+
+
+@history_router.get("/conversations/{conversation_id}", response_model=ConversationDetail)
+def get_conversation(
+    conversation_id: UUID,
+    principal: Annotated[dict, Depends(identity)],
+    limit: HistoryDetailLimit = 10,
+    offset: HistoryOffset = 0,
+):
+    try:
+        return store.get_conversation(
+            conversation_id,
+            principal["owner"],
+            authorization=history_permissions(principal),
+            limit=limit,
+            offset=offset,
+        )
+    except AdmissionError as exc:
+        raise HTTPException(exc.status_code, str(exc)) from exc
+    except (psycopg.Error, ValueError, OSError) as exc:
+        raise HTTPException(503, "Agent storage or configuration is unavailable") from exc
+
+
+router.include_router(history_router)
+
+
 @router.get("/status")
 def agent_status(principal: Annotated[dict, Depends(identity)]):
-    return {
-        **runtime.status(),
-        "identity": principal["owner"],
-        "authentication": "token" if os.environ.get("PULSE_AGENT_IDENTITIES_FILE") else "local",
-        "dataset": "Pulse reporting database",
-    }
+    from pulse_api.app import response
+
+    try:
+        permissions = history_permissions(principal)
+        if permissions["firms"] is not None:
+            permissions["firms"] = sorted(set(permissions["firms"]))
+        access_scope = hashlib.sha256(
+            json.dumps(permissions, sort_keys=True, separators=(",", ":")).encode()
+        ).hexdigest()
+        return response(
+            {
+                **runtime.status(),
+                "identity": principal["owner"],
+                "authentication": (
+                    "token" if os.environ.get("PULSE_AGENT_IDENTITIES_FILE") else "local"
+                ),
+                "access_scope": access_scope,
+                "dataset": "Pulse reporting database",
+            },
+            headers={"Cache-Control": "no-store"},
+        )
+    except (ValueError, OSError) as exc:
+        raise HTTPException(
+            503,
+            "Agent storage or configuration is unavailable",
+            headers={"Cache-Control": "no-store"},
+        ) from exc
 
 
 @router.post("/ask", dependencies=[Depends(same_origin)], response_model=AskResponse)

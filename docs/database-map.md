@@ -182,6 +182,8 @@ erDiagram
     agents_runs {
         uuid id PK
         uuid conversation_id FK
+        bigint_array authorization_firm_ids
+        boolean authorization_can_investigate
         text owner
         text profile
         text question

@@ -50,6 +50,19 @@ def scope():
     return values
 
 
+def effective_permissions(allowed_firm_ids=None, can_investigate=True):
+    """Intersect deployment and principal permissions for execution and history."""
+    configured_scope = scope()
+    authorized = allowed_firm_ids
+    if configured_scope is not None:
+        authorized = (
+            configured_scope
+            if authorized is None
+            else tuple(sorted(set(authorized) & set(configured_scope)))
+        )
+    return {"firms": authorized, "investigate": can_investigate}
+
+
 def status():
     return {
         **provider.provider_status(),
@@ -100,15 +113,8 @@ def ask(
             f"Investigate total billed revenue for firm ID {target.firm_id} in {target.month}."
         )
     current = {"mode": "direct", "model": None} if target else provider.provider_status()
-    configured_scope = scope()
-    authorized = allowed_firm_ids
-    if configured_scope is not None:
-        authorized = (
-            configured_scope
-            if authorized is None
-            else tuple(sorted(set(authorized) & set(configured_scope)))
-        )
-    authorization = {"firms": authorized, "investigate": can_investigate}
+    authorization = effective_permissions(allowed_firm_ids, can_investigate)
+    authorized = authorization["firms"]
     if target is not None:
         authorization["exact_target"] = target.model_dump(mode="json")
     admission = store.begin(
