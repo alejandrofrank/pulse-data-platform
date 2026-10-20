@@ -25,7 +25,8 @@ FROM raw.records r
 JOIN raw.deliveries d ON d.id = r.delivery_id
 WHERE EXISTS (
     SELECT 1 FROM ops.issues i
-    WHERE i.record_id = r.id AND i.code = 'satisfaction_range'
+    WHERE i.record_id = r.id AND i.field = 'satisfaccion_cliente'
+      AND i.severity = 'error'
 )
 ORDER BY d.loaded_at, r.line_number;
 
