@@ -20,6 +20,9 @@ data through Dagster, and starts the API/dashboard, Dagster UI and scheduler dae
 No `.env` file or manual database setup is needed. Startup waits for healthy database
 and successful bootstrap. For background mode: `docker compose up -d --build --wait`.
 
+The playback lab does **not** start with the default command. It is opt-in: use
+`docker compose --profile lab up -d --build --wait lab` when you want it on port 8001.
+
 Known input-quality failures do not hide the diagnostics. If ingestion committed a
 verified, internally consistent publication, bootstrap can start the API and Dagster
 UI while the ingestion remains visibly **FAILED** in Dagster. This includes a valid
