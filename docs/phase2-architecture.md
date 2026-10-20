@@ -65,7 +65,7 @@ under that ID is rejected. Separate agents use separate conversations.
 
 The chat UI restores transcripts through paginated, non-cached conversation list
 and detail endpoints. PostgreSQL is the durable source; the browser keeps drafts
-and loaded messages only in page memory. The right sidebar lists 30 conversations
+and loaded messages only in page memory. The left sidebar lists 30 conversations
 per page, and a chat initially loads its latest 10 turns in chronological order.
 Earlier messages are explicit reads. Opening history never invokes a provider or
 retries a run. Continuing sends the same conversation ID and a new request ID;

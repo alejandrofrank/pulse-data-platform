@@ -580,9 +580,10 @@
             node(
               "span",
               `${session.busy ? "Sending" : session.turns.some((turn) => turn.error) ? "Needs recovery" : "Unsent draft"} · ${names[session.agent]}`,
-              "history-meta",
+              "history-meta sr-only",
             ),
           );
+          button.title = `${button.querySelector("strong").textContent}\n${button.querySelector(".history-meta").textContent}`;
           button.addEventListener("click", () => selectLocal(session));
           return button;
         }),
@@ -590,7 +591,7 @@
         const button = node("button", undefined, "history-item");
         button.type = "button";
         button.dataset.id = item.id;
-        button.title = item.title;
+        button.title = `${item.title || "Untitled conversation"}\n${names[item.agent]} · ${dateLabel(item.updated_at)}`;
         button.setAttribute(
           "aria-current",
           String(sessions[active].conversation === item.id),
@@ -600,7 +601,7 @@
           node(
             "span",
             `${names[item.agent]} · ${dateLabel(item.updated_at)}`,
-            "history-meta",
+            "history-meta sr-only",
           ),
         );
         button.addEventListener("click", () => openConversation(item));

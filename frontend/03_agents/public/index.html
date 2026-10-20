@@ -41,6 +41,63 @@
       </nav>
     </header>
     <main class="workspace">
+      <aside
+        id="history-panel"
+        class="history-panel"
+        aria-label="Conversation history"
+      >
+        <div class="history-heading">
+          <h2>Chats</h2>
+          <button
+            id="refresh-history"
+            class="icon-button"
+            type="button"
+            title="Refresh conversations"
+            aria-label="Refresh conversations"
+          >
+            ↻
+          </button>
+        </div>
+        <button id="new-conversation" class="new-conversation" type="button">
+          <span aria-hidden="true">＋</span> New chat
+        </button>
+        <label class="sr-only" for="history-search"
+          >Search loaded conversations</label
+        >
+        <input
+          id="history-search"
+          type="search"
+          placeholder="Search chats…"
+          autocomplete="off"
+        />
+        <h3 class="history-section-title">Recent chats</h3>
+        <div id="history-list" class="history-list" aria-busy="false"></div>
+        <button id="more-conversations" type="button" hidden>Show more</button>
+        <div class="history-footer">
+          <p id="history-status" class="note" role="status">
+            Loading conversations…
+          </p>
+          <details class="access">
+            <summary>Connection &amp; access</summary>
+            <label for="access-token">Optional deployment bearer token</label>
+            <input
+              id="access-token"
+              type="password"
+              autocomplete="off"
+              spellcheck="false"
+              aria-describedby="token-note"
+            />
+            <p id="token-note" class="note">
+              Use a deployment access token, never a model provider API key.
+              Kept in this page only. Changing it clears the visible chats and
+              stops local requests; server work may continue. Refresh status to
+              verify access.
+            </p>
+            <p id="service-identity" class="note">Identity not verified</p>
+            <button id="clear-token" type="button">Clear token</button>
+          </details>
+        </div>
+      </aside>
       <section class="chat" aria-labelledby="conversation-title">
         <div class="chat-scroll" id="chat-scroll">
           <div class="conversation-heading">
@@ -173,69 +230,6 @@
           </div>
         </div>
       </section>
-      <aside
-        id="history-panel"
-        class="history-panel"
-        aria-label="Conversation history"
-      >
-        <div class="history-heading">
-          <h2>Conversations</h2>
-          <button
-            id="refresh-history"
-            class="icon-button"
-            type="button"
-            title="Refresh conversations"
-            aria-label="Refresh conversations"
-          >
-            ↻
-          </button>
-        </div>
-        <button id="new-conversation" class="new-conversation" type="button">
-          <span aria-hidden="true">＋</span> New conversation
-        </button>
-        <label class="sr-only" for="history-search"
-          >Search loaded conversations</label
-        >
-        <input
-          id="history-search"
-          type="search"
-          placeholder="Search loaded chats…"
-          autocomplete="off"
-        />
-        <p id="history-status" class="note" role="status">
-          Loading conversations…
-        </p>
-        <div id="history-list" class="history-list" aria-busy="false"></div>
-        <button id="more-conversations" type="button" hidden>
-          Load more conversations
-        </button>
-        <div class="history-footer">
-          <p class="saved-note">
-            Saved in Pulse<span
-              >Reopen a chat to continue where you left off.</span
-            >
-          </p>
-          <details class="access">
-            <summary>Connection &amp; access</summary>
-            <label for="access-token">Optional deployment bearer token</label>
-            <input
-              id="access-token"
-              type="password"
-              autocomplete="off"
-              spellcheck="false"
-              aria-describedby="token-note"
-            />
-            <p id="token-note" class="note">
-              Use a deployment access token, never a model provider API key.
-              Kept in this page only. Changing it clears the visible chats and
-              stops local requests; server work may continue. Refresh status to
-              verify access.
-            </p>
-            <p id="service-identity" class="note">Identity not verified</p>
-            <button id="clear-token" type="button">Clear token</button>
-          </details>
-        </div>
-      </aside>
     </main>
   </body>
 </html>

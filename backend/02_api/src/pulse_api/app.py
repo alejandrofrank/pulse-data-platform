@@ -4,12 +4,13 @@ import os
 import re
 from datetime import date
 from decimal import Decimal
+from hashlib import sha256
 from pathlib import Path
 from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, FastAPI, HTTPException, Query
 from fastapi.encoders import jsonable_encoder
-from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from starlette.middleware.trustedhost import TrustedHostMiddleware
@@ -130,7 +131,13 @@ def dashboard():
 
 @app.get("/agents", include_in_schema=False)
 def agent_workbench():
-    return FileResponse(AGENT_STATIC / "index.html")
+    html = (AGENT_STATIC / "index.html").read_text(encoding="utf-8")
+    # The HTML and its assets must advance together after a deployment, even if
+    # a browser retained the previous workbench's stylesheet or script.
+    for asset in ("style.css", "app.js"):
+        version = sha256((AGENT_STATIC / asset).read_bytes()).hexdigest()[:16]
+        html = html.replace(f'/agent-static/{asset}"', f'/agent-static/{asset}?v={version}"')
+    return HTMLResponse(html, headers={"Cache-Control": "no-cache"})
 
 
 @app.get("/lab", include_in_schema=False)
