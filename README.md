@@ -164,6 +164,11 @@ Compose deployment. The lab is an optional, tested application rather than a pro
 
 ## Data model and execution
 
+See the [complete database map and query guide](docs/database-map.md) for all
+application tables, foreign keys, views, the CSV-to-API flow and main/lab boundaries.
+[Copyable PostgreSQL queries](docs/database-queries.sql) cover satisfaction,
+rejections, revenue and source lineage.
+
 ```mermaid
 flowchart LR
   CSV[Master + monthly CSV drops] --> RAW[raw.master / deliveries / records]
