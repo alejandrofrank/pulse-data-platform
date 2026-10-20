@@ -5,6 +5,24 @@
   const draftKey = "pulse.lab.sql.draft.v1";
   let running = false;
   const examples = {
+    "Satisfacción publicada": `SELECT *
+FROM mart.firm_month
+WHERE satisfaccion_cliente <= 1
+ORDER BY mes, asesoria_id;`,
+    "Satisfacción rechazada": `SELECT r.id AS record_id,
+       r.normalized->>'asesoria_id' AS asesoria_id,
+       r.normalized->>'mes' AS mes,
+       COALESCE(r.payload->>'satisfaccion_cliente',
+                r.payload->>'satisfaccion_media') AS original_score,
+       r.normalized->>'satisfaccion_cliente' AS normalized_score,
+       r.status, d.filename, r.line_number, d.loaded_at
+FROM raw.records r
+JOIN raw.deliveries d ON d.id = r.delivery_id
+WHERE EXISTS (
+    SELECT 1 FROM ops.issues i
+    WHERE i.record_id = r.id AND i.code = 'satisfaction_range'
+)
+ORDER BY d.loaded_at, r.line_number;`,
     "Entregas y calidad": `SELECT d.filename, r.status, COUNT(*) AS rows
 FROM raw.records r
 JOIN raw.deliveries d ON d.id = r.delivery_id
