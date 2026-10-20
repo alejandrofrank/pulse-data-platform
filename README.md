@@ -32,6 +32,12 @@ outcomes; migration, infrastructure and unexpected integrity failures block star
 - Interactive API documentation: http://localhost:8000/docs
 - Dagster: http://localhost:3000 — asset `monthly_metrics`, job `ingest_all`
 
+The dashboard's **Desde / Hasta** dropdowns list available metric months by year.
+Both endpoints are inclusive. **Últimos 3 / 6 / 12 meses** apply a range ending at
+the latest available data month, not today's date; **Todo el histórico** clears
+the date limits. The firm selection is retained. Monthly granularity follows the
+assignment: one source row is one firm/month, so daily metrics cannot be inferred.
+
 To ingest again, including newly added files:
 
 ```sh

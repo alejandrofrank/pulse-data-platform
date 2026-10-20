@@ -15,7 +15,89 @@ let offset = 0;
 let requestVersion = 0;
 let qualityRequestVersion = 0;
 let firmRequestVersion = 0;
+let monthRequestVersion = 0;
+let availableMonths = [];
+let activePeriod = "all";
 const errors = new Map();
+
+function monthLabel(value) {
+  const label = new Intl.DateTimeFormat("es-ES", {
+    month: "long",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(new Date(`${value}-01T00:00:00Z`));
+  return label.charAt(0).toUpperCase() + label.slice(1);
+}
+function periodBounds(count) {
+  if (count === "all" || !availableMonths.length) return ["", ""];
+  const end = availableMonths.at(-1);
+  const [year, month] = end.split("-").map(Number);
+  const cutoff = new Date(Date.UTC(year, month - Number(count), 1))
+    .toISOString()
+    .slice(0, 7);
+  return [availableMonths.find((value) => value >= cutoff) || end, end];
+}
+function markPeriod() {
+  document.querySelectorAll("[data-months]").forEach((button) => {
+    const [start, end] = periodBounds(button.dataset.months);
+    button.setAttribute(
+      "aria-pressed",
+      String(
+        button.dataset.months === activePeriod &&
+          el("start").value === start &&
+          el("end").value === end,
+      ),
+    );
+  });
+}
+async function loadMonths(pending) {
+  const version = ++monthRequestVersion;
+  showError(null, "months");
+  try {
+    const data = await pending;
+    if (version !== monthRequestVersion) return;
+    availableMonths = [
+      ...new Set(data.items.map((row) => row.mes.slice(0, 7))),
+    ].sort();
+    for (const id of ["start", "end"]) {
+      const select = el(id);
+      // Read at completion: preserve edits made while a refresh was pending.
+      const selected = select.value;
+      const months = [
+        ...new Set([...availableMonths, ...(selected ? [selected] : [])]),
+      ].sort();
+      const groups = new Map();
+      for (const month of months) {
+        const year = month.slice(0, 4);
+        if (!groups.has(year)) {
+          const group = document.createElement("optgroup");
+          group.label = year;
+          groups.set(year, group);
+        }
+        groups.get(year).append(new Option(monthLabel(month), month));
+      }
+      select.replaceChildren(
+        new Option(
+          id === "start" ? "Inicio del histórico" : "Último mes disponible",
+          "",
+        ),
+        ...groups.values(),
+      );
+      select.value = selected;
+      select.disabled = !availableMonths.length;
+    }
+    document
+      .querySelectorAll("[data-months]")
+      .forEach((button) => (button.disabled = !availableMonths.length));
+    markPeriod();
+  } catch (error) {
+    if (version === monthRequestVersion)
+      showError(
+        new Error(`No se pudieron actualizar los meses: ${error.message}`),
+        "months",
+      );
+  }
+}
 
 async function get(url) {
   const response = await fetch(url);
@@ -140,19 +222,34 @@ function clearMetrics(message) {
   el("chart").textContent = message;
   table("metrics", [{ label: "Métricas" }], [], message);
 }
-async function loadMain() {
+async function loadMain(pendingMetrics) {
   const version = ++requestVersion;
   el("loading").textContent = "Cargando…";
   showError(null, "metrics");
   showError(null, "details");
+  showError(null, "period");
   clearMetrics("Cargando métricas de esta selección…");
+  const invalid = Boolean(
+    el("start").value && el("end").value && el("start").value > el("end").value,
+  );
+  for (const id of ["start", "end"])
+    el(id).setAttribute("aria-invalid", String(invalid));
+  markPeriod();
+  if (invalid) {
+    const message = "El mes inicial no puede ser posterior al mes final.";
+    showError(new Error(message), "period");
+    clearMetrics(message);
+    el("loading").textContent = "Revisa el periodo";
+    return;
+  }
   try {
     const params = new URLSearchParams({ limit: 500 });
     if (el("start").value) params.set("start", el("start").value);
     if (el("end").value) params.set("end", el("end").value);
     const firm = el("firm").value;
     const [metrics, quality] = await Promise.all([
-      get(`/api/v1/${firm ? `firms/${firm}` : "network"}/metrics?${params}`),
+      pendingMetrics ||
+        get(`/api/v1/${firm ? `firms/${firm}` : "network"}/metrics?${params}`),
       get("/api/v1/quality/summary"),
     ]);
     if (version !== requestVersion) return;
@@ -373,10 +470,30 @@ el("filters").onsubmit = (e) => {
   loadMain();
 };
 el("refresh").onclick = () => {
-  loadMain();
+  const months = get("/api/v1/network/metrics?limit=500");
+  loadMonths(months);
+  loadMain(
+    !el("firm").value && !el("start").value && !el("end").value
+      ? months
+      : undefined,
+  );
   loadQuality();
   loadFirms();
 };
+for (const id of ["start", "end"])
+  el(id).onchange = () => {
+    activePeriod = null;
+    markPeriod();
+  };
+document.querySelectorAll("[data-months]").forEach((button) => {
+  button.onclick = () => {
+    activePeriod = button.dataset.months;
+    const [start, end] = periodBounds(button.dataset.months);
+    el("start").value = start;
+    el("end").value = end;
+    loadMain();
+  };
+});
 el("quality-view").onchange = () => {
   offset = 0;
   loadQuality();
@@ -391,5 +508,7 @@ el("next").onclick = () => {
 };
 el("close-dialog").onclick = () => el("details").close();
 loadFirms();
-loadMain();
+const initialMonths = get("/api/v1/network/metrics?limit=500");
+loadMonths(initialMonths);
+loadMain(initialMonths);
 loadQuality();
