@@ -233,7 +233,8 @@ Additional schema definitions:
 [reporting views](../backend/01_pipeline/src/pulse/migrations/002_reporting.sql),
 [publication evidence](../backend/01_pipeline/src/pulse/migrations/003_publication_evidence.sql),
 [agent storage](../backend/01_pipeline/src/pulse/migrations/004_agent_runtime.sql),
-[record identity](../backend/01_pipeline/src/pulse/migrations/005_rejected_record_identity.sql).
+[record identity](../backend/01_pipeline/src/pulse/migrations/005_rejected_record_identity.sql),
+[conversation history scope](../backend/01_pipeline/src/pulse/migrations/006_agent_history.sql).
 `public.schema_migrations` is created by
 [db.py](../backend/01_pipeline/src/pulse/db.py).
 

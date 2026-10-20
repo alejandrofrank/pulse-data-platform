@@ -20,6 +20,9 @@ data through Dagster, and starts the API/dashboard, Dagster UI and scheduler dae
 No `.env` file or manual database setup is needed. Startup waits for healthy database
 and successful bootstrap. For background mode: `docker compose up -d --build --wait`.
 
+The playback lab does **not** start with the default command. It is opt-in: use
+`docker compose --profile lab up -d --build --wait lab` when you want it on port 8001.
+
 Known input-quality failures do not hide the diagnostics. If ingestion committed a
 verified, internally consistent publication, bootstrap can start the API and Dagster
 UI while the ingestion remains visibly **FAILED** in Dagster. This includes a valid
@@ -144,6 +147,7 @@ pulse/
 │   ├── 01_dashboard/           # public/ assets and tests/ for the main dashboard
 │   ├── 02_lab/                 # public/ assets and tests/ for playback and SQL
 │   ├── 03_agents/              # public/ workbench and DOM tests for both agents
+│   ├── 04_tests/               # Read-only test results dashboard and DOM tests
 │   └── package.json            # Shared development-only frontend verification
 ├── data/                       # Original master and incoming drops/
 ├── docs/                       # Assignment, quality decisions and defense guide
@@ -506,7 +510,7 @@ delivery keys, keeping publication transactional and retries idempotent.
 ## Phase 2 agents
 
 Open `/agents` from the dashboard's **Agentes** link. The chat has an agent switcher,
-a bottom composer and saved conversations on the right. Choose Business assistant
+a bottom composer and saved conversations in the left sidebar. Choose Business assistant
 for metrics or Data investigator for one firm's revenue in one month. Each chat
 keeps its own context. **Enter** sends; **Shift + Enter** inserts a new line.
 The expandable exact investigation form accepts a numeric firm ID

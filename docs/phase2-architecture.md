@@ -186,7 +186,7 @@ request recovery with the exact original payload, decimal-string cost display,
 history pagination, restored context, concurrent chat switching, scope changes,
 keyboard submission and read-only recovery of saved pending turns.
 An isolated browser check also exercised both real demo workflows at desktop and
-mobile widths, with no JavaScript errors or document overflow. CI checks all three
+mobile widths, with no JavaScript errors or document overflow. CI checks all four
 frontend interfaces and verifies that the deployed workbench assets are reachable.
 
 Historical live evaluation results and private source evidence are omitted from this public history.
