@@ -230,6 +230,33 @@ select:focus-visible,
   padding: 16px;
   margin-bottom: 18px;
 }
+.month-control {
+  min-width: 190px;
+}
+.period-shortcuts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  flex-basis: 100%;
+  border-top: 1px solid var(--line-soft);
+  padding-top: 12px;
+}
+.period-shortcuts button {
+  padding: 8px 12px;
+  font-size: 12px;
+}
+.period-shortcuts button[aria-pressed="true"] {
+  border-color: var(--accent);
+  background: #1d344d;
+  color: var(--fg);
+}
+#period-help {
+  flex-basis: 100%;
+}
+.month-control select[aria-invalid="true"] {
+  border-color: var(--error);
+}
 .controls label {
   display: flex;
   flex-direction: column;
@@ -605,7 +632,8 @@ footer span:first-child {
     flex: 1;
     min-width: 0;
   }
-  .filters input {
+  .filters input,
+  .filters select {
     width: 100%;
   }
   .filters .firm-control {

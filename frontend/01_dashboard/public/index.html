@@ -65,8 +65,18 @@
       </div>
       <div id="error" role="alert" hidden></div>
       <form id="filters" class="controls filters" aria-label="Filtrar métricas">
-        <label>Desde <input id="start" type="month" /></label>
-        <label>Hasta <input id="end" type="month" /></label>
+        <label class="month-control" for="start"
+          >Desde
+          <select id="start" aria-describedby="period-help" disabled>
+            <option value="">Inicio del histórico</option>
+          </select>
+        </label>
+        <label class="month-control" for="end"
+          >Hasta
+          <select id="end" aria-describedby="period-help" disabled>
+            <option value="">Último mes disponible</option>
+          </select>
+        </label>
         <label class="firm-control"
           >Vista
           <select id="firm">
@@ -75,6 +85,29 @@
         >
         <button type="submit" class="primary-button">Aplicar filtros</button
         ><span id="loading" role="status">Cargando datos…</span>
+        <div
+          class="period-shortcuts"
+          role="group"
+          aria-label="Periodos rápidos"
+        >
+          <span class="note">Periodo</span>
+          <button type="button" data-months="all" aria-pressed="true" disabled>
+            Todo el histórico
+          </button>
+          <button type="button" data-months="3" aria-pressed="false" disabled>
+            Últimos 3 meses
+          </button>
+          <button type="button" data-months="6" aria-pressed="false" disabled>
+            Últimos 6 meses
+          </button>
+          <button type="button" data-months="12" aria-pressed="false" disabled>
+            Últimos 12 meses
+          </button>
+        </div>
+        <p id="period-help" class="note">
+          Datos mensuales · Desde y hasta incluidos. Los atajos terminan en el
+          último mes disponible.
+        </p>
       </form>
       <section class="cards" aria-label="Último mes del periodo">
         <article>

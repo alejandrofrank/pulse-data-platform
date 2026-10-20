@@ -522,3 +522,120 @@ test("Refresh recovers the firm list and preserves valid selections made during 
   assert.equal(ui.get("firm").value, "2");
   assert.equal(ui.get("firm").options.length, 3);
 });
+
+test("Month dropdowns and shortcuts use real data months across year boundaries and retain the firm", async (t) => {
+  const ui = await dashboard(t);
+  const months = Array.from({ length: 21 }, (_, i) => ({
+    ...networkRow,
+    mes: new Date(Date.UTC(2023, 4 + i, 1)).toISOString().slice(0, 10),
+  }));
+  const calls = [];
+  ui.respond((path) => {
+    if (!path.includes("/metrics?")) return;
+    calls.push(path);
+    const params = new URL(path, base).searchParams;
+    const rows = months.filter(
+      (row) =>
+        (!params.get("start") || row.mes.slice(0, 7) >= params.get("start")) &&
+        (!params.get("end") || row.mes.slice(0, 7) <= params.get("end")),
+    );
+    return ok({ items: rows, total: rows.length });
+  });
+  ui.get("refresh").click();
+  await until(() => ui.get("start").options.length === 22);
+  assert.equal(ui.get("start").tagName, "SELECT");
+  assert.equal(ui.get("start").options[1].textContent, "Mayo de 2023");
+  assert.equal(ui.get("end").options[21].textContent, "Enero de 2025");
+  assert.equal(ui.get("start").querySelectorAll("optgroup").length, 3);
+  ui.get("firm").value = "1";
+  for (const [count, start] of [
+    ["3", "2024-11"],
+    ["6", "2024-08"],
+    ["12", "2024-02"],
+  ]) {
+    ui.d.querySelector(`[data-months="${count}"]`).click();
+    await until(() => ui.get("loading").textContent === `${count} meses`);
+    assert.equal(ui.get("start").value, start);
+    assert.equal(ui.get("end").value, "2025-01");
+    assert.equal(ui.get("firm").value, "1");
+    assert.match(
+      calls.at(-1),
+      new RegExp(`/firms/1/metrics\\?limit=500&start=${start}&end=2025-01`),
+    );
+    assert.equal(
+      ui.d.querySelectorAll('[data-months][aria-pressed="true"]').length,
+      1,
+    );
+  }
+  // Filtering never shrinks the available month choices to the current result.
+  assert.equal(ui.get("start").options.length, 22);
+  ui.d.querySelector('[data-months="all"]').click();
+  await until(() => ui.get("loading").textContent === "21 meses");
+  assert.equal(ui.get("start").value, "");
+  assert.equal(ui.get("end").value, "");
+  assert.equal(calls.at(-1), "/api/v1/firms/1/metrics?limit=500");
+});
+
+test("Reversed month ranges make no API request and cannot be overwritten by an older response", async (t) => {
+  const ui = await dashboard(t);
+  ui.get("start").append(new ui.w.Option("Octubre de 2023", "2023-10"));
+  const old = deferred();
+  let calls = 0;
+  ui.respond((path) => {
+    if (path.includes("/metrics?")) {
+      calls++;
+      return old.promise;
+    }
+  });
+  ui.submit();
+  ui.get("start").value = "2023-10";
+  ui.get("end").value = "2023-09";
+  ui.submit();
+  assert.equal(calls, 1);
+  assert.equal(ui.get("loading").textContent, "Revisa el periodo");
+  assert.match(ui.get("error").textContent, /inicial.*posterior/);
+  assert.equal(ui.get("start").getAttribute("aria-invalid"), "true");
+  old.resolve(ok({ items: [networkRow], total: 1 }));
+  await settle();
+  assert.equal(ui.get("revenue").textContent, "—");
+  ui.respond(() => undefined);
+  ui.get("start").value = "2023-09";
+  ui.submit();
+  await until(() => ui.get("loading").textContent === "1 meses");
+  assert.equal(ui.get("error").hidden, true);
+  assert.equal(ui.get("start").getAttribute("aria-invalid"), "false");
+});
+
+test("Month refresh preserves edits made while pending and recovers from unavailable choices", async (t) => {
+  const ui = await dashboard(t);
+  const pending = deferred();
+  ui.respond((path) =>
+    path.includes("/network/metrics?") ? pending.promise : undefined,
+  );
+  ui.get("refresh").click();
+  ui.get("start").value = "2023-09";
+  pending.resolve(
+    ok({ items: [networkRow, { ...networkRow, mes: "2023-10-01" }], total: 2 }),
+  );
+  await until(() => ui.get("end").options.length === 3);
+  assert.equal(ui.get("start").value, "2023-09");
+  ui.respond((path) =>
+    path.includes("/network/metrics?")
+      ? Promise.reject(new Error("Offline"))
+      : undefined,
+  );
+  ui.get("refresh").click();
+  await until(() =>
+    ui.get("error").textContent.includes("actualizar los meses"),
+  );
+  assert.equal(ui.get("start").value, "2023-09");
+  ui.respond((path) =>
+    path.includes("/network/metrics?")
+      ? ok({ items: [], total: 0 })
+      : undefined,
+  );
+  ui.get("refresh").click();
+  await until(() => ui.get("start").disabled);
+  assert.equal(ui.get("error").hidden, true);
+  assert.equal(ui.d.querySelector('[data-months="3"]').disabled, true);
+});
