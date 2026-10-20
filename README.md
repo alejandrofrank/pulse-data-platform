@@ -505,20 +505,45 @@ delivery keys, keeping publication transactional and retries idempotent.
 
 ## Phase 2 agents
 
-Open `/agents` from the dashboard's **Agentes** link. Choose Business assistant
-for metrics or Data investigator for one firm's revenue in one month. Each has an
-independent conversation. The exact investigation form accepts a numeric firm ID
+Open `/agents` from the dashboard's **Agentes** link. The chat has an agent switcher,
+a bottom composer and saved conversations on the right. Choose Business assistant
+for metrics or Data investigator for one firm's revenue in one month. Each chat
+keeps its own context. **Enter** sends; **Shift + Enter** inserts a new line.
+The expandable exact investigation form accepts a numeric firm ID
 and a calendar month. **Run investigation** checks the current publication directly
-without a model call, including in demo mode. Free-form questions use **Ask agent**.
-Expand SQL, coverage, findings, source versions and the
+without a model call, including in demo mode. Free-form questions use **Send**.
+Expand **View data & sources** or **View investigation & source evidence** for
+SQL, coverage, findings, source versions and the
 raw evidence to inspect the answer. The workbench uses the main reporting database;
-the CSV playback lab remains separate.
+the CSV playback lab remains separate. **Execution details** contains the plan,
+model, timing, estimated cost and request identifiers.
+
+Conversation history lives in PostgreSQL, survives page reloads and is read without
+calling a model. Reopen a conversation to continue its existing context; **New
+conversation** starts separately without deleting the previous chat. The sidebar
+loads 30 chats at a time and searches the loaded titles; message history loads the
+latest 10 turns first, with **Load earlier messages** for older turns. On a phone,
+**Conversations** opens the history panel. Unsent drafts remain in page memory only;
+tokens and transcripts are not persisted in browser storage.
 
 If a response is lost, **Recover request** reuses the exact original request ID and
 payload. **Start new execution** deliberately creates another run. Model cost is an
 estimate, and unknown usage is shown as unavailable. Changing deployment credentials
-clears both conversations from the page and discards late responses from the old
+clears visible conversations from the page and discards late responses from the old
 identity. The optional access field is for deployment authentication, not an OpenAI key.
+Rechecking service status also invalidates cached chats if the identity's permissions
+change. The default local deployment has one shared operator identity; it does not
+provide separate histories for different people sharing that local application.
+
+`GET /api/v1/agents/conversations` lists authorized chats; `GET
+/api/v1/agents/conversations/{id}` reads saved turns. Both paginate and disallow
+HTTP caching. Migration 006 records each new run's effective access scope. History
+and continuation require ownership and sufficient current permissions for **every**
+turn in the conversation; inaccessible chats return 404. Legacy chats with unknown
+scope are visible only to their unrestricted operational owner. Saved answers are
+historical evidence, while a new question retrieves fresh data using the last plan
+and at most two recent questions. Browsing history does not resend the full transcript
+to the model or automatically retry unfinished requests.
 
 `GET /api/v1/agents/status` reports explicit `demo` or `live` mode. The demo accepts
 three documented example questions and still executes the real PostgreSQL tools;

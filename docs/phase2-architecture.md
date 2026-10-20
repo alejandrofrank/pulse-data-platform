@@ -63,6 +63,22 @@ its tools again against a consistent publication. Retrying the **same request ID
 returns the saved result, clearly marked as replayed; changed content or permissions
 under that ID is rejected. Separate agents use separate conversations.
 
+The chat UI restores transcripts through paginated, non-cached conversation list
+and detail endpoints. PostgreSQL is the durable source; the browser keeps drafts
+and loaded messages only in page memory. The right sidebar lists 30 conversations
+per page, and a chat initially loads its latest 10 turns in chronological order.
+Earlier messages are explicit reads. Opening history never invokes a provider or
+retries a run. Continuing sends the same conversation ID and a new request ID;
+it reuses the bounded intent state rather than sending the full transcript.
+
+Migration 006 captures each run's effective firm and investigation permissions.
+History visibility checks ownership and all turns, including questions and pending
+runs, against current permissions. The same check protects continuation and replay
+so compact state cannot carry previously privileged information into a reduced
+scope. Legacy unknown-scope chats require their unrestricted operational owner.
+An opaque access-scope version in service status lets the UI clear loaded chats
+when a status refresh detects changed permissions for the same identity.
+
 A run records the plan, SQL, source references/publication, result, model mode,
 prompt version, implementation hash, token usage and estimated cost. A model alias
 is not an immutable training snapshot; revisions are tracked in Git and behavior must be reevaluated
@@ -163,10 +179,12 @@ errors. A live model check is a separate opt-in evaluation, not proof of general
 semantic accuracy. Maintain labeled typical, ambiguous and adversarial questions
 and rerun them when the model, prompt, schema or data contract changes.
 
-The workbench keeps results and revenue comparisons above expandable evidence.
-Its 36 DOM cases include literal rendering of hostile content, independent agent
+The chat keeps answers above expandable evidence and execution details.
+Its DOM checks include literal rendering of hostile content, independent agent
 conversations, response validation, credential changes during in-flight work,
-request recovery with the exact original payload, and decimal-string cost display.
+request recovery with the exact original payload, decimal-string cost display,
+history pagination, restored context, concurrent chat switching, scope changes,
+keyboard submission and read-only recovery of saved pending turns.
 An isolated browser check also exercised both real demo workflows at desktop and
 mobile widths, with no JavaScript errors or document overflow. CI checks all three
 frontend interfaces and verifies that the deployed workbench assets are reachable.
