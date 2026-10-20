@@ -3,118 +3,228 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Pulse · Agent workbench</title>
+    <title>Pulse · Chat</title>
     <link rel="stylesheet" href="/agent-static/style.css" />
     <script src="/agent-static/app.js" defer></script>
   </head>
   <body>
     <a class="skip-link" href="#question">Skip to question</a>
-    <header>
-      <h1>Pulse / Agent workbench</h1>
-      <div class="service-controls">
-        <a href="/">Dashboard</a>
-        <a href="/docs">API</a>
-        <a href="/tests/">Tests</a>
-        <span id="service-status" class="badge" role="status"
+    <header class="app-header">
+      <a class="brand" href="/" aria-label="Pulse dashboard">
+        <span class="brand-icon" aria-hidden="true">∿</span>
+        <span>Pulse <span class="brand-section">/ Chat</span></span>
+      </a>
+      <nav class="service-controls" aria-label="Application">
+        <a href="/">Dashboard</a><a href="/docs">API</a
+        ><a href="/tests/">Tests</a>
+        <span id="service-status" class="service-status" role="status"
           >Checking service…</span
         >
-        <button id="refresh-status" type="button">Refresh status</button>
-      </div>
+        <button
+          id="refresh-status"
+          class="icon-button"
+          type="button"
+          aria-label="Refresh service status"
+          title="Refresh service status"
+        >
+          ↻
+        </button>
+        <button
+          id="toggle-history"
+          class="mobile-history"
+          type="button"
+          aria-expanded="false"
+          aria-controls="history-panel"
+        >
+          Conversations
+        </button>
+      </nav>
     </header>
-    <main>
-      <aside class="panel controls" aria-label="Agent controls">
-        <fieldset id="agent-picker">
-          <legend>Agent</legend>
-          <label class="mode"
-            ><input type="radio" name="agent" value="business" checked />
-            Business assistant</label
-          >
-          <label class="mode"
-            ><input type="radio" name="agent" value="investigation" /> Data
-            investigator</label
-          >
-        </fieldset>
-        <p id="agent-description" class="note">
-          Ask business questions and inspect the supporting data.
-        </p>
-        <form id="investigation-form" hidden>
-          <h2>Exact firm / month</h2>
-          <label for="firm-id">Firm ID</label>
-          <input
-            id="firm-id"
-            type="text"
-            required
-            inputmode="numeric"
-            pattern="[0-9]{1,10}"
-            maxlength="10"
-            autocomplete="off"
-            placeholder="Numeric ID, e.g. 42"
-          />
-          <label for="month">Month</label>
-          <input id="month" type="month" min="0001-01" max="9999-12" required />
-          <button id="build-question" type="submit">Run investigation</button>
-          <p class="note">
-            Checks the current publication directly, with no model call.
-          </p>
-        </form>
-        <form id="ask-form">
-          <label for="question">Question or clarification</label>
-          <textarea
-            id="question"
-            rows="5"
-            maxlength="2000"
-            required
-            placeholder="Ask a question…"
-          ></textarea>
-          <div class="actions">
-            <button id="send" class="primary" type="submit" disabled>
-              Ask agent
-            </button>
-            <button id="new-conversation" type="button">
-              New conversation
-            </button>
-          </div>
-          <p id="execution-note" class="note" hidden>
-            An earlier request has an uncertain outcome. Use Recover request on
-            its turn to reuse its ID. Start new execution sends a new request
-            and may incur another charge.
-          </p>
-        </form>
-        <p id="request-status" role="status" class="note">
-          Checking availability…
-        </p>
-        <p id="error" role="alert" hidden></p>
-        <section aria-labelledby="examples-title">
-          <h2 id="examples-title">Example questions</h2>
-          <div id="examples" class="examples"></div>
-        </section>
-        <details class="access">
-          <summary>Deployment access</summary>
-          <label for="access-token">Optional deployment bearer token</label>
-          <input
-            id="access-token"
-            type="password"
-            autocomplete="off"
-            spellcheck="false"
-            aria-describedby="token-note"
-          />
-          <p id="token-note" class="note">
-            Use only a deployment access token, never a model provider API key.
-            Kept in this page only. Changing it clears both conversations and
-            stops local requests; server work may continue. Refresh status to
-            verify access before asking again.
-          </p>
-          <p id="service-identity" class="note">Identity not verified</p>
-          <button id="clear-token" type="button">Clear token</button>
-        </details>
-      </aside>
-      <section class="panel conversation" aria-labelledby="conversation-title">
-        <div class="panel-heading">
-          <h2 id="conversation-title">Business assistant</h2>
-          <span id="conversation-id" class="note">New conversation</span>
+    <main class="workspace">
+      <section class="chat" aria-labelledby="conversation-title">
+        <div class="chat-toolbar">
+          <fieldset id="agent-picker" class="agent-picker">
+            <legend class="sr-only">Choose an assistant</legend>
+            <label class="mode"
+              ><input type="radio" name="agent" value="business" checked /><span
+                >Business assistant</span
+              ></label
+            >
+            <label class="mode"
+              ><input type="radio" name="agent" value="investigation" /><span
+                >Data investigator</span
+              ></label
+            >
+          </fieldset>
+          <span class="read-only-label">Read-only data</span>
         </div>
-        <div id="transcript" aria-busy="false"></div>
+        <div class="chat-scroll" id="chat-scroll">
+          <div class="conversation-heading">
+            <h1 id="conversation-title">Business assistant</h1>
+            <p id="agent-description" class="note">
+              Ask business questions and inspect the supporting data.
+            </p>
+          </div>
+          <button
+            id="earlier-messages"
+            class="earlier-messages"
+            type="button"
+            hidden
+          >
+            Load earlier messages
+          </button>
+          <p
+            id="conversation-error"
+            role="alert"
+            class="history-error"
+            hidden
+          ></p>
+          <div
+            id="transcript"
+            aria-label="Conversation messages"
+            aria-busy="false"
+          ></div>
+          <section
+            id="starter-section"
+            class="starter-section"
+            aria-labelledby="examples-title"
+          >
+            <h2 id="examples-title">Start with a question</h2>
+            <div id="examples" class="examples"></div>
+            <p class="starter-hint">
+              Every answer can be checked against its source data.
+            </p>
+          </section>
+        </div>
+        <div class="composer-area">
+          <details id="exact-controls" class="exact-controls" hidden>
+            <summary>
+              Investigate an exact firm and month
+              <span class="note">No model call</span>
+            </summary>
+            <form id="investigation-form" hidden>
+              <label for="firm-id"
+                >Firm ID<input
+                  id="firm-id"
+                  type="text"
+                  required
+                  inputmode="numeric"
+                  pattern="[0-9]{1,10}"
+                  maxlength="10"
+                  autocomplete="off"
+                  placeholder="e.g. 42"
+              /></label>
+              <label for="month"
+                >Month<input
+                  id="month"
+                  type="month"
+                  min="0001-01"
+                  max="9999-12"
+                  required
+              /></label>
+              <button id="build-question" type="submit">
+                Run investigation
+              </button>
+            </form>
+          </details>
+          <p id="error" role="alert" hidden></p>
+          <form id="ask-form" class="composer">
+            <label for="question" class="sr-only"
+              >Question or clarification</label
+            >
+            <textarea
+              id="question"
+              rows="2"
+              maxlength="2000"
+              required
+              placeholder="Ask about your data…"
+              aria-describedby="composer-hint"
+            ></textarea>
+            <div class="composer-actions">
+              <span id="composer-hint"
+                >Enter to send · Shift + Enter for a new line</span
+              >
+              <button id="send" class="primary" type="submit" disabled>
+                Send
+              </button>
+            </div>
+            <p id="execution-note" class="note" hidden>
+              An earlier request has an uncertain outcome. Use Recover request
+              on its turn to reuse its ID. Start new execution sends a new
+              request and may incur another charge.
+            </p>
+          </form>
+          <div class="composer-footer">
+            <p id="request-status" role="status" class="note">
+              Checking availability…
+            </p>
+            <span id="conversation-id" class="sr-only">New conversation</span>
+          </div>
+        </div>
       </section>
+      <aside
+        id="history-panel"
+        class="history-panel"
+        aria-label="Conversation history"
+      >
+        <div class="history-heading">
+          <h2>Conversations</h2>
+          <button
+            id="refresh-history"
+            class="icon-button"
+            type="button"
+            title="Refresh conversations"
+            aria-label="Refresh conversations"
+          >
+            ↻
+          </button>
+        </div>
+        <button id="new-conversation" class="new-conversation" type="button">
+          <span aria-hidden="true">＋</span> New conversation
+        </button>
+        <label class="sr-only" for="history-search"
+          >Search loaded conversations</label
+        >
+        <input
+          id="history-search"
+          type="search"
+          placeholder="Search loaded chats…"
+          autocomplete="off"
+        />
+        <p id="history-status" class="note" role="status">
+          Loading conversations…
+        </p>
+        <div id="history-list" class="history-list" aria-busy="false"></div>
+        <button id="more-conversations" type="button" hidden>
+          Load more conversations
+        </button>
+        <div class="history-footer">
+          <p class="saved-note">
+            Saved in Pulse<span
+              >Reopen a chat to continue where you left off.</span
+            >
+          </p>
+          <details class="access">
+            <summary>Connection &amp; access</summary>
+            <label for="access-token">Optional deployment bearer token</label>
+            <input
+              id="access-token"
+              type="password"
+              autocomplete="off"
+              spellcheck="false"
+              aria-describedby="token-note"
+            />
+            <p id="token-note" class="note">
+              Use a deployment access token, never a model provider API key.
+              Kept in this page only. Changing it clears the visible chats and
+              stops local requests; server work may continue. Refresh status to
+              verify access.
+            </p>
+            <p id="service-identity" class="note">Identity not verified</p>
+            <button id="clear-token" type="button">Clear token</button>
+          </details>
+        </div>
+      </aside>
     </main>
   </body>
 </html>

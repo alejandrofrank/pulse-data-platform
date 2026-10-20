@@ -107,6 +107,7 @@ async function until(predicate) {
 async function setup(
   t,
   handler = (url, options, body) => ok(body ? response(body) : status),
+  historyHandler = () => ok({ items: [], total: 0, limit: 30, offset: 0 }),
 ) {
   const dom = new JSDOM(html, {
     url: "http://localhost/agents",
@@ -118,6 +119,10 @@ async function setup(
   const calls = [];
   w.crypto.randomUUID = randomUUID;
   w.fetch = async (url, options = {}) => {
+    if (url.startsWith("/api/v1/agents/conversations")) {
+      calls.push({ url, options, body: null });
+      return historyHandler(url, options);
+    }
     assert.ok(
       [
         "/api/v1/agents/status",
@@ -467,7 +472,6 @@ test("transport, HTTP, invalid JSON, and invalid envelopes release busy state wi
       throw new Error("Network offline");
     },
     () => ({ ok: false, status: 503 }),
-    () => ({ ok: false, status: 403 }),
     () => ({
       ok: true,
       json: async () => {
@@ -885,7 +889,7 @@ test("recovering an old null-conversation request preserves exact bytes and the 
   assert.equal(ui.get("question").value, "Unsent edited draft");
   assert.equal(ui.d.querySelectorAll(".turn").length, 2);
   assert.equal(ui.d.querySelectorAll(".recover-request").length, 0);
-  assert.equal(ui.get("send").textContent, "Ask agent");
+  assert.equal(ui.get("send").textContent, "Send");
 });
 
 test("repeated recovery retains the original UUID and non-null conversation through HTTP 409", async (t) => {
@@ -968,4 +972,549 @@ test("cost badges preserve decimal strings exactly and reject invalid or unknown
     );
     assert.ok(!badges.some((badge) => badge.startsWith("$")));
   }
+});
+
+function savedChat(title, agent = "business", count = 1) {
+  const id = randomUUID();
+  const items = Array.from({ length: count }, (_, index) => {
+    const body = { request_id: randomUUID(), conversation_id: id, agent };
+    return {
+      request_id: body.request_id,
+      question: `${title} ${index + 1}`,
+      status: "complete",
+      created_at: `2026-03-${String(index + 1).padStart(2, "0")}T10:00:00Z`,
+      result: response(body),
+    };
+  });
+  return {
+    id,
+    agent,
+    title,
+    created_at: "2026-03-01T10:00:00Z",
+    updated_at: "2026-03-20T10:00:00Z",
+    turn_count: count,
+    items,
+  };
+}
+function historyAPI(chats) {
+  return (url) => {
+    const parsed = new URL(url, "http://localhost");
+    const offset = Number(parsed.searchParams.get("offset"));
+    const limit = Number(parsed.searchParams.get("limit"));
+    const id = parsed.pathname.split("/")[5];
+    if (!id)
+      return ok({
+        items: chats
+          .slice(offset, offset + limit)
+          .map(({ items, ...meta }) => meta),
+        total: chats.length,
+        offset,
+        limit,
+      });
+    const chat = chats.find((item) => item.id === id);
+    if (!chat) return { ok: false, status: 404 };
+    return ok({
+      ...chat,
+      items: [...chat.items]
+        .reverse()
+        .slice(offset, offset + limit)
+        .reverse(),
+      total: chat.items.length,
+      offset,
+      limit,
+    });
+  };
+}
+
+test("saved conversations reopen after a new page and continue their server context without an automatic execution", async (t) => {
+  const chat = savedChat("March network revenue", "business", 2);
+  const history = historyAPI([chat]);
+  for (let page = 0; page < 2; page++) {
+    const ui = await setup(t, undefined, history);
+    await until(() => ui.d.querySelector(".history-item"));
+    ui.d.querySelector(".history-item").click();
+    await ui.idle();
+    assert.equal(ui.d.querySelectorAll(".turn").length, 2);
+    assert.equal(ui.posts().length, 0);
+    assert.equal(ui.get("conversation-title").textContent, chat.title);
+    assert.equal(ui.d.querySelector(".evidence-panel").open, false);
+    assert.equal(ui.d.querySelector(".execution-details").open, false);
+    assert.equal(
+      ui.d.querySelector(".history-item").getAttribute("aria-current"),
+      "true",
+    );
+    ui.submit("And February?");
+    await ui.idle();
+    assert.equal(ui.posts()[0].body.conversation_id, chat.id);
+    assert.equal(ui.d.querySelectorAll(".turn").length, 3);
+    ui.get("new-conversation").click();
+    assert.equal(ui.d.querySelectorAll(".turn").length, 0);
+    assert.equal(ui.d.querySelectorAll(".history-item").length, 1);
+    assert.equal(ui.w.localStorage.length, 0);
+    assert.equal(ui.w.sessionStorage.length, 0);
+  }
+});
+
+test("history and older-message pagination remain bounded, searchable and chronological", async (t) => {
+  const chats = Array.from({ length: 31 }, (_, i) =>
+    savedChat(
+      `Saved report ${i}`,
+      i === 0 ? "investigation" : "business",
+      i === 0 ? 12 : 1,
+    ),
+  );
+  const ui = await setup(t, undefined, historyAPI(chats));
+  await until(() => ui.d.querySelectorAll(".history-item").length === 30);
+  ui.get("more-conversations").click();
+  await until(() => ui.d.querySelectorAll(".history-item").length === 31);
+  assert.equal(ui.get("more-conversations").hidden, true);
+  ui.get("history-search").value = "Saved report 30";
+  ui.get("history-search").dispatchEvent(new ui.w.Event("input"));
+  assert.equal(ui.d.querySelectorAll(".history-item").length, 1);
+  ui.get("history-search").value = "";
+  ui.get("history-search").dispatchEvent(new ui.w.Event("input"));
+  ui.d.querySelector(".history-item").click();
+  await ui.idle();
+  assert.equal(
+    ui.d.querySelector('input[value="investigation"]').checked,
+    true,
+  );
+  assert.equal(ui.d.querySelectorAll(".turn").length, 10);
+  assert.equal(ui.get("earlier-messages").hidden, false);
+  ui.get("earlier-messages").click();
+  await ui.idle();
+  assert.equal(ui.d.querySelectorAll(".turn").length, 12);
+  assert.equal(ui.get("earlier-messages").hidden, true);
+  assert.equal(ui.d.querySelector(".question").textContent, "Saved report 0 1");
+  assert.equal(
+    [...ui.d.querySelectorAll(".question")].at(-1).textContent,
+    "Saved report 0 12",
+  );
+  assert.equal(ui.posts().length, 0);
+});
+
+test("late history reads cannot overwrite another selected chat or a new conversation", async (t) => {
+  const chats = [savedChat("First"), savedChat("Second")];
+  const normal = historyAPI(chats);
+  let finish;
+  let deferred = true;
+  const ui = await setup(t, undefined, (url) =>
+    url.includes(chats[0].id) && deferred
+      ? new Promise((resolve) => {
+          finish = () => resolve(normal(url));
+        })
+      : normal(url),
+  );
+  await until(() => ui.d.querySelectorAll(".history-item").length === 2);
+  ui.d.querySelectorAll(".history-item")[0].click();
+  assert.equal(ui.get("send").disabled, true);
+  ui.d.querySelectorAll(".history-item")[1].click();
+  await ui.idle();
+  finish();
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  assert.equal(ui.d.querySelector(".question").textContent, "Second 1");
+  ui.d.querySelectorAll(".history-item")[0].click();
+  ui.get("new-conversation").click();
+  finish();
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  assert.equal(ui.d.querySelectorAll(".turn").length, 0);
+  assert.equal(ui.get("conversation-id").textContent, "New conversation");
+  assert.equal(ui.posts().length, 0);
+});
+
+test("pending historical runs use read-only refresh and failed reads block continuation", async (t) => {
+  const chat = savedChat("Pending revenue");
+  const final = chat.items[0].result;
+  chat.items[0].status = "running";
+  chat.items[0].result = null;
+  let fail = false;
+  const normal = historyAPI([chat]);
+  const ui = await setup(t, undefined, (url) =>
+    fail && url.includes(chat.id) ? { ok: false, status: 404 } : normal(url),
+  );
+  await until(() => ui.d.querySelector(".history-item"));
+  ui.d.querySelector(".history-item").click();
+  await ui.idle();
+  assert.equal(ui.get("send").disabled, true);
+  assert.equal(ui.d.querySelector(".recover-request"), null);
+  assert.match(ui.get("transcript").textContent, /still running/);
+  chat.items[0].status = "complete";
+  chat.items[0].result = final;
+  ui.get("transcript").querySelector("button").click();
+  await ui.idle();
+  assert.equal(ui.get("send").disabled, false);
+  assert.match(ui.get("transcript").textContent, /Revenue is supported/);
+  fail = true;
+  ui.d.querySelector(".history-item").click();
+  await ui.idle();
+  assert.equal(ui.d.querySelectorAll(".turn").length, 0);
+  assert.equal(ui.get("send").disabled, true);
+  assert.equal(ui.get("conversation-error").hidden, false);
+  ui.submit("Must not continue an unreadable chat");
+  assert.equal(ui.posts().length, 0);
+});
+
+test("scope changes clear cached history and late reads cannot restore another identity's messages", async (t) => {
+  const chat = savedChat("Restricted evidence");
+  const normal = historyAPI([chat]);
+  let scope = "full";
+  let finish;
+  let pending = false;
+  const ui = await setup(
+    t,
+    (url, options, body) =>
+      ok(body ? response(body) : { ...status, access_scope: scope }),
+    (url) =>
+      scope !== "full"
+        ? ok({ items: [], total: 0 })
+        : pending && url.includes(chat.id)
+          ? new Promise((resolve) => {
+              finish = () => resolve(normal(url));
+            })
+          : normal(url),
+  );
+  await until(() => ui.d.querySelector(".history-item"));
+  ui.d.querySelector(".history-item").click();
+  await ui.idle();
+  pending = true;
+  ui.d.querySelector(".history-item").click();
+  scope = "restricted";
+  ui.get("refresh-status").click();
+  await until(() => !ui.get("refresh-status").disabled);
+  finish();
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  assert.equal(ui.d.querySelectorAll(".turn").length, 0);
+  assert.equal(ui.d.querySelectorAll(".history-item").length, 0);
+  assert.equal(ui.get("conversation-id").textContent, "New conversation");
+  assert.equal(ui.posts().length, 0);
+});
+
+test("background answers stay with their chat while browsing another conversation of the same agent", async (t) => {
+  const old = savedChat("Previous chat");
+  let finish;
+  const ui = await setup(
+    t,
+    (url, options, body) =>
+      body
+        ? new Promise((resolve) => {
+            finish = () => resolve(ok(response(body)));
+          })
+        : ok(status),
+    historyAPI([old]),
+  );
+  await until(() => ui.d.querySelector(".history-item"));
+  ui.submit("New chat pending");
+  ui.d.querySelector(".history-item[data-id]").click();
+  await ui.idle();
+  finish();
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  assert.equal(ui.get("conversation-title").textContent, old.title);
+  assert.doesNotMatch(ui.get("transcript").textContent, /New chat pending/);
+  assert.equal(
+    ui.get("conversation-id").textContent,
+    `Conversation: ${old.id}`,
+  );
+});
+
+test("Enter submits once, Shift+Enter and IME composition do not, and mobile history closes with Escape", async (t) => {
+  const ui = await setup(t);
+  ui.get("question").value = "Revenue?";
+  ui.get("question").dispatchEvent(
+    new ui.w.KeyboardEvent("keydown", {
+      key: "Enter",
+      shiftKey: true,
+      bubbles: true,
+      cancelable: true,
+    }),
+  );
+  ui.get("question").dispatchEvent(
+    new ui.w.KeyboardEvent("keydown", {
+      key: "Enter",
+      isComposing: true,
+      bubbles: true,
+      cancelable: true,
+    }),
+  );
+  assert.equal(ui.posts().length, 0);
+  ui.get("question").dispatchEvent(
+    new ui.w.KeyboardEvent("keydown", {
+      key: "Enter",
+      bubbles: true,
+      cancelable: true,
+    }),
+  );
+  await ui.idle();
+  assert.equal(ui.posts().length, 1);
+  ui.w.innerWidth = 600;
+  ui.get("toggle-history").click();
+  assert.equal(ui.d.querySelector(".chat").inert, true);
+  assert.equal(ui.get("toggle-history").getAttribute("aria-expanded"), "true");
+  assert.equal(ui.d.activeElement.id, "history-search");
+  ui.d.dispatchEvent(
+    new ui.w.KeyboardEvent("keydown", { key: "Escape", bubbles: true }),
+  );
+  assert.equal(ui.get("toggle-history").getAttribute("aria-expanded"), "false");
+  assert.equal(ui.d.activeElement.id, "toggle-history");
+  assert.equal(ui.d.querySelector(".chat").inert, false);
+});
+
+test("saved titles and messages remain literal and history failures are visible without model calls", async (t) => {
+  const hostile = '<img src=x onerror="window.pwned=true">';
+  const chat = savedChat(hostile);
+  const normal = historyAPI([chat]);
+  let fail = false;
+  const ui = await setup(t, undefined, (url) =>
+    fail ? { ok: false, status: 503 } : normal(url),
+  );
+  await until(() => ui.d.querySelector(".history-item"));
+  assert.match(ui.get("history-list").textContent, /<img/);
+  ui.d.querySelector(".history-item").click();
+  await ui.idle();
+  assert.equal(ui.d.querySelectorAll("img, [onerror]").length, 0);
+  fail = true;
+  ui.get("refresh-history").click();
+  await until(() => !ui.get("refresh-history").disabled);
+  assert.match(ui.get("history-status").textContent, /503/);
+  assert.equal(ui.d.querySelectorAll(".history-item").length, 0);
+  assert.equal(ui.posts().length, 0);
+});
+
+test("unsent drafts and failed first requests remain reachable while browsing saved chats", async (t) => {
+  const old = savedChat("Existing chat");
+  let reject;
+  let attempt = 0;
+  const ui = await setup(
+    t,
+    (url, options, body) =>
+      !body
+        ? ok(status)
+        : ++attempt === 1
+          ? new Promise((resolve, fail) => {
+              reject = fail;
+            })
+          : ok(response(body)),
+    historyAPI([old]),
+  );
+  await until(() => ui.d.querySelector(".history-item[data-id]"));
+  ui.get("question").value = "Keep my unsent draft";
+  ui.get("question").dispatchEvent(new ui.w.Event("input"));
+  ui.d.querySelector(".history-item[data-id]").click();
+  await ui.idle();
+  ui.d.querySelector(".local-session").click();
+  assert.equal(ui.get("question").value, "Keep my unsent draft");
+  ui.submit();
+  ui.d.querySelector(".history-item[data-id]").click();
+  await ui.idle();
+  reject(new Error("Response lost"));
+  await until(() =>
+    ui.d.querySelector(".local-session").textContent.includes("Needs recovery"),
+  );
+  ui.d.querySelector(".local-session").click();
+  assert.ok(ui.d.querySelector(".recover-request"));
+  ui.d.querySelector(".recover-request").click();
+  await ui.idle();
+  assert.equal(ui.posts()[1].options.body, ui.posts()[0].options.body);
+});
+
+test("a first POST arriving after history restoration preserves the restored draft and exact request", async (t) => {
+  const chats = [];
+  let finish;
+  const ui = await setup(
+    t,
+    (url, options, body) => {
+      if (!body) return ok(status);
+      const chat = savedChat("Delayed first answer");
+      const result = response({ ...body, conversation_id: chat.id });
+      chat.items = [
+        {
+          request_id: body.request_id,
+          question: body.question,
+          status: "complete",
+          created_at: new Date().toISOString(),
+          result,
+        },
+      ];
+      chats.push(chat);
+      return new Promise((resolve) => {
+        finish = () => resolve(ok(result));
+      });
+    },
+    historyAPI(chats),
+  );
+  ui.submit("Delayed first answer");
+  ui.get("refresh-history").click();
+  await until(() => ui.d.querySelector(".history-item[data-id]"));
+  ui.d.querySelector(".history-item[data-id]").click();
+  await ui.idle();
+  ui.get("question").value = "My next question";
+  ui.get("question").dispatchEvent(new ui.w.Event("input"));
+  finish();
+  await until(
+    () => ui.get("history-list").getAttribute("aria-busy") === "false",
+  );
+  ui.d.querySelector(".history-item[data-id]").click();
+  await ui.idle();
+  assert.equal(ui.get("question").value, "My next question");
+  assert.equal(ui.d.querySelectorAll(".turn").length, 1);
+  assert.equal(ui.posts().length, 1);
+});
+
+test("transient history failures hide evidence but preserve uncertain requests for exact recovery", async (t) => {
+  const chat = savedChat("Recoverable chat");
+  let failRead = false;
+  let attempt = 0;
+  const normal = historyAPI([chat]);
+  const ui = await setup(
+    t,
+    (url, options, body) => {
+      if (!body) return ok(status);
+      if (++attempt === 1) {
+        chat.items.push({
+          request_id: body.request_id,
+          question: body.question,
+          status: "running",
+          created_at: new Date().toISOString(),
+          result: null,
+        });
+        throw new Error("Response lost");
+      }
+      return ok(response(body));
+    },
+    (url) =>
+      failRead && url.includes(chat.id)
+        ? { ok: false, status: 503 }
+        : normal(url),
+  );
+  await until(() => ui.d.querySelector(".history-item[data-id]"));
+  ui.d.querySelector(".history-item[data-id]").click();
+  await ui.idle();
+  ui.submit("Follow-up with uncertain outcome");
+  await ui.idle();
+  failRead = true;
+  ui.d.querySelector(".history-item[data-id]").click();
+  await ui.idle();
+  assert.equal(ui.d.querySelectorAll(".turn").length, 0);
+  assert.equal(ui.get("send").disabled, true);
+  failRead = false;
+  ui.d.querySelector(".history-item[data-id]").click();
+  await ui.idle();
+  assert.ok(ui.d.querySelector(".recover-request"));
+  ui.d.querySelector(".recover-request").click();
+  await ui.idle();
+  assert.equal(ui.posts()[1].options.body, ui.posts()[0].options.body);
+});
+
+test("authorization denial clears transcripts, local drafts and recovery bytes until access is reverified", async (t) => {
+  for (const deniedRoute of ["list", "detail", "ask"]) {
+    await t.test(deniedRoute, async (t) => {
+      const chat = savedChat("Privileged evidence");
+      const normal = historyAPI([chat]);
+      let denied = false;
+      const ui = await setup(
+        t,
+        (url, options, body) =>
+          denied && body && deniedRoute === "ask"
+            ? { ok: false, status: 403 }
+            : ok(body ? response(body) : status),
+        (url) =>
+          denied &&
+          ((deniedRoute === "list" && !url.includes(chat.id)) ||
+            (deniedRoute === "detail" && url.includes(chat.id)))
+            ? { ok: false, status: 403 }
+            : normal(url),
+      );
+      await until(() => ui.d.querySelector(".history-item[data-id]"));
+      ui.d.querySelector(".history-item[data-id]").click();
+      await ui.idle();
+      denied = true;
+      if (deniedRoute === "list") ui.get("refresh-history").click();
+      else if (deniedRoute === "detail")
+        ui.d.querySelector(".history-item[data-id]").click();
+      else ui.submit("A restricted follow-up");
+      await until(
+        () =>
+          ui.get("send").disabled &&
+          ui.get("error").textContent.includes("Access denied"),
+      );
+      assert.equal(ui.d.querySelectorAll(".turn, .history-item").length, 0);
+      assert.equal(ui.get("question").value, "");
+      denied = false;
+      ui.get("refresh-status").click();
+      await until(() => !ui.get("refresh-status").disabled);
+      assert.equal(ui.get("send").disabled, false);
+      assert.equal(ui.get("conversation-id").textContent, "New conversation");
+    });
+  }
+});
+
+test("a delayed POST failure cannot downgrade a successful answer restored from history", async (t) => {
+  const chats = [];
+  let reject;
+  const ui = await setup(
+    t,
+    (url, options, body) => {
+      if (!body) return ok(status);
+      const chat = savedChat("Completed on server");
+      chat.items = [
+        {
+          request_id: body.request_id,
+          question: body.question,
+          status: "complete",
+          created_at: new Date().toISOString(),
+          result: response({ ...body, conversation_id: chat.id }),
+        },
+      ];
+      chats.push(chat);
+      return new Promise((resolve, fail) => {
+        reject = fail;
+      });
+    },
+    historyAPI(chats),
+  );
+  ui.submit("Completed on server");
+  ui.get("refresh-history").click();
+  await until(() => ui.d.querySelector(".history-item[data-id]"));
+  ui.d.querySelector(".history-item[data-id]").click();
+  await ui.idle();
+  assert.equal(ui.get("question").value, "");
+  reject(new Error("Delayed network failure"));
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  assert.match(ui.get("transcript").textContent, /Revenue is supported/);
+  assert.equal(ui.d.querySelector(".recover-request"), null);
+  assert.equal(ui.get("send").textContent, "Send");
+  assert.equal(ui.d.querySelectorAll(".turn").length, 1);
+});
+
+test("adopting a server conversation preserves an edited draft from its failed first request", async (t) => {
+  const chats = [];
+  const ui = await setup(
+    t,
+    (url, options, body) => {
+      if (!body) return ok(status);
+      const chat = savedChat("First request");
+      chat.items = [
+        {
+          request_id: body.request_id,
+          question: body.question,
+          status: "complete",
+          created_at: new Date().toISOString(),
+          result: response({ ...body, conversation_id: chat.id }),
+        },
+      ];
+      chats.push(chat);
+      throw new Error("Lost first response");
+    },
+    historyAPI(chats),
+  );
+  ui.submit("First request");
+  await ui.idle();
+  ui.get("question").value = "Edited question to keep";
+  ui.get("question").dispatchEvent(new ui.w.Event("input"));
+  await until(() => ui.d.querySelector(".history-item[data-id]"));
+  ui.d.querySelector(".history-item[data-id]").click();
+  await ui.idle();
+  assert.equal(ui.get("question").value, "Edited question to keep");
+  assert.match(ui.get("transcript").textContent, /Revenue is supported/);
+  assert.equal(ui.d.querySelector(".local-session"), null);
+  assert.equal(ui.posts().length, 1);
 });
