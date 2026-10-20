@@ -29,6 +29,8 @@ let connected = false;
 let pollTimer;
 let pendingPlay = null;
 let lastPaint = "";
+let toplineMonths = "";
+let toplineChart = "";
 const catalogNodes = new Map();
 const errors = new Map();
 
@@ -265,8 +267,122 @@ function tag(status) {
   value.dataset.state = status;
   return value;
 }
+function clearTopline(message) {
+  for (const id of [
+    "topline-revenue",
+    "topline-clients",
+    "topline-coverage",
+    "reject-count",
+  ])
+    node(id).textContent = "—";
+  document
+    .querySelectorAll(".topline-date")
+    .forEach((item) => (item.textContent = "—"));
+  node("topline-coverage-card").dataset.state = "unknown";
+  node("lab-quality-card").dataset.state = "unknown";
+  node("topline-coverage-detail").textContent = message;
+  node("quality-detail").textContent = message;
+  node("topline-range").textContent = message;
+  node("topline-month").disabled = true;
+  node("lab-revenue-chart").textContent = message;
+  toplineChart = "";
+}
+function revenueChart(rows) {
+  const ns = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(ns, "svg");
+  svg.setAttribute("viewBox", "0 0 1100 240");
+  const add = (tag, attributes, text) => {
+    const item = document.createElementNS(ns, tag);
+    for (const [key, value] of Object.entries(attributes))
+      item.setAttribute(key, value);
+    if (text != null) item.textContent = text;
+    svg.append(item);
+    return item;
+  };
+  const max = Math.max(1, ...rows.map((row) => Number(row.revenue_eur) || 0));
+  const width = 980 / rows.length;
+  for (let i = 0; i < 4; i++) {
+    const y = 20 + i * 60;
+    add("line", { x1: 85, y1: y, x2: 1080, y2: y, class: "chart-grid" });
+    add(
+      "text",
+      { x: 75, y: y + 4, "text-anchor": "end" },
+      number(Math.round((max * (3 - i)) / 3)),
+    );
+  }
+  rows.forEach((row, index) => {
+    if (row.revenue_eur != null) {
+      const height = (180 * Number(row.revenue_eur)) / max;
+      const bar = add("rect", {
+        x: 90 + index * width,
+        y: 200 - height,
+        width: Math.max(2, width - 4),
+        height,
+        rx: 2,
+        class: row.missing_firms > 0 ? "chart-bar is-partial" : "chart-bar",
+      });
+      const title = document.createElementNS(ns, "title");
+      title.textContent = `${row.mes.slice(0, 7)}: ${money(row.revenue_eur)} · ${row.reporting_firms}/${row.expected_firms} asesorías`;
+      bar.append(title);
+    } else {
+      add("text", { x: 90 + index * width, y: 195 }, "—");
+    }
+    if (
+      index % Math.max(1, Math.ceil(rows.length / 8)) === 0 ||
+      index === rows.length - 1
+    )
+      add("text", { x: 90 + index * width, y: 225 }, row.mes.slice(0, 7));
+  });
+  node("lab-revenue-chart").replaceChildren(svg);
+}
+function renderTopline() {
+  const rows = state.months;
+  const select = node("topline-month");
+  const signature = JSON.stringify(rows.map((row) => row.mes));
+  if (signature !== toplineMonths) {
+    toplineMonths = signature;
+    const previous = select.value;
+    const automatic = element("option", "Último mes disponible · en vivo");
+    automatic.value = "";
+    select.replaceChildren(
+      automatic,
+      ...rows.map((row) => {
+        const option = element("option", row.mes.slice(0, 7));
+        option.value = row.mes;
+        return option;
+      }),
+    );
+    select.value = rows.some((row) => row.mes === previous) ? previous : "";
+  }
+  if (!rows.length) {
+    clearTopline("Sin meses publicados. Reproduce una selección de CSV.");
+    return;
+  }
+  select.disabled = false;
+  const selected = rows.find((row) => row.mes === select.value) || rows.at(-1);
+  node("topline-range").textContent =
+    `${rows.length} meses en el intervalo · ${rows[0].mes.slice(0, 7)} — ${rows.at(-1).mes.slice(0, 7)} · pulse_lab`;
+  document
+    .querySelectorAll(".topline-date")
+    .forEach((item) => (item.textContent = selected.mes.slice(0, 7)));
+  node("topline-revenue").textContent = money(selected.revenue_eur);
+  node("topline-clients").textContent =
+    selected.clientes_activos == null ? "—" : number(selected.clientes_activos);
+  node("topline-coverage").textContent =
+    selected.coverage_pct == null ? "—" : `${number(selected.coverage_pct)} %`;
+  node("topline-coverage-detail").textContent =
+    `${selected.reporting_firms} / ${selected.expected_firms} asesorías con datos`;
+  node("topline-coverage-card").dataset.state =
+    selected.missing_firms > 0 ? "warning" : "success";
+  const chartSignature = JSON.stringify(rows);
+  if (chartSignature !== toplineChart) {
+    toplineChart = chartSignature;
+    revenueChart(rows);
+  }
+}
 function render() {
   catalog();
+  renderTopline();
   const c = state.counts;
   node("loaded-count").textContent = number(c.files);
   node("catalog-count").textContent = `${state.catalog.length} CSV disponibles`;
@@ -411,6 +527,7 @@ async function refresh() {
     render();
   } catch (e) {
     connected = false;
+    clearTopline("Sin conexión. Métricas no disponibles.");
     controls();
     node("connection-status").textContent = "Sin conexión";
     errorMessage(e, "connection");
@@ -454,6 +571,9 @@ async function play(names) {
   }
 }
 node("playhead").oninput = cursor;
+node("topline-month").onchange = () => {
+  if (connected && state) renderTopline();
+};
 node("select-until").onclick = () =>
   setSelection(
     state.catalog

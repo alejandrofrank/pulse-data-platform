@@ -118,6 +118,78 @@
           </p>
         </div>
       </section>
+      <section id="lab-topline" aria-labelledby="topline-title">
+        <div class="topline-heading">
+          <div>
+            <h2 id="topline-title">Resumen del laboratorio</h2>
+            <p id="topline-range" class="note" role="status">
+              Cargando métricas…
+            </p>
+          </div>
+          <label for="topline-month"
+            >Mes consultado
+            <select id="topline-month" disabled>
+              <option value="">Último mes disponible · en vivo</option>
+            </select>
+          </label>
+        </div>
+        <section
+          class="cards"
+          aria-label="Métricas del mes consultado en el laboratorio"
+        >
+          <article>
+            <h2>
+              Facturación <span class="topline-date latest-month">—</span>
+            </h2>
+            <strong id="topline-revenue">—</strong>
+            <p>Importe observado; incluye otros ingresos</p>
+          </article>
+          <article>
+            <h2>
+              Clientes activos <span class="topline-date latest-month">—</span>
+            </h2>
+            <strong id="topline-clients">—</strong>
+            <p>Suma de carteras; no clientes únicos de la red</p>
+          </article>
+          <article id="topline-coverage-card">
+            <h2>
+              Cobertura de asesorías
+              <span class="topline-date latest-month">—</span>
+            </h2>
+            <strong id="topline-coverage">—</strong>
+            <p id="topline-coverage-detail">Asesorías con datos / esperadas</p>
+          </article>
+          <article id="lab-quality-card">
+            <h2>
+              Filas rechazadas
+              <span class="card-scope">Todas las cargas del lab</span>
+            </h2>
+            <strong id="reject-count">—</strong>
+            <p id="quality-detail">Sin incidencias</p>
+          </article>
+        </section>
+        <section class="panel" aria-labelledby="lab-chart-title">
+          <div class="panel-title">
+            <h2 id="lab-chart-title">Evolución de la facturación</h2>
+            <div class="legend">
+              <span><i aria-hidden="true"></i>Completa</span>
+              <span><i class="partial" aria-hidden="true"></i>Parcial</span>
+              <span>EUR / mes</span>
+            </div>
+          </div>
+          <div
+            id="lab-revenue-chart"
+            tabindex="0"
+            role="img"
+            aria-label="Facturación mensual del laboratorio. Valores exactos en Resultado mensual en vivo."
+          ></div>
+          <p class="note panel-note">
+            Solo datos publicados en esta base aislada. Los huecos no son ceros.
+            El gráfico muestra todo el intervalo; las tarjetas, el mes
+            consultado. Elegir un mes no carga ni revierte CSV.
+          </p>
+        </section>
+      </section>
       <section id="sql-console" class="panel" aria-labelledby="sql-title">
         <div class="panel-title">
           <div class="panel-heading">
@@ -221,11 +293,6 @@ LIMIT 100;</textarea
           <h2>Registros publicados</h2>
           <strong id="published-count">0</strong>
           <p>Una fila por asesoría y mes</p>
-        </article>
-        <article id="lab-quality-card">
-          <h2>Filas rechazadas</h2>
-          <strong id="reject-count">0</strong>
-          <p id="quality-detail">Sin incidencias</p>
         </article>
       </section>
       <section class="panel integrity-panel" aria-labelledby="integrity-title">

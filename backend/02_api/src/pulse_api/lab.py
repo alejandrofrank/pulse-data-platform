@@ -384,7 +384,8 @@ class Playback:
                     "SELECT * FROM lab.steps WHERE job_id=%s ORDER BY position", (job["id"],)
                 ).fetchall()
             months = conn.execute(
-                "SELECT mes,revenue_eur,reporting_firms,missing_firms "
+                "SELECT mes,revenue_eur,clientes_activos,reporting_firms,"
+                "expected_firms,missing_firms,coverage_pct "
                 "FROM mart.network_month ORDER BY mes"
             ).fetchall()
             problems = conn.execute("""SELECT d.filename,r.line_number,i.code,i.severity,i.message
