@@ -8,6 +8,7 @@ The lab additionally has `lab.jobs` and `lab.steps`.
 ## From files to the screen
 
 ```mermaid
+%%{init: {"theme":"base","themeVariables":{"darkMode":true,"background":"#10151c","primaryColor":"#1d3e63","primaryTextColor":"#ffffff","primaryBorderColor":"#8db9ff","secondaryColor":"#242b34","secondaryTextColor":"#ffffff","tertiaryColor":"#1d344d","tertiaryTextColor":"#ffffff","lineColor":"#8db9ff","textColor":"#ffffff","nodeTextColor":"#ffffff","edgeLabelBackground":"#10151c","rowOdd":"#242b34","rowEven":"#1d344d","attributeBackgroundColorOdd":"#242b34","attributeBackgroundColorEven":"#1d344d","relationColor":"#8db9ff","relationLabelColor":"#ffffff","relationLabelBackground":"#10151c"}}}%%
 flowchart TD
     MASTER[asesorias.csv] --> ARCHIVE[raw.master: original master bytes]
     ARCHIVE --> FIRMS[core.firms: firm dimension]
@@ -59,6 +60,7 @@ Relationships here are actual SQL foreign keys, not inferred joins inside JSON.
 An unconnected table is intentional.
 
 ```mermaid
+%%{init: {"theme":"base","themeVariables":{"darkMode":true,"background":"#10151c","primaryColor":"#1d3e63","primaryTextColor":"#ffffff","primaryBorderColor":"#8db9ff","secondaryColor":"#242b34","secondaryTextColor":"#ffffff","tertiaryColor":"#1d344d","tertiaryTextColor":"#ffffff","lineColor":"#8db9ff","textColor":"#ffffff","nodeTextColor":"#ffffff","edgeLabelBackground":"#10151c","rowOdd":"#242b34","rowEven":"#1d344d","attributeBackgroundColorOdd":"#242b34","attributeBackgroundColorEven":"#1d344d","relationColor":"#8db9ff","relationLabelColor":"#ffffff","relationLabelBackground":"#10151c"}}}%%
 erDiagram
     ops_runs ||--o{ raw_deliveries : archives
     ops_runs ||--o{ ops_file_errors : records
@@ -236,6 +238,7 @@ Additional schema definitions:
 ## Additional tables in the isolated lab
 
 ```mermaid
+%%{init: {"theme":"base","themeVariables":{"darkMode":true,"background":"#10151c","primaryColor":"#1d3e63","primaryTextColor":"#ffffff","primaryBorderColor":"#8db9ff","secondaryColor":"#242b34","secondaryTextColor":"#ffffff","tertiaryColor":"#1d344d","tertiaryTextColor":"#ffffff","lineColor":"#8db9ff","textColor":"#ffffff","nodeTextColor":"#ffffff","edgeLabelBackground":"#10151c","rowOdd":"#242b34","rowEven":"#1d344d","attributeBackgroundColorOdd":"#242b34","attributeBackgroundColorEven":"#1d344d","relationColor":"#8db9ff","relationLabelColor":"#ffffff","relationLabelBackground":"#10151c"}}}%%
 erDiagram
     lab_jobs ||--o{ lab_steps : contains
     lab_jobs {
