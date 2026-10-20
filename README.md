@@ -235,6 +235,14 @@ but does not ingest any monthly delivery until requested.
 6. Replay the same selection. Files should say **Omitido**, with unchanged raw counts
    and the same business-data SHA-256. A new execution audit record is still expected.
 
+The **Resumen del laboratorio** below the timeline shows the same revenue, active
+client and coverage definitions as Home, using only `pulse_lab`. It follows the latest
+metric month by default; **Mes consultado** pins an earlier month while new files
+arrive. The revenue chart covers the full published interval, including gaps. These
+are monthly values, not a sum of client balances across months. Rejections cover all
+lab loads. The existing one-second state refresh reads metrics and playback evidence
+in one database snapshot; connection failures clear the topline until it reconnects.
+
 Pause and stop finish the current CSV before taking effect. Resume preserves the
 remaining queue; after a process restart, interrupted work becomes paused and can
 be retried. The request UUID makes an HTTP submission retry return the same job.

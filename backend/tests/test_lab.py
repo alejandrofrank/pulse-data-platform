@@ -145,6 +145,48 @@ def test_out_of_order_pause_restart_resume_and_reset(database, lab_root):
         assert (lab_root / "drops" / OCT).exists()
 
 
+def test_topline_matches_reporting_after_out_of_order_load_replay_and_missing_month(lab_root):
+    (lab_root / "drops" / NOV).write_bytes(
+        make_csv(
+            [{"mes": "2025-11", "clientes_activos": "20", "facturacion_asesoria_eur": "25"}], 2
+        )
+    )
+    december = "metricas_2025-12.csv"
+    (lab_root / "drops" / december).write_bytes(
+        make_csv([{"mes": "2025-12", "satisfaccion_media": "8,4"}], 2)
+    )
+    with TestClient(app) as client:
+        assert client.get("/api/lab/state").json()["months"] == []
+        assert request(client, [NOV, OCT]).status_code == 200
+        loaded = finished(client)
+        assert loaded["job"]["status"] == "success"
+        assert [row["mes"] for row in loaded["months"]] == ["2025-10-01", "2025-11-01"]
+        assert loaded["months"][-1] == {
+            "mes": "2025-11-01",
+            "revenue_eur": "55.00",
+            "clientes_activos": 20,
+            "reporting_firms": 1,
+            "expected_firms": 1,
+            "missing_firms": 0,
+            "coverage_pct": "100.00",
+        }
+        reported = client.get("/api/v1/network/metrics").json()["items"]
+        for actual, expected in zip(loaded["months"], reported, strict=True):
+            assert actual == {key: expected[key] for key in actual}
+        assert request(client, [OCT, NOV]).status_code == 200
+        replay = finished(client)
+        assert replay["months"] == loaded["months"]
+        assert replay["business_hash"] == loaded["business_hash"]
+        assert request(client, [december]).status_code == 200
+        missing = finished(client)["months"][-1]
+        assert missing["mes"] == "2025-12-01"
+        assert missing["revenue_eur"] is None
+        assert missing["clientes_activos"] is None
+        assert missing["reporting_firms"] == 0
+        assert missing["expected_firms"] == missing["missing_firms"] == 1
+        assert missing["coverage_pct"] == "0.00"
+
+
 def test_mutation_failure_is_visible_and_retry_recovers(lab_root):
     with TestClient(app) as client:
         request(client, [OCT])

@@ -44,6 +44,164 @@ function initial() {
   };
 }
 
+function month(mes, revenue, clients, missing = 0) {
+  return {
+    mes: `${mes}-01`,
+    revenue_eur: revenue,
+    clientes_activos: clients,
+    reporting_firms: 2 - missing,
+    expected_firms: 2,
+    missing_firms: missing,
+    coverage_pct: String((2 - missing) * 50),
+  };
+}
+
+async function toplineHarness(t, months = []) {
+  const state = initial();
+  state.months = months;
+  const dom = new JSDOM(html, {
+    url: "http://localhost:8001",
+    runScripts: "outside-only",
+  });
+  t.after(() => dom.window.close());
+  let poll;
+  let offline = false;
+  dom.window.setInterval = (callback) => {
+    poll = callback;
+    return 1;
+  };
+  dom.window.fetch = async (path, options = {}) => {
+    assert.equal(
+      path,
+      "/api/lab/state",
+      "Topline uses the lab snapshot, never the main database",
+    );
+    assert.equal(
+      options.method,
+      undefined,
+      "Selecting a month never starts ingestion",
+    );
+    if (offline) throw new Error("Network interrupted");
+    return { ok: true, json: async () => structuredClone(state) };
+  };
+  dom.window.eval(script);
+  await until(() =>
+    dom.window.document
+      .getElementById("connection-status")
+      .textContent.includes("Conectado"),
+  );
+  return {
+    state,
+    d: dom.window.document,
+    poll: () => poll(),
+    offline: (value) => {
+      offline = value;
+    },
+    select: (value) => {
+      const select = dom.window.document.getElementById("topline-month");
+      select.value = value;
+      select.dispatchEvent(new dom.window.Event("change"));
+    },
+    money: (value) =>
+      new dom.window.Intl.NumberFormat("es-ES", {
+        style: "currency",
+        currency: "EUR",
+      }).format(Number(value)),
+  };
+}
+
+test("Topline follows the latest metric month and preserves a historical selection across playback", async (t) => {
+  const h = await toplineHarness(t, [
+    month("2024-01", "100.00", 10),
+    month("2024-02", "200.00", 20, 1),
+  ]);
+  const value = (id) => h.d.getElementById(id).textContent;
+  assert.equal(value("topline-revenue"), h.money("200.00"));
+  assert.equal(value("topline-clients"), "20");
+  assert.equal(value("topline-coverage"), "50 %");
+  assert.equal(h.d.querySelectorAll("#lab-revenue-chart .chart-bar").length, 2);
+  assert.equal(
+    h.d.querySelectorAll("#lab-revenue-chart .is-partial").length,
+    1,
+  );
+  h.select("2024-01-01");
+  assert.equal(value("topline-revenue"), h.money("100.00"));
+  h.state.months.push(month("2024-03", "300.00", 30));
+  await h.poll();
+  assert.equal(value("topline-revenue"), h.money("100.00"));
+  assert.equal(h.d.getElementById("topline-month").value, "2024-01-01");
+  assert.equal(h.d.querySelectorAll("#lab-revenue-chart .chart-bar").length, 3);
+  h.select("");
+  assert.equal(value("topline-revenue"), h.money("300.00"));
+  // An older corrected month does not become the latest, but its chart value updates.
+  h.state.months[0].revenue_eur = "120.00";
+  await h.poll();
+  assert.equal(value("topline-revenue"), h.money("300.00"));
+  assert.match(
+    h.d.querySelector("#lab-revenue-chart title").textContent,
+    /120/,
+  );
+  h.select("2024-01-01");
+  assert.equal(value("topline-revenue"), h.money("120.00"));
+  const beforeReplay = h.d.getElementById("lab-revenue-chart").innerHTML;
+  await h.poll();
+  assert.equal(value("topline-revenue"), h.money("120.00"));
+  assert.equal(h.d.getElementById("lab-revenue-chart").innerHTML, beforeReplay);
+});
+
+test("Topline keeps missing months distinct from valid zero revenue and clears on reset", async (t) => {
+  const h = await toplineHarness(t, [
+    month("2024-01", "0.00", 0),
+    month("2024-02", null, null, 2),
+  ]);
+  assert.equal(h.d.getElementById("topline-revenue").textContent, "—");
+  assert.equal(h.d.getElementById("topline-clients").textContent, "—");
+  assert.equal(h.d.getElementById("topline-coverage").textContent, "0 %");
+  assert.equal(h.d.querySelectorAll("#lab-revenue-chart .chart-bar").length, 1);
+  h.select("2024-01-01");
+  assert.equal(
+    h.d.getElementById("topline-revenue").textContent,
+    h.money("0.00"),
+  );
+  assert.equal(h.d.getElementById("topline-clients").textContent, "0");
+  h.state.months = [];
+  await h.poll();
+  assert.equal(h.d.getElementById("topline-month").disabled, true);
+  assert.equal(h.d.getElementById("topline-month").value, "");
+  assert.equal(h.d.getElementById("topline-revenue").textContent, "—");
+  assert.equal(h.d.querySelectorAll("#lab-revenue-chart .chart-bar").length, 0);
+  assert.match(
+    h.d.getElementById("topline-range").textContent,
+    /Sin meses publicados/,
+  );
+  assert.equal(h.d.getElementById("reject-count").textContent, "0");
+});
+
+test("A disconnected topline hides stale totals and restores the selected month on reconnect", async (t) => {
+  const h = await toplineHarness(t, [month("2024-01", "100.00", 10)]);
+  h.select("2024-01-01");
+  h.offline(true);
+  await h.poll();
+  for (const id of [
+    "topline-revenue",
+    "topline-clients",
+    "topline-coverage",
+    "reject-count",
+  ])
+    assert.equal(h.d.getElementById(id).textContent, "—");
+  assert.equal(h.d.querySelectorAll("#lab-revenue-chart .chart-bar").length, 0);
+  assert.equal(h.d.getElementById("topline-month").disabled, true);
+  h.offline(false);
+  await h.poll();
+  assert.equal(
+    h.d.getElementById("topline-revenue").textContent,
+    h.money("100.00"),
+  );
+  assert.equal(h.d.getElementById("topline-month").value, "2024-01-01");
+  assert.equal(h.d.getElementById("topline-month").disabled, false);
+  assert.equal(h.d.querySelectorAll("#lab-revenue-chart .chart-bar").length, 1);
+});
+
 test("Lab scrubbing is read-only, custom ordering is sent exactly, and pause/resume stay explicit", async () => {
   const state = initial();
   const calls = [];
