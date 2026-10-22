@@ -25,6 +25,8 @@ jobs:
         run: |
           docker compose run --rm test ruff check 01_pipeline 02_api 04_agents tests 03_scripts
           docker compose run --rm test ruff format --check 01_pipeline 02_api 04_agents tests 03_scripts
+      - name: Verify synthetic fixture provenance and reproducibility
+        run: docker compose run --rm test python 03_scripts/generate_demo_data.py --output data --check
       - name: Unit and PostgreSQL integration tests
         run: |
           mkdir -p test-results/dashboard
