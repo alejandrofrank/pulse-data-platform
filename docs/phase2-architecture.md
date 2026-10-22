@@ -203,9 +203,9 @@ transcripts or earlier fixture answers as public regression evidence.
 
 ## Public-edition verification status
 
-**Pending fresh public edition verification.** No previous benchmark, live model
-score, cost measurement or browser result certifies this synthetic edition.
-[verification.md](verification.md) describes the required local checks. Provider-free
-demo plans and exact investigations are the default verification path; any later live
+Both provider-free agent workflows and exact investigations have been exercised
+against the synthetic database, including saved-request replay. See
+[verification.md](verification.md) for the fresh evidence. No previous live model
+score, cost measurement or browser result certifies this edition. Any later live
 evaluation needs separate opt-in credentials and fresh labeled expectations derived
 from the generated fixture. Preserve unknown or failed outcomes explicitly.

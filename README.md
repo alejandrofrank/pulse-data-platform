@@ -13,8 +13,9 @@ checksums and expected results. Counts are not inferred from earlier development
 
 Read [synthetic provenance and preserved history](docs/public-edition.md), the
 [data contract](docs/data-contract.md), and the [implementation walkthrough](docs/walkthrough.md).
-**Status: pending fresh public edition verification.** The
-[verification guide](docs/verification.md) defines the checks and evidence to record.
+The [verification record](docs/verification.md) records checks against this synthetic
+edition. [GitHub Actions](https://github.com/alejandrofrank/pulse-data-platform/actions)
+builds the images and tests a fresh PostgreSQL installation.
 
 ## Start
 
@@ -393,11 +394,11 @@ tables retain their column headers, and coverage/error colors reflect API values
 
 ## Verification and development
 
-**Pending fresh public edition verification.** Historical test runs, browser checks
-and model evaluations are not evidence for the synthetic public fixture. Follow
-[the verification guide](docs/verification.md) for generation checks, PostgreSQL
-integration tests, HTTP reconciliation, replay, frontend checks and disposable-stack
-smokes. Record the tested revision, fixture manifest, commands, outcomes and failures.
+The synthetic edition passed 671 backend/PostgreSQL tests, 89 frontend tests and
+the complete clean-install CI workflow, including replay and real Dagster pickup.
+See [the verification record](docs/verification.md) for the tested revision, fixture
+manifest, commands, outcomes and limitations. Historical private runs and model
+evaluations are not evidence for this edition; new changes require fresh checks.
 
 The optional [Tests page](http://localhost:8000/tests/) displays local reports from
 `python backend/03_scripts/test_dashboard.py`. It cannot execute tests itself. Reports

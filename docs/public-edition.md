@@ -31,10 +31,10 @@ python backend/03_scripts/generate_demo_data.py --output data --check
 ```
 
 Generation writes the synthetic fixture. `--check` is the verification path for an
-existing fixture. If the generator or manifest is absent, the public release is
-incomplete; do not substitute private data. Generation and runtime checks are
-**pending fresh public edition verification**, as tracked in
-[verification.md](verification.md).
+existing fixture. The checked-in dataset is generated with seed `731942`, generator
+version 1: 500 firms, 36 monthly files and 18,087 metric rows. It yields 17,988
+published firm-months, with 40 corrections, 31 duplicates, 28 rejections and 12 gaps.
+Fresh generation and runtime evidence is recorded in [verification.md](verification.md).
 
 ## Preserved development history
 
