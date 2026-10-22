@@ -1,32 +1,71 @@
 # Pulse Data Platform: public-edition verification
 
-**Current status: pending fresh public edition verification.**
-
-The synthetic generator's manifest declares expectations. It does not establish that
-ingestion, publication, APIs, playback or agents have passed. Earlier runs and private
-evidence are not applicable to this edition. No runtime pass or benchmark is claimed
-by this document.
+Verification date: **22 October 2026**. Runtime revision:
+[`6e162df`](https://github.com/alejandrofrank/pulse-data-platform/commit/6e162dfebf433a0d3044011670e86fa3e70eeda8).
+The [clean-install acceptance run](https://github.com/alejandrofrank/pulse-data-platform/actions/runs/39821630853)
+**passed every stage**, testing the public checkout with fresh PostgreSQL volumes
+and no provider key. All 760 tests passed, with no failures, errors or skips.
+The release-evidence commit changes documentation only.
 
 ## Verification record
 
-Complete this record after running the checks against the public checkout and its
-matching fixture. Keep failures and skipped checks visible.
+Results below apply to the synthetic fixture and runtime revision above. The
+manifest declares expectations; independent CSV, database and HTTP checks verify them.
 
 | Check | Current status | Evidence to record |
 |---|---|---|
-| Fixture generation and `--check` | Pending | Generator version, seed, manifest SHA-256 and check output |
-| Compose isolation and configuration | Pending | Project/image names, public mount paths and bound ports |
-| Ruff and backend/PostgreSQL tests | Pending | Commands, exit codes, logs and test report |
-| Profile and API reconciliation | Pending | Manifest expectations beside measured counts and monthly totals |
-| Repeated ingestion | Pending | Before/after business results, raw inventory and new run ID |
-| Agent demos and exact investigation | Pending | Demo status, executed targets, returned evidence and outcomes |
-| Frontend tests and browser inspection | Pending | Test report, viewport sizes, errors and screenshots if captured |
-| Lab forward/reverse replay | Pending | Disposable lab identity, raw counts and business hashes |
-| Sensor and quarantined-input startup | Pending | Disposable public CI run, logs and outcomes |
+| Fixture generation and `--check` | Passed locally and in CI | Generator v1, seed 731942; all 38 files match byte-for-byte |
+| Compose isolation and configuration | Passed | `pulse-portfolio` project, independent volumes and images; fresh CI bootstrap |
+| Ruff and backend/PostgreSQL tests | Passed in CI | 671 cases; real PostgreSQL, migrations and independent CSV reconciliation |
+| Profile and API reconciliation | Passed | All 36 monthly totals and source coverage agree with independent expectations |
+| Repeated ingestion | Passed | All 36 files skipped; source inventory and business results unchanged |
+| Agent demos and exact investigation | Passed | Both agents return database evidence; firm 42 / January 2024 reconciles; retries replay saved results |
+| Frontend tests and formatting | Passed | 89 cases; dashboard checks target the running synthetic API |
+| Fresh desktop/mobile visual inspection | Not repeated | No new visual acceptance claim; the interfaces retain the existing layouts with synthetic-data labels |
+| Lab forward/reverse replay | Passed locally and in CI | 36 loaded, 36 skipped in reverse; identical counts and business hash |
+| Sensor and quarantined-input startup | Passed in CI | Real daemon pickup, unchanged-file deduplication, diagnostics available after restart with a quarantined file |
 
-Also record the UTC verification time, public Git revision, working-tree state,
-runtime versions, resolved ports and artifact locations. A result applies only to
-that revision and fixture. Do not mark a check passed from its existence in a workflow.
+The measured dataset contains 500 firms, 36 deliveries, 18,087 raw metric rows,
+18,028 accepted versions, 31 duplicates, 28 rejections, 42 rows with warnings,
+17,988 published firm-months and 12 gaps. The 40 valid corrections supersede earlier
+accepted versions. Fourteen keys retain an older valid version after a rejected
+newer attempt. March 2026 synthetic network revenue is EUR 30,499,873.18.
+
+Manifest SHA-256: `f60f4fe1c9ec118876da6e949e8a5ae740e766be24d19c01dc99cb8bd06e6b67`.
+Local forward/reverse business hash:
+`2f071ec8b9545486749ab51d7d0d50ea58027cd913f7b6aa3b4e8b4b181d267c`.
+The side-by-side local run used application 8012, Dagster 3012 and lab 8013;
+CI uses the default ports on its disposable runner. Python 3.12 and PostgreSQL
+17.6 run in the pinned images; Node 24 runs frontend checks.
+
+CI publishes `test-dashboard` JUnit/JSON reports and `service-logs` artifacts.
+The accepted report records a clean working tree at the runtime revision above.
+The local test reports are ignored by Git. An initial new CLI test attempted to
+write under the image's read-only application directory; it now uses a system
+temporary directory. A subsequent local playback check failed intermittently;
+the test now verifies the requested job ID and reports the actual job failure
+before checking its totals. The full CI suite is the acceptance record after those
+changes. Two dependency deprecation warnings are recorded separately from failures.
+
+No live model calls, concurrent-user load test or new visual certification were
+performed for this public release. Later commits must be checked through their own
+Actions results; this record does not claim to verify future changes.
+
+## Public history audit
+
+All 70 reachable commits and 350 unique blobs at the tested revision were reviewed.
+The 65 original development commits retain their mapped parent relationships,
+author/committer metadata and branch progression. The audit found no original CSV
+rows, original firm names or tax IDs, removed private document blobs, targeted
+private financial results, or private audit references in the retained history.
+Credential-shaped test fixtures are explicitly fake, and database passwords are
+documented local demo defaults. Twenty-three old signatures were removed by rewriting;
+one original commit became empty and was retained to preserve chronology.
+
+The subsequent release-evidence changes affect only the README and documentation;
+their content and local links were checked separately. They do not change the tested
+runtime, fixtures or workflow. The documentation-only merge skips another identical
+runtime CI run and links the exact accepted revision above.
 
 ## 1. Prepare the public fixture and isolate the stack
 
