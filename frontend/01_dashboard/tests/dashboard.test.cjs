@@ -5,6 +5,7 @@ const { JSDOM, VirtualConsole } = require("jsdom");
 const base = process.env.PULSE_TEST_URL || "http://127.0.0.1:8000";
 const html = fs.readFileSync("01_dashboard/public/index.html", "utf8");
 const script = fs.readFileSync("01_dashboard/public/app.js", "utf8");
+const manifest = JSON.parse(fs.readFileSync("../data/manifest.json", "utf8"));
 
 async function until(predicate) {
   for (let i = 0; i < 100; i++) {
@@ -43,9 +44,10 @@ test("Dashboard renders live metrics, changes firm/month, exposes lineage and qu
     assert.equal(d.getElementById("rejected").textContent, "28");
     assert.equal(d.querySelectorAll("#chart rect").length, 36);
     assert.match(d.getElementById("quality-summary").textContent, /17\.988/);
-    d.getElementById("firm").value = "218";
-    d.getElementById("start").value = "2023-04";
-    d.getElementById("end").value = "2023-04";
+    const correction = manifest.scenarios.first_correction;
+    d.getElementById("firm").value = String(correction.asesoria_id);
+    d.getElementById("start").value = correction.mes;
+    d.getElementById("end").value = correction.mes;
     d.getElementById("filters").dispatchEvent(
       new w.Event("submit", { cancelable: true }),
     );
@@ -56,9 +58,10 @@ test("Dashboard renders live metrics, changes firm/month, exposes lineage and qu
     );
     d.querySelector("#metrics button").click();
     await until(() => d.getElementById("details").hasAttribute("open"));
-    assert.match(
-      d.getElementById("detail-content").textContent,
-      /metricas_2023-05.csv/,
+    assert.ok(
+      d
+        .getElementById("detail-content")
+        .textContent.includes(correction.file.split("/").at(-1)),
     );
     d.getElementById("close-dialog").click();
     assert.equal(d.getElementById("details").hasAttribute("open"), false);

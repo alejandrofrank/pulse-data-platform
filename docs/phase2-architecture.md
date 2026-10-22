@@ -1,4 +1,4 @@
-# Phase 2: two agents, shared evidence
+# Pulse Data Platform: agent architecture
 
 The business assistant and data investigator are bounded workflows over the same
 published PostgreSQL data. They share intent planning and operational controls,
@@ -50,7 +50,7 @@ cash receipts, profit, component-only billing and NRR are outside this initial p
 Definitions, query parameters, coverage and result truncation are returned with SQL.
 
 The investigator currently handles **one firm, one month, total revenue**. It
-calls the deterministic service described in `investigation-service.md`. Its
+calls the [deterministic investigation service](investigation-service.md). Its
 conclusion is rendered from checks, not inferred by an LLM from a few log lines.
 All comparisons and source versions remain available for inspection.
 
@@ -135,11 +135,11 @@ Exact investigations retain ownership, scope, request replay, hourly limits and
 shared concurrency control, but reserve no model budget and record zero model cost.
 They also work when no provider key is loaded or the model budget is exhausted.
 
-Cost estimates use the documented GPT-6 Luna rates checked on 2026-10-19:
-USD 0.10 per million input tokens and USD 0.50 per million Responses output tokens;
-Decisions has no output charge. Unknown usage remains unknown. Region premiums,
-caching and future pricing changes require updating this estimate. The adapter's
-network dependency is OpenAI; PostgreSQL, API, orchestration and evidence stay local.
+Cost estimates use the rates configured in the provider adapter. They are local
+accounting assumptions, not a current pricing quote or measured public-demo cost.
+Review those settings before opting into live mode. Unknown usage remains unknown;
+provider pricing, caching and regional charges can differ from the estimate. OpenAI
+is an optional network dependency; PostgreSQL, orchestration and evidence stay local.
 Only questions, intent context and schema instructions go to the model, not source
 CSV contents, financial result tables or investigation evidence.
 
@@ -185,8 +185,27 @@ conversations, response validation, credential changes during in-flight work,
 request recovery with the exact original payload, decimal-string cost display,
 history pagination, restored context, concurrent chat switching, scope changes,
 keyboard submission and read-only recovery of saved pending turns.
-An isolated browser check also exercised both real demo workflows at desktop and
-mobile widths, with no JavaScript errors or document overflow. CI checks all four
-frontend interfaces and verifies that the deployed workbench assets are reachable.
+The frontend workflow also checks all four interfaces and deployed workbench assets.
+Desktop/mobile rendering, overflow and browser errors require a fresh browser check.
 
-Historical live evaluation results and private source evidence are omitted from this public history.
+Exact controls post validated positive 32-bit integer IDs and calendar months to
+`POST /api/v1/agents/investigate`. The server constructs the plan and canonical audit
+question without natural-language planning. Target and authorization are part of
+the retry fingerprint: a request ID cannot change endpoint, targets or identity.
+Recovery retains the endpoint and request bytes. Free-form questions still require
+semantic evaluation even when their structured output validates.
+
+The decline evaluation computes eligible windows independently from the reporting
+API and checks scope, exact rows, ordering, truncation and a stable publication.
+Saved-answer rechecks are useful only with their matching fixture and publication;
+a changed publication makes the comparison unverifiable. Do not reuse private
+transcripts or earlier fixture answers as public regression evidence.
+
+## Public-edition verification status
+
+**Pending fresh public edition verification.** No previous benchmark, live model
+score, cost measurement or browser result certifies this synthetic edition.
+[verification.md](verification.md) describes the required local checks. Provider-free
+demo plans and exact investigations are the default verification path; any later live
+evaluation needs separate opt-in credentials and fresh labeled expectations derived
+from the generated fixture. Preserve unknown or failed outcomes explicitly.

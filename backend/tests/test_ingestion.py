@@ -160,7 +160,7 @@ def test_new_month_and_null_contributor_counts(database, tmp_path):
 
 
 def independent_reference(root):
-    """Independent oracle for the provided fixture; does not call the production parser."""
+    """Independent CSV oracle; does not call the generator or production parser."""
     latest = {}
     for path in sorted((root / "drops").glob("*.csv")):
         text = path.read_text(encoding="utf-8-sig")
@@ -171,10 +171,8 @@ def independent_reference(root):
             month = raw["mes"]
             if not 1 <= firm <= 500 or not re.fullmatch(r"20\d\d-(0[1-9]|1[0-2])", month):
                 continue
-            score = Decimal(
-                raw.get("satisfaccion_cliente", raw.get("satisfaccion_media")).replace(",", ".")
-            )
-            if not 1 <= score <= 5:
+            score = raw.get("satisfaccion_cliente", raw.get("satisfaccion_media"))
+            if score and not 1 <= Decimal(score.replace(",", ".")) <= 5:
                 continue
             money = [
                 Decimal((raw.get(k) or "0").replace(",", "."))
@@ -218,6 +216,7 @@ def test_full_fixture_idempotency_reconciliation_and_api(database, monkeypatch):
 
     monkeypatch.setattr(module, "publish", bounded_publication)
     root = Path("data")
+    manifest = json.loads((root / "manifest.json").read_text(encoding="utf-8"))
     assert ingest(root)["loaded"] == 36
     before = fingerprint()
     assert ingest(root)["skipped"] == 36
@@ -254,6 +253,11 @@ def test_full_fixture_idempotency_reconciliation_and_api(database, monkeypatch):
         assert Decimal(row["revenue_eur"]) == revenue
         assert row["clientes_activos"] == clients
         assert row["reporting_firms"] == firms
+        assert manifest["monthly_totals"][row["mes"][:7]] == {
+            "revenue_eur": str(revenue),
+            "clientes_activos": clients,
+            "reporting_firms": firms,
+        }
     assert client.get("/api/v1/firms").json()["total"] == 500
     assert client.get("/api/v1/firms/9999/metrics").status_code == 404
     assert client.get("/api/v1/network/metrics?start=2025-13").status_code == 422
@@ -262,7 +266,10 @@ def test_full_fixture_idempotency_reconciliation_and_api(database, monkeypatch):
     assert client.get("/api/v1/quality/issues?severity=error").json()["total"] >= 28
     assert client.get("/api/v1/quality/deliveries").json()["total"] == 36
     assert client.get("/api/v1/quality/gaps").json()["total"] == 12
-    missing = client.get("/api/v1/firms/409/metrics?start=2023-05&end=2023-05").json()["items"][0]
+    gap = manifest["scenarios"]["first_gap"]
+    missing = client.get(
+        f"/api/v1/firms/{gap['asesoria_id']}/metrics?start={gap['mes']}&end={gap['mes']}"
+    ).json()["items"][0]
     assert missing["coverage_status"] == "missing" and missing["revenue_eur"] is None
     assert client.get("/").status_code == 200
     assert client.get("/openapi.json").status_code == 200

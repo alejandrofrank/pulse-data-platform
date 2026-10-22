@@ -1,9 +1,20 @@
-# Pulse
+# Pulse Data Platform
 
-Pulse implements an auditable data platform: CSV deliveries → validated monthly metrics
+Pulse Data Platform is a portfolio project for auditable data engineering: CSV deliveries → validated monthly metrics
 → read-only API and dashboard, plus two optional Phase 2 agents for business queries
 and revenue investigation. Runs locally or on an on-premise Docker host. Phase 1
 and the explicit agent demo work without a cloud account or model API key.
+
+The public edition uses wholly synthetic firms and metrics, generated locally with
+deliberate corrections, duplicates, invalid rows and coverage gaps. No real customer
+data is included. The intended demo covers 500 fictional firms over April 2023–March
+2026; `data/manifest.json` is authoritative for the generated fixture's exact inventory,
+checksums and expected results. Counts are not inferred from earlier development runs.
+
+Read [synthetic provenance and preserved history](docs/public-edition.md), the
+[data contract](docs/data-contract.md), and the [implementation walkthrough](docs/walkthrough.md).
+**Status: pending fresh public edition verification.** The
+[verification guide](docs/verification.md) defines the checks and evidence to record.
 
 ## Start
 
@@ -15,7 +26,7 @@ Allow roughly 4 GB of available RAM and a few GB of disk space. From this reposi
 docker compose up
 ```
 
-Compose creates PostgreSQL, applies checksum-verified migrations, loads the supplied
+Compose creates PostgreSQL, applies checksum-verified migrations, loads the synthetic
 data through Dagster, and starts the API/dashboard, Dagster UI and scheduler daemon.
 No `.env` file or manual database setup is needed. Startup waits for healthy database
 and successful bootstrap. For background mode: `docker compose up -d --build --wait`.
@@ -30,16 +41,16 @@ empty publication when every supplied row/file was rejected. The quality endpoin
 explain what happened. Manual `pulse ingest` still exits unsuccessfully for those
 outcomes; migration, infrastructure and unexpected integrity failures block startup.
 
-- Dashboard: http://localhost:8000
-- Agent workbench: http://localhost:8000/agents — business questions and revenue investigation
-- Interactive API documentation: http://localhost:8000/docs
-- Dagster: http://localhost:3000 — asset `monthly_metrics`, job `ingest_all`
+- Dashboard: [localhost:8000](http://localhost:8000)
+- Agent workbench: [localhost:8000/agents](http://localhost:8000/agents) — business questions and revenue investigation
+- Interactive API documentation: [localhost:8000/docs](http://localhost:8000/docs)
+- Dagster: [localhost:3000](http://localhost:3000) — asset `monthly_metrics`, job `ingest_all`
 
 The dashboard's **Desde / Hasta** dropdowns list available metric months by year.
 Both endpoints are inclusive. **Últimos 3 / 6 / 12 meses** apply a range ending at
 the latest available data month, not today's date; **Todo el histórico** clears
-the date limits. The firm selection is retained. Monthly granularity follows the
-assignment: one source row is one firm/month, so daily metrics cannot be inferred.
+the date limits. The firm selection is retained. The data contract defines one source
+row per firm/month, so daily metrics cannot be inferred.
 
 To ingest again, including newly added files:
 
@@ -84,7 +95,22 @@ entries. Increase these budgets together if measured workloads require longer ru
 
 By default, only loopback ports 8000 and 3000 are exposed. PostgreSQL has no published
 port. If those ports are busy, set `PULSE_PORT` and/or `DAGSTER_PORT` in your environment
-or in a local `.env` file. The checked-in credentials are local demonstration defaults.
+or in a local `.env` file; `LAB_PORT` overrides the optional lab's default 8001.
+The public Compose project is `pulse-portfolio`, with runtime image
+`pulse-portfolio-app:local`, so its containers, networks and named volumes are
+separate from other deployments. For side-by-side use, set all three ports before
+starting it, for example in PowerShell:
+
+```powershell
+$env:PULSE_PORT = "8100"
+$env:DAGSTER_PORT = "3100"
+$env:LAB_PORT = "8101"
+docker compose up -d --build --wait
+```
+
+Run commands from this public checkout and use those overridden ports for browser
+URLs and HTTP checks. See [verification](docs/verification.md) for explicit targets.
+The checked-in credentials are local demonstration defaults.
 Before opening this service on an office network, configure real secrets, HTTPS and
 authentication/authorization; Dagster is an administrative interface.
 
@@ -96,25 +122,25 @@ removes this Compose project's database volume; use only when intentionally rebu
 
 | Component | Responsibility | Choice |
 |---|---|---|
-| Python CSV adapters | Read two explicit contracts, parse precise numeric values and validate rows | Small, pure functions that can be tested without a database; no dataframe framework needed for 18k rows |
+| Python CSV adapters | Read two explicit contracts, parse precise numeric values and validate rows | Small, pure functions that can be tested without a database; no dataframe framework needed at demo scale |
 | PostgreSQL | Raw archive, quality audit, firm dimension and monthly facts | One transactional system supports provenance, atomic publication and the API |
 | SQL migrations | Version database schemas and reporting views | Numbered, checksum-verified files; applied transactionally under a migration lock |
-| Dagster OSS | File sensor, daily schedule, manual reruns, persisted execution logs and asset check | Fits the company's existing tooling and runs without a cloud service |
+| Dagster OSS | File sensor, daily schedule, manual reruns, persisted execution logs and asset check | Makes ingestion state and failures inspectable without a cloud service |
 | FastAPI | Read-only metrics and operational endpoints with OpenAPI | Shared Python codebase, parameter validation and bounded queries |
 | HTML/CSS/JavaScript | Single internal view consuming the API | No frontend build chain, CDN or extra service; design stays focused on numbers and quality |
-| Docker Compose | Provision and connect all local services | Reproduces the evaluator's startup without manual steps |
-| pytest + Ruff + GitHub Actions | Prove correctness, enforce code checks and build deployable images | Tests exercise PostgreSQL and the actual Compose stack, not only mocks |
+| Docker Compose | Provision and connect all local services | Packages local startup, isolated storage and service dependencies |
+| pytest + Ruff + GitHub Actions | Check correctness, code style and image builds | Verification covers PostgreSQL and the actual Compose stack; current results belong in the verification record |
 
-See [the implementation walkthrough](docs/walkthrough.md) for a defense-oriented
+See [the implementation walkthrough](docs/walkthrough.md) for the engineering
 explanation and [the data contract](docs/data-contract.md) for every quality decision.
 
 ## Repository layout
 
-The structure follows the Bakiano repository's `backend/`, `frontend/` and `docs/`
-separation, with numbered directories for the main backend responsibilities:
+The repository separates `backend/`, `frontend/` and `docs/`, with numbered
+directories for the main backend responsibilities:
 
 ```text
-pulse/
+pulse-data-platform/
 ├── backend/
 │   ├── 00_infrastructure/
 │   │   ├── Dockerfile          # Runtime and test image targets
@@ -138,7 +164,7 @@ pulse/
 │   │       ├── lab_api.py      # Playback and SQL HTTP endpoints
 │   │       ├── lab.py          # Durable playback worker and evidence
 │   │       └── lab_sql.py      # Bounded read-only PostgreSQL execution
-│   ├── 03_scripts/             # Profiling and deployed-stack smoke checks
+│   ├── 03_scripts/             # Synthetic generation, profiling and smoke checks
 │   ├── 04_agents/              # Typed planning, analytical tools and durable agent runs
 │   ├── tests/                  # Python unit and PostgreSQL integration tests
 │   ├── pyproject.toml          # One Python distribution containing the three packages
@@ -149,8 +175,8 @@ pulse/
 │   ├── 03_agents/              # public/ workbench and DOM tests for both agents
 │   ├── 04_tests/               # Read-only test results dashboard and DOM tests
 │   └── package.json            # Shared development-only frontend verification
-├── data/                       # Original master and incoming drops/
-├── docs/                       # Assignment, quality decisions and defense guide
+├── data/                       # Generated synthetic master, drops/ and manifest
+├── docs/                       # Architecture, provenance, contracts and verification
 ├── .github/workflows/          # Clean-environment CI verification
 └── compose.yaml                # Root entry point: docker compose up
 ```
@@ -170,7 +196,7 @@ No frontend build or separate web server is needed to start the delivered system
 The Compose entry point and source data stay at the repository root. SQL migration
 names and contents are preserved, so reorganizing source files requires no database
 reset or migration rewrite. Infrastructure configuration here targets the on-premise
-Compose deployment. The lab is an optional, tested application rather than a prototype.
+Compose deployment. The lab is an optional application with its own verification steps.
 
 ## Data model and execution
 
@@ -192,11 +218,11 @@ flowchart LR
   O[Dagster + ops.runs] -. runs and observes .-> RAW
 ```
 
-The business grain is one firm per month. Source files and all original CSV values
+The business grain is one firm per month. Synthetic input files and their exact CSV values
 are retained alongside normalized records, their validation policy version and
 their source line. The published row links directly to its winning source record.
 The master is a current/static dimension; it cannot support historical staff counts
-or historical province changes that were not supplied.
+or historical province changes absent from the source contract.
 
 1. Acquire a database advisory lock and record the run.
 2. Validate/load the clean master; preserve its original bytes.
@@ -234,7 +260,7 @@ docker compose --profile lab up -d --build --wait lab
 Open **http://localhost:8001** (or the dashboard's **Laboratorio** link). The lab has
 its own PostgreSQL service, Docker network and persistent volume. Its writer cannot
 address the main database through that network. `LAB_PORT` changes the browser port.
-The original CSV mount remains read-only. Starting the lab loads the firm master,
+The synthetic CSV mount remains read-only. Starting the lab loads the firm master,
 but does not ingest any monthly delivery until requested.
 
 1. Move the playhead to a delivery. Scrubbing never writes or rewinds the database.
@@ -282,15 +308,10 @@ The optional lab is a local development tool with polling once per second and no
 authentication. The loopback binding, same-origin action header and fixed DB connection
 are intentional; it is not a multi-user production ingestion control plane.
 
-CI starts a disposable lab, loads all 36 drops one by one, replays all 36 in reverse,
-checks every skip and unchanged hash/counts, then clears that test lab. The smoke script
-requires an initially empty lab and an explicit `--disposable` flag. Do not run it against
-an experiment whose evidence you intend to retain.
-
-CI also adds a temporary revision to its disposable main stack and verifies that the
-actual Dagster daemon ingests it automatically, records the sensor trigger, and does not
-launch more ingestions on subsequent unchanged observations. `backend/03_scripts/sensor_smoke.py`
-requires `--disposable`; its database keeps the test revision until the test stack is removed.
+The verification workflow includes forward playback, reverse replay and automatic
+file pickup through the Dagster daemon. Those checks require disposable state;
+the sensor check adds a temporary revision. Follow the
+[verification guide](docs/verification.md) and retain fresh results for this fixture.
 
 ### Query the lab with PostgreSQL
 
@@ -365,90 +386,41 @@ The screen shows the last month's values within the selected range, not a mislea
 sum of active customers over time. Quality counts refer to ALL ingested deliveries,
 as explicitly labeled, independently of the chart filter.
 
-The dashboard's dark slate palette, blue accents and typography follow the author's
-[technical portfolio](https://me.alejandrofranks.workers.dev/tech). Inter Tight and
+The dashboard uses color for coverage, quality and selection state. Inter Tight and
 JetBrains Mono are bundled locally with their SIL Open Font Licenses in
 `frontend/01_dashboard/public/`; loading the dashboard makes no font/CDN requests. Scrollable
 tables retain their column headers, and coverage/error colors reflect API values.
 
-## Tests and CI
+## Verification and development
 
-Open **[Tests](http://127.0.0.1:8000/tests/)** from the dashboard or agent workbench
-to inspect the latest backend and frontend test results. Start a new run from the
-repository root with:
+**Pending fresh public edition verification.** Historical test runs, browser checks
+and model evaluations are not evidence for the synthetic public fixture. Follow
+[the verification guide](docs/verification.md) for generation checks, PostgreSQL
+integration tests, HTTP reconciliation, replay, frontend checks and disposable-stack
+smokes. Record the tested revision, fixture manifest, commands, outcomes and failures.
 
-```bash
-python backend/03_scripts/test_dashboard.py
-```
+The optional [Tests page](http://localhost:8000/tests/) displays local reports from
+`python backend/03_scripts/test_dashboard.py`. It cannot execute tests itself. Reports
+include run timestamps and revision information; absent or stale reports are not a
+pass. The runner needs Python, Docker Compose, Node 24+ and the public application.
+Set `PULSE_TEST_URL` to its URL when using a port other than 8000. It uses the separate
+`pulse_test` database. See the verification guide before running it alongside another deployment.
 
-This requires Python, Docker Compose, Node 24+ and the running application on port
-8000 (the frontend suite includes real HTTP checks). It builds the current test
-image, starts the database if needed, runs pytest against the isolated `pulse_test`
-database, then runs the frontend tests. It installs frontend development packages
-if absent. No paid model evaluation is run. Do not run another database test
-process concurrently; dashboard runs enforce a local lock between themselves.
+Dependencies are pinned in `backend/requirements*.txt`. From `backend/`, update the
+adjacent `.in` files and regenerate with pip-tools under Python 3.12 using
+`pip-compile --allow-unsafe requirements.in` and
+`pip-compile --allow-unsafe requirements-dev.in`, then run the verification workflow.
+`--allow-unsafe` keeps the setuptools runtime/build dependency in the lock. Dagster's
+PostgreSQL metadata connection uses psycopg2; business ingestion uses psycopg 3.
+SQLAlchemy 2.0 is pinned for the selected Dagster release.
 
-The page refreshes every five seconds. Counts and individual cases appear when
-each suite finishes; the runner publishes a heartbeat during execution. Search
-or filter by suite, status and component, including Phase 1 pipeline checks and
-Phase 2 agents. Counts represent individual cases, excluding nested group headers
-that Node's terminal summary also counts. A missing report, runner failure, stale
-heartbeat or failed refresh is visible; no result is assumed to be a pass.
-Node 24 supplies source filenames in JUnit reports; CI uses the same version so
-frontend component filters have the same source information as local reports.
+## Design decisions and limitations
 
-Reports include timestamps, Git revision and whether the checkout had uncommitted
-changes at run start. They are evidence of that run, not proof that later edits
-pass. Generated JUnit XML, logs and JSON live under ignored `test-results/dashboard/`.
-The web application exposes only the latest JSON through a read-only mount and
-cannot execute tests. Reports are local development evidence, not a production
-monitoring or code-coverage dashboard. Full Compose/sensor/playback smoke checks
-remain separately visible in GitHub Actions.
+### Deployment scope
 
-CI uploads a `test-dashboard` artifact even on failure, with the individual test
-reports and a copy of the interface. After downloading and extracting it, run
-`python -m http.server 8010` inside the extracted folder and open
-`http://localhost:8010/`. CI links remain available for the full workflow result.
-
-```sh
-docker compose build test
-docker compose run --rm test ruff check 01_pipeline 02_api 04_agents tests 03_scripts
-docker compose run --rm test ruff format --check 01_pipeline 02_api 04_agents tests 03_scripts
-docker compose run --rm test pytest -q -p no:cacheprovider
-docker compose run --rm test python 03_scripts/profile_data.py
-```
-
-Integration tests use the separate `pulse_test` database; they refuse to reset any
-database whose name does not end in `_test`. They cover old/new formats, decimals,
-nulls, legitimate backlog, invalid values, duplicate conflicts, corrections arriving
-out of order, invalid-latest fallback, file mutation, explicit revisions, concurrent
-ingestion protection, API errors, gap semantics, idempotence and independent CSV
-reconciliation of all 36 monthly revenue and active-client totals.
-
-For development-only dashboard DOM checks against the running API, use Node 22+:
-`npm --prefix frontend ci` then `npm --prefix frontend test`. These exercise rendering, filters, lineage, gaps and API
-failure feedback using jsdom. Node is not needed to run the delivered application.
-
-The CI workflow runs those checks, builds the runtime image, starts the full Compose
-stack, verifies real HTTP responses, ingests again and compares stable published
-results. It uploads service logs and tears down its disposable database. There is
-no automatic deployment to an external server because no target was supplied.
-
-Dependencies, including the `setuptools` runtime/build dependency, are pinned in
-`backend/requirements*.txt`. From `backend/`, update the adjacent `.in` files and
-regenerate with pip-tools under Python 3.12 using `pip-compile --allow-unsafe
-requirements.in` and `pip-compile --allow-unsafe requirements-dev.in`, then run the
-complete CI. Omitting `--allow-unsafe` would leave setuptools outside the lock. Dagster's
-PostgreSQL metadata connection explicitly uses psycopg2; business ingestion uses
-psycopg 3. SQLAlchemy 2.0 is pinned for the selected Dagster release.
-
-## Technical decisions requested by the brief
-
-### 1. What was left out, and what comes next?
-
-The bounded Phase 2 agents are included. No document vector index, fine-tuning,
-Terraform/Pulumi provisioning bonus, SSO,
-production secret manager, managed backups, external alert routing or multi-node HA.
+The bounded Phase 2 agents are included. Document indexing, fine-tuning, host
+provisioning, SSO, production secret management, managed backups, external alerts
+and multi-node availability remain outside the current scope.
 For an office deployment, add reverse-proxy authentication, secrets, encrypted backups
 with restore drills, resource limits and failure notifications. Agree business ownership
 of the quality rules before tightening them. A changed master currently needs an
@@ -459,21 +431,22 @@ images, configuration, container networks, persistent volumes and startup depend
 They assume an existing Docker-ready host; they do not provision VMs or configure
 the host OS, firewall or backup destination. Infrastructure as code is useful on
 premises too, but adding Terraform just to duplicate Compose would add another
-tool without addressing those host-level gaps. The optional Terraform/Pulumi bonus
-is not implemented. With an agreed office deployment target, automate host setup
+tool without addressing those host-level gaps. With an agreed deployment target, automate host setup
 and add VM, network and storage provisioning against that platform where needed.
 
-### 2. What is most fragile?
+### Producer contract and completeness
 
 The producer contract: filenames currently encode delivery order, monthly revenue
-is assumed nonnegative, and no manifest declares completeness. Unknown schemas and
+is assumed nonnegative, and ingestion has no producer completeness contract. The
+synthetic fixture's `data/manifest.json` records generation expectations; it is not
+an ingestion protocol for acknowledging external deliveries. Unknown schemas and
 mutated deliveries fail visibly, but no pipeline can infer an undocumented correction's
 intent. First improvement: a producer manifest with immutable delivery ID, revision,
 schema version, expected firm coverage and checksum, agreed with the source owner.
 Then add operational alerts. The daily schedule cannot discover files absent from disk;
 missing expected deliveries need a delivery-calendar SLA, not a guessed warning.
 
-### 3. A firm's revenue is wrong: how do we locate the failure?
+### Investigating incorrect revenue
 
 1. Retrieve its firm-month API response and `/lineage/{id}/{month}`.
 2. Inspect the selected record, competing deliveries and quality decisions. Check for
@@ -492,7 +465,7 @@ It returns each comparison, exact SQL, source evidence and explicit uncertainty.
 Metrics expose their publication ID so simultaneous corrections cannot create a
 false API mismatch. See [the service design and limits](docs/investigation-service.md).
 
-### 4. What changes at 5,000 firms submitting daily?
+### Scaling to 5,000 firms submitting daily
 
 5,000 daily metric rows is still modest for PostgreSQL. The first problems are likely
 file count/coordination, re-reading all files to checksum them, Python row-by-row audit
@@ -550,8 +523,8 @@ and at most two recent questions. Browsing history does not resend the full tran
 to the model or automatically retry unfinished requests.
 
 `GET /api/v1/agents/status` reports explicit `demo` or `live` mode. The demo accepts
-three documented example questions and still executes the real PostgreSQL tools;
-it does not substitute fictional answers. `POST /api/v1/agents/ask` accepts a UUID
+three documented example questions and computes answers through PostgreSQL over the
+synthetic fixture. `POST /api/v1/agents/ask` accepts a UUID
 `request_id`, optional `conversation_id`, `agent` (`business` or `investigation`)
 and `question`. Browser actions require `X-Pulse-Agent: assistant-v1` and same origin.
 Repeat a request ID only to retrieve the same saved answer; use a new ID for fresh data.
@@ -569,23 +542,27 @@ check without a provider key:
 python backend/03_scripts/agent_smoke.py
 ```
 
-For live free-form planning, configure an OpenAI key through a protected runtime
-file (`OPENAI_API_KEY_FILE`) or deployment secret. Never put a key in source, browser
-storage, an image build argument, or a committed environment file. On the prepared
-Windows workstation, the existing DPAPI-encrypted key can be loaded without printing
-it or writing plaintext to the repository:
+Live free-form planning is optional. Supply your own provider credential through a
+protected, read-only runtime secret file and set `OPENAI_API_KEY_FILE` to its container
+path. A host path alone does not mount the file. Never put credentials in source,
+browser storage, an image build argument or a committed environment file. No existing
+workstation secret is assumed. Demo mode and exact firm/month investigations need
+no provider account; configuration status can be checked without a model call.
+
+On Windows, the optional helper accepts your own existing DPAPI-encrypted file.
+`-SecretPath` is required; replace this illustrative path with that file's location:
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File backend/03_scripts/load_openai_key.ps1
+powershell -NoProfile -File backend/03_scripts/load_openai_key.ps1 -SecretPath "C:\path\to\your-key.dpapi"
 ```
 
-The helper sends decrypted bytes over stdin to a mode-0400 file in the API's tmpfs.
-The host copy stays DPAPI-encrypted. Reload after restarting/recreating the API
-container, because tmpfs intentionally does not retain secrets. Other deployments
-should mount a secret file read-only and set `OPENAI_API_KEY_FILE` to its path.
-No model call is needed to check configuration status.
+Run it under the Windows account that encrypted the file. The helper transfers the
+decrypted bytes over stdin into a mode-0400 file in the public API container's tmpfs;
+it does not print the key or write plaintext into the repository. Reload it after
+container recreation. Loading a key enables optional live planning, so keep it out
+of provider-free verification runs.
 
-### 5. How do we prevent invented figures and handle ambiguity?
+### Exact figures and ambiguous questions
 
 The model outputs a validated intent, not a financial answer or SQL. Approved
 metric definitions compile to parameterized SQL; Decimal values, aggregates,
@@ -595,14 +572,14 @@ coverage accompanies observed totals. Unsupported metrics and historical screen
 states are explicitly unavailable. Model interpretation can still be wrong: inspect
 the visible plan/SQL and maintain labeled evaluations for semantic accuracy.
 
-For the brief's campaign example, income-tax declarations support a monthly series
+Income-tax declarations support a monthly series
 or a total over explicit dates. A campaign-versus-rest-of-year comparison is not a
 single supported operation: agree the campaign period and use separate queries.
 Likewise, "losing clients" needs a definition (stock decline or departures) and a
 period; three stock declines require four contiguous observations. The no-key demo
 recognizes only the three documented English examples, not arbitrary paraphrases.
 
-### 6. What can the natural-language layer do?
+### Tool and authorization boundaries
 
 Only the business query and revenue investigation tools exist. Neither executes
 model-written SQL or arbitrary code. Queries use reader credentials; a separate
@@ -612,9 +589,9 @@ access to shared source evidence. A prompt requesting deletion has no correspond
 action in the schema or tool registry. Time, row, byte and concurrency limits are
 enforced by the application and database, independently of model confidence.
 
-### 7. What does the solution cost and add to deployment?
+### Optional live planning and cost controls
 
-OpenAI GPT-6 Luna is the only additional external runtime dependency in live mode.
+The configured OpenAI planner is the only additional external runtime dependency in live mode.
 There is at most one optional Decisions call and one Responses planning call per
 request. Questions and intent context leave the host; financial result tables and
 raw CSV evidence stay local. PostgreSQL stores conversations, run evidence and shared
@@ -628,17 +605,15 @@ all Phase 1/internal routes, real deployment credentials, TLS and operational ba
 and retention policy. See [components, scaling and RAG decisions](docs/phase2-architecture.md)
 and [the deterministic investigator](docs/investigation-service.md).
 
-## Delivery
+## Public source and development history
 
-Development uses descriptive `feat/<change>` branches and pull requests into `main`.
-The initial source-contract commit is the baseline. `feat/data-platform` adds the
-working pipeline, database, API and dashboard; `feat/verification-and-docs` adds
-end-to-end CI, dashboard checks and the defense guide. The latter initially builds
-on the former, so its CI verifies their combined result. Pull requests are merged
-with merge commits to preserve this progression; the demonstration branches are
-retained for review. New work should branch from the latest `main` and keep each
-coherent, verified change in a separate commit. CI runs for pull requests and `main`;
-this workflow does not imply that branch protection or human approval is configured.
+The public repository is [alejandrofrank/pulse-data-platform](https://github.com/alejandrofrank/pulse-data-platform).
+The filtered history retains the development sequence and branch/merge topology.
+Commit hashes changed; private pull-request records and earlier verification evidence
+are not part of this edition. Historical branches precede the synthetic fixture and
+serve as code history, not runnable fixture snapshots.
 
-This history has been prepared for a public portfolio edition.
-confirmed findings, regression evidence and outstanding reviewer access.
+See [public-edition provenance](docs/public-edition.md) for what was retained and
+excluded. Start new development from the current public `main`, with each coherent,
+verified change recorded separately. The workflow definition does not imply that
+branch protection, external deployment or a successful public CI run is configured.

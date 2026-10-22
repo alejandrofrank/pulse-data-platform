@@ -1,5 +1,6 @@
 param(
-    [string]$SecretPath = (Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) 'Pulse\secrets\openai-api-key.dpapi')
+    [Parameter(Mandatory = $true)]
+    [string]$SecretPath
 )
 
 $ErrorActionPreference = 'Stop'

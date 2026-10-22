@@ -1,9 +1,14 @@
-# Pulse database map and SQL guide
+# Pulse Data Platform: database map and SQL guide
 
 The main application uses PostgreSQL database `pulse` (port 8000 API). The playback
 lab uses a separate database, `pulse_lab` (port 8001 API). They use the same business
 schema and ingestion code, but have independent data, IDs and publication histories.
 The lab additionally has `lab.jobs` and `lab.steps`.
+
+All public-edition source records are synthetic. In this guide, "original bytes"
+means the exact generated input before parsing. It never refers to private source
+data. See [synthetic provenance](public-edition.md) and [verification](verification.md).
+Ports shown here are defaults; use `PULSE_PORT` and `LAB_PORT` overrides when set.
 
 ## From files to the screen
 
@@ -202,7 +207,7 @@ SQL table **`raw.records`**, for example. `mart.firm_month` also stores declarat
 consultation, incident and document counts; see its complete definition in
 [001_core.sql](../backend/01_pipeline/src/pulse/migrations/001_core.sql).
 The master archive produces `core.firms` through ingestion, without a foreign key.
-Raw JSON has no foreign key to firms, so it can retain invalid customer IDs.
+Raw JSON has no foreign key to firms, so it can retain invalid firm IDs.
 One raw row can have several issues: joining all issues before summing revenue
 would duplicate amounts. Use `EXISTS` when you only need to filter affected rows.
 
@@ -303,7 +308,7 @@ FROM mart.firm_month
 WHERE satisfaccion_cliente < 1 OR satisfaccion_cliente > 5;
 ```
 
-To inspect **rejected** scores such as `8,4`, query the raw archive and its recorded
+To inspect **rejected** scores (for example, an illustrative `8,4`), query the raw archive and its recorded
 validation rule. This avoids casting arbitrary CSV strings to numbers and avoids
 counting a source row twice if it has multiple diagnostics:
 

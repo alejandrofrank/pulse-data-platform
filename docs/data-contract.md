@@ -1,17 +1,28 @@
-# Data contract and quality policy, version 1
+# Pulse Data Platform: data contract and quality policy, version 1
 
-## Measured inputs
+## Synthetic input contracts
 
-The supplied master has 500 firms. There are 36 deliveries, April 2023 to March 2026,
-with 18,087 physical data records. The original files are committed byte-for-byte.
-Run `docker compose run --rm test python 03_scripts/profile_data.py` for a repeatable profile.
+The public dataset is generated from fictional firms and metrics. Its intended
+scope is 500 firms and 36 monthly deliveries, April 2023 through March 2026, with
+deliberate quality scenarios. These are generation targets, not measured outcomes.
+`data/manifest.json` is authoritative for the generated inventory, checksums and
+expected results. See [provenance](public-edition.md) and the
+[verification procedure](verification.md); fresh public-edition verification is pending.
+
+The manifest separates `counts` (inventory and generation scope) from
+`expected_quality` (expected parser/publication outcomes). `counts.csv_files`
+includes the master; `counts.monthly_files` counts only delivery files.
+`monthly_totals` is keyed by `YYYY-MM` and stores `revenue_eur`, `clientes_activos`
+and `reporting_firms`. `scenarios` supplies concrete test targets. Fictional master
+identifiers marked `DEMO-*` must not be treated as real registration identifiers;
+the relational `asesoria_id` remains numeric.
 
 The format is detected from its exact header, not guessed from the metric month:
 
-| Contract | Files | CSV delimiter | Decimal separator | Satisfaction | Other revenue |
-|---|---:|---|---|---|---|
-| v1 | 31 | comma | dot | satisfaccion_cliente | absent |
-| v2 | 5 | semicolon | comma | satisfaccion_media | facturacion_otros_eur |
+| Contract | CSV delimiter | Decimal separator | Satisfaction | Other revenue |
+|---|---|---|---|---|
+| v1 | comma | dot | satisfaccion_cliente | absent |
+| v2 | semicolon | comma | satisfaccion_media | facturacion_otros_eur |
 
 UTF-8 with an optional BOM is supported. Quoted fields are parsed by the CSV parser.
 Extra/missing row fields are quarantined. Unknown headers or encodings quarantine
@@ -41,8 +52,8 @@ have no business meaning. A new delivery may correct any older month.
 After validation, the latest valid delivery wins. All rejected attempts remain
 queryable. If a later delivery for a known key is rejected, an older accepted value
 is retained with `has_rejected_newer_delivery=true`, visible in metrics and lineage.
-This is a documented interpretation of the tension between “latest wins” and
-“bad data must not enter”; the reviewer can choose withholding instead.
+This is an explicit latest-valid policy. Withholding an older value after an invalid
+correction would be a different contract and requires a versioned policy change.
 
 Within a delivery, identical normalized valid rows are counted once; extra copies
 have status `duplicate` and an issue pointing to the original line. Conflicting
@@ -52,7 +63,7 @@ duplicates are rejected independently and do not erase a valid row in the same f
 Registered filenames are immutable. Different bytes under an existing name are
 preserved as a file error; send a numbered revision to apply a correction. Same bytes
 are skipped. Changed master data is blocked pending an explicit master migration;
-the assignment describes this master as clean/static, not as a historical dimension.
+this contract treats the master as a static dimension, with no historical attributes.
 
 ## Validation choices
 
@@ -60,7 +71,7 @@ the assignment describes this master as clean/static, not as a historical dimens
 |---|---|
 | Unknown firm ID, malformed/nonexistent month, future metric month, month before registration | Reject; cannot establish a valid firm-month |
 | Negative or fractional counts, NaN/Infinity, invalid decimal syntax, overflow | Reject; invalid for the declared metric |
-| Negative monthly revenue | Reject under the MVP contract of nonnegative monthly reported income. Credits can be legitimate in other systems: confirm with Finance before changing this rule. Never silently take absolute values. |
+| Negative monthly revenue | Reject under the demo contract of nonnegative monthly reported income. Credits can be legitimate in other systems; define their meaning before changing this rule. Never silently take absolute values. |
 | Satisfaction outside 1–5 | Reject the row; retain the original value and error |
 | Missing hours/documents/satisfaction | Accept with a warning and SQL NULL. Do not discard valid revenue, impute zero or invent survey answers. Aggregates expose the number of contributors. |
 | Missing counts or reported revenue components | Reject; headline totals would otherwise silently understate the firm |
@@ -75,9 +86,27 @@ stock timing could explain differences. A production contract must define it fir
 Coverage assumes all firms registered by that month are expected to report; the
 master has no closure date. Extend eligibility if the source introduces closures.
 
-## Historical fixture evidence
+## Fixture expectations and measured results
 
-Private fixture measurements were removed from the public history.
+The generator deliberately exercises corrections, normalized duplicates, invalid
+records, optional missing fields, backlog warnings and coverage gaps. The manifest
+records expectations for that generated edition. Exact counts and any warning or
+rejection breakdown must be read from the manifest and checked against a fresh
+profile and ingestion; earlier fixture totals are not public-edition evidence.
+
+Keep these measures distinct:
+
+- Raw rows include accepted versions, rejected rows and duplicate copies.
+- Accepted versions can include superseded corrections, so they need not equal
+  unique published firm-months.
+- Issue counts need not equal affected-row counts; one row can have several issues.
+- Coverage gaps count eligible firm-months without a published fact.
+- Manifest expectations describe the fixture; measured database/API results verify
+  the implementation. One must not substitute for the other.
+
+Record observed counts and their reconciliation in [verification.md](verification.md)
+only after the checks run. Ingestion does not hard-code the demo's firm count or
+date range. The fixture manifest is not a production delivery-completeness protocol.
 
 ## Aggregation semantics
 

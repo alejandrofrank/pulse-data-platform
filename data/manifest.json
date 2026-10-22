@@ -1,0 +1,3241 @@
+{
+  "corrections": [
+    {
+      "asesoria_id": 23,
+      "changed_fields": {
+        "facturacion_asesoria_eur": {
+          "after": "94473.09",
+          "before": "94028.95"
+        }
+      },
+      "expected_status": "accepted",
+      "file": "drops/metricas_2025-11.csv",
+      "issues": [],
+      "kind": "correction",
+      "line": 501,
+      "mes": "2025-10",
+      "original_file": "drops/metricas_2025-10.csv",
+      "original_line": 24
+    },
+    {
+      "asesoria_id": 30,
+      "changed_fields": {
+        "facturacion_asesoria_eur": {
+          "after": "54214.54",
+          "before": "53628.77"
+        }
+      },
+      "expected_status": "accepted",
+      "file": "drops/metricas_2023-12.csv",
+      "issues": [],
+      "kind": "correction",
+      "line": 502,
+      "mes": "2023-11",
+      "original_file": "drops/metricas_2023-11.csv",
+      "original_line": 31
+    },
+    {
+      "asesoria_id": 37,
+      "changed_fields": {
+        "facturacion_asesoria_eur": {
+          "after": "88283.41",
+          "before": "87707.78"
+        }
+      },
+      "expected_status": "accepted",
+      "file": "drops/metricas_2024-07.csv",
+      "issues": [],
+      "kind": "correction",
+      "line": 502,
+      "mes": "2024-06",
+      "original_file": "drops/metricas_2024-06.csv",
+      "original_line": 38
+    },
+    {
+      "asesoria_id": 44,
+      "changed_fields": {
+        "facturacion_asesoria_eur": {
+          "after": "40933.82",
+          "before": "40026.63"
+        }
+      },
+      "expected_status": "accepted",
+      "file": "drops/metricas_2025-02.csv",
+      "issues": [],
+      "kind": "correction",
+      "line": 501,
+      "mes": "2025-01",
+      "original_file": "drops/metricas_2025-01.csv",
+      "original_line": 45
+    },
+    {
+      "asesoria_id": 51,
+      "changed_fields": {
+        "facturacion_asesoria_eur": {
+          "after": "46609.57",
+          "before": "46251.28"
+        }
+      },
+      "expected_status": "accepted",
+      "file": "drops/metricas_2025-09.csv",
+      "issues": [],
+      "kind": "correction",
+      "line": 502,
+      "mes": "2025-08",
+      "original_file": "drops/metricas_2025-08.csv",
+      "original_line": 52
+    },
+    {
+      "asesoria_id": 58,
+      "changed_fields": {
+        "facturacion_asesoria_eur": {
+          "after": "55033.88",
+          "before": "54561.58"
+        }
+      },
+      "expected_status": "accepted",
+      "file": "drops/metricas_2023-05.csv",
+      "issues": [],
+      "kind": "correction",
+      "line": 501,
+      "mes": "2023-04",
+      "original_file": "drops/metricas_2023-04.csv",
+      "original_line": 59
+    },
+    {
+      "asesoria_id": 65,
+      "changed_fields": {
+        "facturacion_asesoria_eur": {
+          "after": "8360.97",
+          "before": "7701.32"
+        }
+      },
+      "expected_status": "accepted",
+      "file": "drops/metricas_2023-12.csv",
+      "issues": [],
+      "kind": "correction",
+      "line": 503,
+      "mes": "2023-11",
+      "original_file": "drops/metricas_2023-11.csv",
+      "original_line": 66
+    },
+    {
+      "asesoria_id": 72,
+      "changed_fields": {
+        "facturacion_asesoria_eur": {
+          "after": "68153.61",
+          "before": "67417.63"
+        }
+      },
+      "expected_status": "accepted",
+      "file": "drops/metricas_2024-07.csv",
+      "issues": [],
+      "kind": "correction",
+      "line": 503,
+      "mes": "2024-06",
+      "original_file": "drops/metricas_2024-06.csv",
+      "original_line": 73
+    },
+    {
+      "asesoria_id": 79,
+      "changed_fields": {
+        "facturacion_asesoria_eur": {
+          "after": "74977.56",
+          "before": "74338.16"
+        }
+      },
+      "expected_status": "accepted",
+      "file": "drops/metricas_2025-02.csv",
+      "issues": [],
+      "kind": "correction",
+      "line": 502,
+      "mes": "2025-01",
+      "original_file": "drops/metricas_2025-01.csv",
+      "original_line": 80
+    },
+    {
+      "asesoria_id": 86,
+      "changed_fields": {
+        "facturacion_asesoria_eur": {
+          "after": "84090.32",
+          "before": "83736.81"
+        }
+      },
+      "expected_status": "accepted",
+      "file": "drops/metricas_2025-09.csv",
+      "issues": [],
+      "kind": "correction",
+      "line": 503,
+      "mes": "2025-08",
+      "original_file": "drops/metricas_2025-08.csv",
+      "original_line": 87
+    },
+    {
+      "asesoria_id": 93,
+      "changed_fields": {
+        "facturacion_asesoria_eur": {
+          "after": "43820.61",
+          "before": "42937.24"
+        }
+      },
+      "expected_status": "accepted",
+      "file": "drops/metricas_2023-05.csv",
+      "issues": [],
+      "kind": "correction",
+      "line": 502,
+      "mes": "2023-04",
+      "original_file": "drops/metricas_2023-04.csv",
+      "original_line": 94
+    },
+    {
+      "asesoria_id": 100,
+      "changed_fields": {
+        "facturacion_asesoria_eur": {
+          "after": "48608.88",
+          "before": "48081.26"
+        }
+      },
+      "expected_status": "accepted",
+      "file": "drops/metricas_2023-12.csv",
+      "issues": [],
+      "kind": "correction",
+      "line": 504,
+      "mes": "2023-11",
+      "original_file": "drops/metricas_2023-11.csv",
+      "original_line": 100
+    },
+    {
+      "asesoria_id": 107,
+      "changed_fields": {
+        "facturacion_asesoria_eur": {
+          "after": "9416.11",
+          "before": "8588.44"
+        }
+      },
+      "expected_status": "accepted",
+      "file": "drops/metricas_2024-07.csv",
+      "issues": [],
+      "kind": "correction",
+      "line": 504,
+      "mes": "2024-06",
+      "original_file": "drops/metricas_2024-06.csv",
+      "original_line": 108
+    },
+    {
+      "asesoria_id": 114,
+      "changed_fields": {
+        "facturacion_asesoria_eur": {
+          "after": "29550.29",
+          "before": "29206.60"
+        }
+      },
+      "expected_status": "accepted",
+      "file": "drops/metricas_2025-02.csv",
+      "issues": [],
+      "kind": "correction",
+      "line": 503,
+      "mes": "2025-01",
+      "original_file": "drops/metricas_2025-01.csv",
+      "original_line": 115
+    },
+    {
+      "asesoria_id": 121,
+      "changed_fields": {
+        "facturacion_asesoria_eur": {
+          "after": "76023.27",
+          "before": "75138.40"
+        }
+      },
+      "expected_status": "accepted",
+      "file": "drops/metricas_2025-09.csv",
+      "issues": [],
+      "kind": "correction",
+      "line": 504,
+      "mes": "2025-08",
+      "original_file": "drops/metricas_2025-08.csv",
+      "original_line": 122
+    },
+    {
+      "asesoria_id": 128,
+      "changed_fields": {
+        "facturacion_asesoria_eur": {
+          "after": "29635.54",
+          "before": "29282.71"
+        }
+      },
+      "expected_status": "accepted",
+      "file": "drops/metricas_2023-05.csv",
+      "issues": [],
+      "kind": "correction",
+      "line": 503,
+      "mes": "2023-04",
+      "original_file": "drops/metricas_2023-04.csv",
+      "original_line": 129
+    },
+    {
+      "asesoria_id": 135,
+      "changed_fields": {
+        "facturacion_asesoria_eur": {
+          "after": "15431.33",
+          "before": "14567.36"
+        }
+      },
+      "expected_status": "accepted",
+      "file": "drops/metricas_2023-12.csv",
+      "issues": [],
+      "kind": "correction",
+      "line": 505,
+      "mes": "2023-11",
+      "original_file": "drops/metricas_2023-11.csv",
+      "original_line": 135
+    },
+    {
+      "asesoria_id": 142,
+      "changed_fields": {
+        "facturacion_asesoria_eur": {
+          "after": "63601.92",
+          "before": "62797.17"
+        }
+      },
+      "expected_status": "accepted",
+      "file": "drops/metricas_2024-07.csv",
+      "issues": [],
+      "kind": "correction",
+      "line": 505,
+      "mes": "2024-06",
+      "original_file": "drops/metricas_2024-06.csv",
+      "original_line": 143
+    },
+    {
+      "asesoria_id": 149,
+      "changed_fields": {
+        "facturacion_asesoria_eur": {
+          "after": "7944.28",
+          "before": "7278.88"
+        }
+      },
+      "expected_status": "accepted",
+      "file": "drops/metricas_2025-02.csv",
+      "issues": [],
+      "kind": "correction",
+      "line": 504,
+      "mes": "2025-01",
+      "original_file": "drops/metricas_2025-01.csv",
+      "original_line": 150
+    },
+    {
+      "asesoria_id": 156,
+      "changed_fields": {
+        "facturacion_asesoria_eur": {
+          "after": "39827.44",
+          "before": "39336.76"
+        }
+      },
+      "expected_status": "accepted",
+      "file": "drops/metricas_2025-09.csv",
+      "issues": [],
+      "kind": "correction",
+      "line": 505,
+      "mes": "2025-08",
+      "original_file": "drops/metricas_2025-08.csv",
+      "original_line": 157
+    },
+    {
+      "asesoria_id": 163,
+      "changed_fields": {
+        "facturacion_asesoria_eur": {
+          "after": "15476.71",
+          "before": "15098.85"
+        }
+      },
+      "expected_status": "accepted",
+      "file": "drops/metricas_2023-05.csv",
+      "issues": [],
+      "kind": "correction",
+      "line": 504,
+      "mes": "2023-04",
+      "original_file": "drops/metricas_2023-04.csv",
+      "original_line": 164
+    },
+    {
+      "asesoria_id": 170,
+      "changed_fields": {
+        "facturacion_asesoria_eur": {
+          "after": "40222.82",
+          "before": "39516.74"
+        }
+      },
+      "expected_status": "accepted",
+      "file": "drops/metricas_2023-12.csv",
+      "issues": [],
+      "kind": "correction",
+      "line": 506,
+      "mes": "2023-11",
+      "original_file": "drops/metricas_2023-11.csv",
+      "original_line": 170
+    },
+    {
+      "asesoria_id": 177,
+      "changed_fields": {
+        "facturacion_asesoria_eur": {
+          "after": "95043.98",
+          "before": "94684.28"
+        }
+      },
+      "expected_status": "accepted",
+      "file": "drops/metricas_2024-07.csv",
+      "issues": [],
+      "kind": "correction",
+      "line": 506,
+      "mes": "2024-06",
+      "original_file": "drops/metricas_2024-06.csv",
+      "original_line": 178
+    },
+    {
+      "asesoria_id": 184,
+      "changed_fields": {
+        "facturacion_asesoria_eur": {
+          "after": "9838.57",
+          "before": "9288.95"
+        }
+      },
+      "expected_status": "accepted",
+      "file": "drops/metricas_2025-02.csv",
+      "issues": [],
+      "kind": "correction",
+      "line": 505,
+      "mes": "2025-01",
+      "original_file": "drops/metricas_2025-01.csv",
+      "original_line": 185
+    },
+    {
+      "asesoria_id": 191,
+      "changed_fields": {
+        "facturacion_asesoria_eur": {
+          "after": "39639.26",
+          "before": "38748.13"
+        }
+      },
+      "expected_status": "accepted",
+      "file": "drops/metricas_2025-09.csv",
+      "issues": [],
+      "kind": "correction",
+      "line": 506,
+      "mes": "2025-08",
+      "original_file": "drops/metricas_2025-08.csv",
+      "original_line": 192
+    },
+    {
+      "asesoria_id": 198,
+      "changed_fields": {
+        "facturacion_asesoria_eur": {
+          "after": "60729.00",
+          "before": "59859.07"
+        }
+      },
+      "expected_status": "accepted",
+      "file": "drops/metricas_2023-05.csv",
+      "issues": [],
+      "kind": "correction",
+      "line": 505,
+      "mes": "2023-04",
+      "original_file": "drops/metricas_2023-04.csv",
+      "original_line": 199
+    },
+    {
+      "asesoria_id": 205,
+      "changed_fields": {
+        "facturacion_asesoria_eur": {
+          "after": "14366.21",
+          "before": "13812.98"
+        }
+      },
+      "expected_status": "accepted",
+      "file": "drops/metricas_2023-12.csv",
+      "issues": [],
+      "kind": "correction",
+      "line": 507,
+      "mes": "2023-11",
+      "original_file": "drops/metricas_2023-11.csv",
+      "original_line": 205
+    },
+    {
+      "asesoria_id": 212,
+      "changed_fields": {
+        "facturacion_asesoria_eur": {
+          "after": "14033.78",
+          "before": "13405.19"
+        }
+      },
+      "expected_status": "accepted",
+      "file": "drops/metricas_2024-07.csv",
+      "issues": [],
+      "kind": "correction",
+      "line": 507,
+      "mes": "2024-06",
+      "original_file": "drops/metricas_2024-06.csv",
+      "original_line": 213
+    },
+    {
+      "asesoria_id": 219,
+      "changed_fields": {
+        "facturacion_asesoria_eur": {
+          "after": "57863.13",
+          "before": "57223.20"
+        }
+      },
+      "expected_status": "accepted",
+      "file": "drops/metricas_2025-02.csv",
+      "issues": [],
+      "kind": "correction",
+      "line": 506,
+      "mes": "2025-01",
+      "original_file": "drops/metricas_2025-01.csv",
+      "original_line": 220
+    },
+    {
+      "asesoria_id": 226,
+      "changed_fields": {
+        "facturacion_asesoria_eur": {
+          "after": "19567.32",
+          "before": "18772.36"
+        }
+      },
+      "expected_status": "accepted",
+      "file": "drops/metricas_2025-09.csv",
+      "issues": [],
+      "kind": "correction",
+      "line": 507,
+      "mes": "2025-08",
+      "original_file": "drops/metricas_2025-08.csv",
+      "original_line": 227
+    },
+    {
+      "asesoria_id": 233,
+      "changed_fields": {
+        "facturacion_asesoria_eur": {
+          "after": "31293.48",
+          "before": "31003.87"
+        }
+      },
+      "expected_status": "accepted",
+      "file": "drops/metricas_2023-05.csv",
+      "issues": [],
+      "kind": "correction",
+      "line": 506,
+      "mes": "2023-04",
+      "original_file": "drops/metricas_2023-04.csv",
+      "original_line": 234
+    },
+    {
+      "asesoria_id": 240,
+      "changed_fields": {
+        "facturacion_asesoria_eur": {
+          "after": "15571.26",
+          "before": "14864.03"
+        }
+      },
+      "expected_status": "accepted",
+      "file": "drops/metricas_2023-12.csv",
+      "issues": [],
+      "kind": "correction",
+      "line": 508,
+      "mes": "2023-11",
+      "original_file": "drops/metricas_2023-11.csv",
+      "original_line": 240
+    },
+    {
+      "asesoria_id": 247,
+      "changed_fields": {
+        "facturacion_asesoria_eur": {
+          "after": "83314.25",
+          "before": "82656.15"
+        }
+      },
+      "expected_status": "accepted",
+      "file": "drops/metricas_2024-07.csv",
+      "issues": [],
+      "kind": "correction",
+      "line": 508,
+      "mes": "2024-06",
+      "original_file": "drops/metricas_2024-06.csv",
+      "original_line": 248
+    },
+    {
+      "asesoria_id": 254,
+      "changed_fields": {
+        "facturacion_asesoria_eur": {
+          "after": "21487.72",
+          "before": "21232.99"
+        }
+      },
+      "expected_status": "accepted",
+      "file": "drops/metricas_2025-02.csv",
+      "issues": [],
+      "kind": "correction",
+      "line": 507,
+      "mes": "2025-01",
+      "original_file": "drops/metricas_2025-01.csv",
+      "original_line": 255
+    },
+    {
+      "asesoria_id": 261,
+      "changed_fields": {
+        "facturacion_asesoria_eur": {
+          "after": "81175.44",
+          "before": "80257.15"
+        }
+      },
+      "expected_status": "accepted",
+      "file": "drops/metricas_2025-09.csv",
+      "issues": [],
+      "kind": "correction",
+      "line": 508,
+      "mes": "2025-08",
+      "original_file": "drops/metricas_2025-08.csv",
+      "original_line": 262
+    },
+    {
+      "asesoria_id": 268,
+      "changed_fields": {
+        "facturacion_asesoria_eur": {
+          "after": "87099.35",
+          "before": "86818.16"
+        }
+      },
+      "expected_status": "accepted",
+      "file": "drops/metricas_2023-05.csv",
+      "issues": [],
+      "kind": "correction",
+      "line": 507,
+      "mes": "2023-04",
+      "original_file": "drops/metricas_2023-04.csv",
+      "original_line": 269
+    },
+    {
+      "asesoria_id": 275,
+      "changed_fields": {
+        "facturacion_asesoria_eur": {
+          "after": "114190.04",
+          "before": "113376.12"
+        }
+      },
+      "expected_status": "accepted",
+      "file": "drops/metricas_2023-12.csv",
+      "issues": [],
+      "kind": "correction",
+      "line": 509,
+      "mes": "2023-11",
+      "original_file": "drops/metricas_2023-11.csv",
+      "original_line": 275
+    },
+    {
+      "asesoria_id": 282,
+      "changed_fields": {
+        "facturacion_asesoria_eur": {
+          "after": "30231.30",
+          "before": "29747.23"
+        }
+      },
+      "expected_status": "accepted",
+      "file": "drops/metricas_2024-07.csv",
+      "issues": [],
+      "kind": "correction",
+      "line": 509,
+      "mes": "2024-06",
+      "original_file": "drops/metricas_2024-06.csv",
+      "original_line": 283
+    },
+    {
+      "asesoria_id": 289,
+      "changed_fields": {
+        "facturacion_asesoria_eur": {
+          "after": "36912.46",
+          "before": "36424.97"
+        }
+      },
+      "expected_status": "accepted",
+      "file": "drops/metricas_2025-02.csv",
+      "issues": [],
+      "kind": "correction",
+      "line": 508,
+      "mes": "2025-01",
+      "original_file": "drops/metricas_2025-01.csv",
+      "original_line": 290
+    },
+    {
+      "asesoria_id": 296,
+      "changed_fields": {
+        "facturacion_asesoria_eur": {
+          "after": "25636.85",
+          "before": "24883.73"
+        }
+      },
+      "expected_status": "accepted",
+      "file": "drops/metricas_2025-09.csv",
+      "issues": [],
+      "kind": "correction",
+      "line": 509,
+      "mes": "2025-08",
+      "original_file": "drops/metricas_2025-08.csv",
+      "original_line": 297
+    }
+  ],
+  "count_contract": {
+    "accepted_rows": "Includes 40 later-delivery corrections; excludes duplicate and rejected rows.",
+    "checksums": "SHA-256 of exact CSV file bytes. Paths are relative to the output data directory. Manifest excludes itself to avoid recursive hashing.",
+    "curated_rows": "One latest accepted delivery per firm/month; rejected newer candidates never replace it.",
+    "expected_quality": "Derived from explicit generation annotations, independently of any production parser.",
+    "line": "One-based physical CSV line; the header is line 1.",
+    "monthly_totals": "Computed directly from planned valid winners with integer cents, before CSV serialization; includes corrections.",
+    "raw_rows": "Metric CSV data rows only; excludes headers and the 500 master rows."
+  },
+  "counts": {
+    "base_rows": 17988,
+    "correction_rows": 40,
+    "csv_files": 37,
+    "expected_firm_months": 18000,
+    "firms": 500,
+    "monthly_files": 36,
+    "months": 36
+  },
+  "expected_quality": {
+    "accepted_rows": 18028,
+    "curated_rows": 17988,
+    "duplicate_rows": 31,
+    "fallback_rows": 14,
+    "issue_counts": {
+      "backlog_resolved": 18,
+      "exact_duplicate": 31,
+      "invalid_month": 7,
+      "invalid_number": 7,
+      "missing_value": 24,
+      "satisfaction_range": 7,
+      "unknown_firm": 7
+    },
+    "missing_firm_months": 12,
+    "optional_nulls_in_publication": {
+      "documentos_procesados": 8,
+      "horas_trabajadas": 8,
+      "satisfaccion_cliente": 8
+    },
+    "published_keys": 17988,
+    "raw_rows": 18087,
+    "rejected_rows": 28,
+    "severity_counts": {
+      "error": 28,
+      "info": 31,
+      "warning": 42
+    },
+    "warning_rows": 42
+  },
+  "files": {
+    "asesorias.csv": {
+      "bytes": 62935,
+      "delimiter": ",",
+      "rows": 500,
+      "schema": "master",
+      "sha256": "49e2321d54f7f4a14465f47ea758e19f1e28995dc2fee91c942385a1de05925c"
+    },
+    "drops/metricas_2023-04.csv": {
+      "bytes": 43122,
+      "delimiter": ",",
+      "expected_status_counts": {
+        "accepted": 500,
+        "duplicate": 1,
+        "rejected": 0
+      },
+      "rows": 501,
+      "schema": "v1",
+      "sha256": "db15ccb78561bc0b3c253c8d3428f7844b1fc0864c697ad447f92eac58cd04d1"
+    },
+    "drops/metricas_2023-05.csv": {
+      "bytes": 43145,
+      "delimiter": ",",
+      "expected_status_counts": {
+        "accepted": 506,
+        "duplicate": 1,
+        "rejected": 0
+      },
+      "rows": 507,
+      "schema": "v1",
+      "sha256": "26b19d2398969a91991cc6113bd2309e4e5abaa457804759576482270b4dc9f3"
+    },
+    "drops/metricas_2023-06.csv": {
+      "bytes": 42601,
+      "delimiter": ",",
+      "expected_status_counts": {
+        "accepted": 500,
+        "duplicate": 1,
+        "rejected": 0
+      },
+      "rows": 501,
+      "schema": "v1",
+      "sha256": "38ec96247732a57df490db66bd991223a5c6c72387416542be36d166c861f7b3"
+    },
+    "drops/metricas_2023-07.csv": {
+      "bytes": 43119,
+      "delimiter": ",",
+      "expected_status_counts": {
+        "accepted": 500,
+        "duplicate": 1,
+        "rejected": 0
+      },
+      "rows": 501,
+      "schema": "v1",
+      "sha256": "855f9b7abee3f71f6c96106f9e04de301c61e8300b5e0070b49075eba99e7412"
+    },
+    "drops/metricas_2023-08.csv": {
+      "bytes": 41684,
+      "delimiter": ",",
+      "expected_status_counts": {
+        "accepted": 499,
+        "duplicate": 1,
+        "rejected": 0
+      },
+      "rows": 500,
+      "schema": "v1",
+      "sha256": "661505621824853caa8046e28e647883514bfa088d3e73504e0dbf62a607761b"
+    },
+    "drops/metricas_2023-09.csv": {
+      "bytes": 41780,
+      "delimiter": ",",
+      "expected_status_counts": {
+        "accepted": 500,
+        "duplicate": 1,
+        "rejected": 0
+      },
+      "rows": 501,
+      "schema": "v1",
+      "sha256": "f7190f64485d7ee50225436f391c3e73c4899bc27165490ce219ae0bf958f9c7"
+    },
+    "drops/metricas_2023-10.csv": {
+      "bytes": 42286,
+      "delimiter": ",",
+      "expected_status_counts": {
+        "accepted": 500,
+        "duplicate": 1,
+        "rejected": 0
+      },
+      "rows": 501,
+      "schema": "v1",
+      "sha256": "8aa33d0eb6caf43a11a3224a36abb6d6ab8647b4afee2086a87d6ffbf6d3f68d"
+    },
+    "drops/metricas_2023-11.csv": {
+      "bytes": 41686,
+      "delimiter": ",",
+      "expected_status_counts": {
+        "accepted": 499,
+        "duplicate": 1,
+        "rejected": 0
+      },
+      "rows": 500,
+      "schema": "v1",
+      "sha256": "fd15e82d7d6a675e675952e34cee8d5310d75202decf40824cc3736a8b4cb562"
+    },
+    "drops/metricas_2023-12.csv": {
+      "bytes": 42453,
+      "delimiter": ",",
+      "expected_status_counts": {
+        "accepted": 508,
+        "duplicate": 1,
+        "rejected": 0
+      },
+      "rows": 509,
+      "schema": "v1",
+      "sha256": "6955973cc958af4c40dabbaf74a4a3b7e6ca5ca568e1de6de5bb9e03b3bb03a8"
+    },
+    "drops/metricas_2024-01.csv": {
+      "bytes": 42306,
+      "delimiter": ",",
+      "expected_status_counts": {
+        "accepted": 500,
+        "duplicate": 1,
+        "rejected": 0
+      },
+      "rows": 501,
+      "schema": "v1",
+      "sha256": "ba1dd348b9e73874206401a5e373995b0aee3daa93e6c9f79e75d54621f2707a"
+    },
+    "drops/metricas_2024-02.csv": {
+      "bytes": 41721,
+      "delimiter": ",",
+      "expected_status_counts": {
+        "accepted": 499,
+        "duplicate": 1,
+        "rejected": 0
+      },
+      "rows": 500,
+      "schema": "v1",
+      "sha256": "7334e3ac0d83d884f4646fad36e283a7df14882786a4c439dc6b01bb9c37f565"
+    },
+    "drops/metricas_2024-03.csv": {
+      "bytes": 41790,
+      "delimiter": ",",
+      "expected_status_counts": {
+        "accepted": 500,
+        "duplicate": 1,
+        "rejected": 0
+      },
+      "rows": 501,
+      "schema": "v1",
+      "sha256": "a8fe148511c1a64d7ea4654feb395feaaa691cebd102bffc7d984d225f192b03"
+    },
+    "drops/metricas_2024-04.csv": {
+      "bytes": 43220,
+      "delimiter": ",",
+      "expected_status_counts": {
+        "accepted": 500,
+        "duplicate": 1,
+        "rejected": 0
+      },
+      "rows": 501,
+      "schema": "v1",
+      "sha256": "01c6c49c39150d9deca35ec5224c91bec174e7f257d96214ef4241930629cbe8"
+    },
+    "drops/metricas_2024-05.csv": {
+      "bytes": 42658,
+      "delimiter": ",",
+      "expected_status_counts": {
+        "accepted": 499,
+        "duplicate": 1,
+        "rejected": 0
+      },
+      "rows": 500,
+      "schema": "v1",
+      "sha256": "d292e6061e36cf4cb6f2e34bafda597f21feb2b627e17005c7bb3feb2214bdfc"
+    },
+    "drops/metricas_2024-06.csv": {
+      "bytes": 42690,
+      "delimiter": ",",
+      "expected_status_counts": {
+        "accepted": 500,
+        "duplicate": 1,
+        "rejected": 0
+      },
+      "rows": 501,
+      "schema": "v1",
+      "sha256": "3ca037381d3f100cffca3650a6ac9502af8a767d4eef0d7be4dc91796b381647"
+    },
+    "drops/metricas_2024-07.csv": {
+      "bytes": 43901,
+      "delimiter": ",",
+      "expected_status_counts": {
+        "accepted": 508,
+        "duplicate": 1,
+        "rejected": 0
+      },
+      "rows": 509,
+      "schema": "v1",
+      "sha256": "2390930cbeafdd058e52bca6f430a23f1f50f806a078919d8f679c2aa6fe2c4c"
+    },
+    "drops/metricas_2024-08.csv": {
+      "bytes": 41758,
+      "delimiter": ",",
+      "expected_status_counts": {
+        "accepted": 499,
+        "duplicate": 1,
+        "rejected": 0
+      },
+      "rows": 500,
+      "schema": "v1",
+      "sha256": "1bd18788bed6bdd18907279545cfdc1bd8e3ddc670c2be7dbb240a58c2f1f016"
+    },
+    "drops/metricas_2024-09.csv": {
+      "bytes": 41864,
+      "delimiter": ",",
+      "expected_status_counts": {
+        "accepted": 500,
+        "duplicate": 1,
+        "rejected": 0
+      },
+      "rows": 501,
+      "schema": "v1",
+      "sha256": "600c2e03109bb5c61b7e40b7f04198aac9e44aa9ccca11f82a98a44acc770859"
+    },
+    "drops/metricas_2024-10.csv": {
+      "bytes": 42400,
+      "delimiter": ",",
+      "expected_status_counts": {
+        "accepted": 500,
+        "duplicate": 1,
+        "rejected": 0
+      },
+      "rows": 501,
+      "schema": "v1",
+      "sha256": "fb0c8da7fe4187ecb04e35cdc640e2613b57f50826a4153fbc1d1d1a714e12b6"
+    },
+    "drops/metricas_2024-11.csv": {
+      "bytes": 41789,
+      "delimiter": ",",
+      "expected_status_counts": {
+        "accepted": 499,
+        "duplicate": 1,
+        "rejected": 0
+      },
+      "rows": 500,
+      "schema": "v1",
+      "sha256": "bda254c27804fd0ff54fbb02ea6329e217bade790c64c0b2edfd02f22f8ec350"
+    },
+    "drops/metricas_2024-12.csv": {
+      "bytes": 41884,
+      "delimiter": ",",
+      "expected_status_counts": {
+        "accepted": 500,
+        "duplicate": 1,
+        "rejected": 0
+      },
+      "rows": 501,
+      "schema": "v1",
+      "sha256": "2b97c230ca8db19e3d400c31a4ca4f349e2b087660be96af45e04d75c08f678f"
+    },
+    "drops/metricas_2025-01.csv": {
+      "bytes": 42399,
+      "delimiter": ",",
+      "expected_status_counts": {
+        "accepted": 500,
+        "duplicate": 1,
+        "rejected": 0
+      },
+      "rows": 501,
+      "schema": "v1",
+      "sha256": "08f7280f6591b96c1d237c2e5a2c8f8efa9a2e84d406c3f5c5b3d388d0f921fa"
+    },
+    "drops/metricas_2025-02.csv": {
+      "bytes": 42453,
+      "delimiter": ",",
+      "expected_status_counts": {
+        "accepted": 507,
+        "duplicate": 1,
+        "rejected": 0
+      },
+      "rows": 508,
+      "schema": "v1",
+      "sha256": "af24a663c6033cb08f7cb4f887d8cfcd6bdeef5df2b893469d07f5fa4d9ede25"
+    },
+    "drops/metricas_2025-03.csv": {
+      "bytes": 41892,
+      "delimiter": ",",
+      "expected_status_counts": {
+        "accepted": 500,
+        "duplicate": 1,
+        "rejected": 0
+      },
+      "rows": 501,
+      "schema": "v1",
+      "sha256": "9ae0f277dd2d08ebd860f386d968553f269729eaeae214ed8f50bd1d74014f40"
+    },
+    "drops/metricas_2025-04.csv": {
+      "bytes": 43268,
+      "delimiter": ",",
+      "expected_status_counts": {
+        "accepted": 500,
+        "duplicate": 1,
+        "rejected": 0
+      },
+      "rows": 501,
+      "schema": "v1",
+      "sha256": "f565b1f52c832d4cef233f6c487393b8f2b95d28553073448982337b5847fb4c"
+    },
+    "drops/metricas_2025-05.csv": {
+      "bytes": 42729,
+      "delimiter": ",",
+      "expected_status_counts": {
+        "accepted": 499,
+        "duplicate": 1,
+        "rejected": 0
+      },
+      "rows": 500,
+      "schema": "v1",
+      "sha256": "551a0e7f3bc651864b89cd526805ab9697ba8be11bb6fcffc5bb457a2e2d4406"
+    },
+    "drops/metricas_2025-06.csv": {
+      "bytes": 42760,
+      "delimiter": ",",
+      "expected_status_counts": {
+        "accepted": 500,
+        "duplicate": 0,
+        "rejected": 0
+      },
+      "rows": 500,
+      "schema": "v1",
+      "sha256": "8ac84f7556a24982498f263d6e48752836e1fa3c82c0f3294bcd1f1111e9dfd0"
+    },
+    "drops/metricas_2025-07.csv": {
+      "bytes": 43204,
+      "delimiter": ",",
+      "expected_status_counts": {
+        "accepted": 500,
+        "duplicate": 0,
+        "rejected": 0
+      },
+      "rows": 500,
+      "schema": "v1",
+      "sha256": "611ed31a6fef33002acc79399f2ecb6d0021d989fbb09cb895c1a10e150c86fc"
+    },
+    "drops/metricas_2025-08.csv": {
+      "bytes": 41771,
+      "delimiter": ",",
+      "expected_status_counts": {
+        "accepted": 499,
+        "duplicate": 0,
+        "rejected": 0
+      },
+      "rows": 499,
+      "schema": "v1",
+      "sha256": "d43c516cafa8a72f592a527a82e9eb75a47e1e5e2874fba09645d5767cea7e0d"
+    },
+    "drops/metricas_2025-09.csv": {
+      "bytes": 42472,
+      "delimiter": ",",
+      "expected_status_counts": {
+        "accepted": 508,
+        "duplicate": 0,
+        "rejected": 0
+      },
+      "rows": 508,
+      "schema": "v1",
+      "sha256": "d623fe89a361745e5eb46b27a196e44d262163ab8ce25ca43640e1315abe07f9"
+    },
+    "drops/metricas_2025-10.csv": {
+      "bytes": 42332,
+      "delimiter": ",",
+      "expected_status_counts": {
+        "accepted": 500,
+        "duplicate": 0,
+        "rejected": 0
+      },
+      "rows": 500,
+      "schema": "v1",
+      "sha256": "af2dac455210d57d39119026e29af9c80783e4562c14e8d0e20685c50d495567"
+    },
+    "drops/metricas_2025-11.csv": {
+      "bytes": 46429,
+      "delimiter": ";",
+      "expected_status_counts": {
+        "accepted": 500,
+        "duplicate": 1,
+        "rejected": 8
+      },
+      "rows": 509,
+      "schema": "v2",
+      "sha256": "bd2d6b648e426b97062d7855bc25634adec17f5e000cb4fbac90f0d6940ecb3a"
+    },
+    "drops/metricas_2025-12.csv": {
+      "bytes": 46539,
+      "delimiter": ";",
+      "expected_status_counts": {
+        "accepted": 500,
+        "duplicate": 1,
+        "rejected": 8
+      },
+      "rows": 509,
+      "schema": "v2",
+      "sha256": "18355936ecfae1aac62a2fe8928e55c35ad7dd1d5a27672d1b1905fd7075614f"
+    },
+    "drops/metricas_2026-01.csv": {
+      "bytes": 46640,
+      "delimiter": ";",
+      "expected_status_counts": {
+        "accepted": 500,
+        "duplicate": 1,
+        "rejected": 4
+      },
+      "rows": 505,
+      "schema": "v2",
+      "sha256": "8bb2a8262985d7c14c3a102ec3dea20db2a14b4fc0f0f04c6d47e10342bdb5eb"
+    },
+    "drops/metricas_2026-02.csv": {
+      "bytes": 46072,
+      "delimiter": ";",
+      "expected_status_counts": {
+        "accepted": 499,
+        "duplicate": 1,
+        "rejected": 4
+      },
+      "rows": 504,
+      "schema": "v2",
+      "sha256": "222b00a7487424a0cbd166e9d5b554e888d8d3f35c56d99e9b80ee1db56a841f"
+    },
+    "drops/metricas_2026-03.csv": {
+      "bytes": 46181,
+      "delimiter": ";",
+      "expected_status_counts": {
+        "accepted": 500,
+        "duplicate": 1,
+        "rejected": 4
+      },
+      "rows": 505,
+      "schema": "v2",
+      "sha256": "b6f3b3db97d8c441d84b90d934ce8523400ae67f66d9b3eac9566c5fd701df37"
+    }
+  },
+  "gap_examples": [
+    {
+      "asesoria_id": 11,
+      "mes": "2023-05"
+    },
+    {
+      "asesoria_id": 48,
+      "mes": "2023-08"
+    },
+    {
+      "asesoria_id": 85,
+      "mes": "2023-11"
+    }
+  ],
+  "gaps": [
+    {
+      "asesoria_id": 11,
+      "mes": "2023-05"
+    },
+    {
+      "asesoria_id": 48,
+      "mes": "2023-08"
+    },
+    {
+      "asesoria_id": 85,
+      "mes": "2023-11"
+    },
+    {
+      "asesoria_id": 122,
+      "mes": "2024-02"
+    },
+    {
+      "asesoria_id": 159,
+      "mes": "2024-05"
+    },
+    {
+      "asesoria_id": 196,
+      "mes": "2024-08"
+    },
+    {
+      "asesoria_id": 233,
+      "mes": "2024-11"
+    },
+    {
+      "asesoria_id": 270,
+      "mes": "2025-02"
+    },
+    {
+      "asesoria_id": 307,
+      "mes": "2025-05"
+    },
+    {
+      "asesoria_id": 344,
+      "mes": "2025-08"
+    },
+    {
+      "asesoria_id": 381,
+      "mes": "2025-11"
+    },
+    {
+      "asesoria_id": 418,
+      "mes": "2026-02"
+    }
+  ],
+  "generator_version": 1,
+  "issue_scenarios": [
+    {
+      "asesoria_id": 64,
+      "expected_status": "accepted",
+      "file": "drops/metricas_2023-04.csv",
+      "issues": [
+        {
+          "code": "missing_value",
+          "field": "documentos_procesados",
+          "severity": "warning"
+        }
+      ],
+      "kind": "blank_optional",
+      "line": 65,
+      "mes": "2023-04"
+    },
+    {
+      "asesoria_id": 275,
+      "expected_status": "accepted",
+      "file": "drops/metricas_2023-04.csv",
+      "issues": [
+        {
+          "code": "backlog_resolved",
+          "field": "consultas_resueltas",
+          "severity": "warning"
+        }
+      ],
+      "kind": "backlog_resolved",
+      "line": 276,
+      "mes": "2023-04"
+    },
+    {
+      "asesoria_id": 124,
+      "expected_status": "duplicate",
+      "file": "drops/metricas_2023-04.csv",
+      "issues": [
+        {
+          "code": "exact_duplicate",
+          "field": null,
+          "severity": "info"
+        }
+      ],
+      "kind": "exact_duplicate",
+      "line": 502,
+      "mes": "2023-04"
+    },
+    {
+      "asesoria_id": 210,
+      "expected_status": "accepted",
+      "file": "drops/metricas_2023-05.csv",
+      "issues": [
+        {
+          "code": "backlog_resolved",
+          "field": "consultas_resueltas",
+          "severity": "warning"
+        }
+      ],
+      "kind": "backlog_resolved",
+      "line": 210,
+      "mes": "2023-05"
+    },
+    {
+      "asesoria_id": 133,
+      "expected_status": "duplicate",
+      "file": "drops/metricas_2023-05.csv",
+      "issues": [
+        {
+          "code": "exact_duplicate",
+          "field": null,
+          "severity": "info"
+        }
+      ],
+      "kind": "exact_duplicate",
+      "line": 508,
+      "mes": "2023-05"
+    },
+    {
+      "asesoria_id": 145,
+      "expected_status": "accepted",
+      "file": "drops/metricas_2023-06.csv",
+      "issues": [
+        {
+          "code": "backlog_resolved",
+          "field": "consultas_resueltas",
+          "severity": "warning"
+        }
+      ],
+      "kind": "backlog_resolved",
+      "line": 146,
+      "mes": "2023-06"
+    },
+    {
+      "asesoria_id": 306,
+      "expected_status": "accepted",
+      "file": "drops/metricas_2023-06.csv",
+      "issues": [
+        {
+          "code": "missing_value",
+          "field": "satisfaccion_cliente",
+          "severity": "warning"
+        }
+      ],
+      "kind": "blank_optional",
+      "line": 307,
+      "mes": "2023-06"
+    },
+    {
+      "asesoria_id": 142,
+      "expected_status": "duplicate",
+      "file": "drops/metricas_2023-06.csv",
+      "issues": [
+        {
+          "code": "exact_duplicate",
+          "field": null,
+          "severity": "info"
+        }
+      ],
+      "kind": "exact_duplicate",
+      "line": 502,
+      "mes": "2023-06"
+    },
+    {
+      "asesoria_id": 80,
+      "expected_status": "accepted",
+      "file": "drops/metricas_2023-07.csv",
+      "issues": [
+        {
+          "code": "backlog_resolved",
+          "field": "consultas_resueltas",
+          "severity": "warning"
+        }
+      ],
+      "kind": "backlog_resolved",
+      "line": 81,
+      "mes": "2023-07"
+    },
+    {
+      "asesoria_id": 229,
+      "expected_status": "accepted",
+      "file": "drops/metricas_2023-07.csv",
+      "issues": [
+        {
+          "code": "missing_value",
+          "field": "documentos_procesados",
+          "severity": "warning"
+        }
+      ],
+      "kind": "blank_optional",
+      "line": 230,
+      "mes": "2023-07"
+    },
+    {
+      "asesoria_id": 151,
+      "expected_status": "duplicate",
+      "file": "drops/metricas_2023-07.csv",
+      "issues": [
+        {
+          "code": "exact_duplicate",
+          "field": null,
+          "severity": "info"
+        }
+      ],
+      "kind": "exact_duplicate",
+      "line": 502,
+      "mes": "2023-07"
+    },
+    {
+      "asesoria_id": 152,
+      "expected_status": "accepted",
+      "file": "drops/metricas_2023-08.csv",
+      "issues": [
+        {
+          "code": "missing_value",
+          "field": "horas_trabajadas",
+          "severity": "warning"
+        }
+      ],
+      "kind": "blank_optional",
+      "line": 152,
+      "mes": "2023-08"
+    },
+    {
+      "asesoria_id": 160,
+      "expected_status": "duplicate",
+      "file": "drops/metricas_2023-08.csv",
+      "issues": [
+        {
+          "code": "exact_duplicate",
+          "field": null,
+          "severity": "info"
+        }
+      ],
+      "kind": "exact_duplicate",
+      "line": 501,
+      "mes": "2023-08"
+    },
+    {
+      "asesoria_id": 75,
+      "expected_status": "accepted",
+      "file": "drops/metricas_2023-09.csv",
+      "issues": [
+        {
+          "code": "missing_value",
+          "field": "satisfaccion_cliente",
+          "severity": "warning"
+        }
+      ],
+      "kind": "blank_optional",
+      "line": 76,
+      "mes": "2023-09"
+    },
+    {
+      "asesoria_id": 169,
+      "expected_status": "duplicate",
+      "file": "drops/metricas_2023-09.csv",
+      "issues": [
+        {
+          "code": "exact_duplicate",
+          "field": null,
+          "severity": "info"
+        }
+      ],
+      "kind": "exact_duplicate",
+      "line": 502,
+      "mes": "2023-09"
+    },
+    {
+      "asesoria_id": 178,
+      "expected_status": "duplicate",
+      "file": "drops/metricas_2023-10.csv",
+      "issues": [
+        {
+          "code": "exact_duplicate",
+          "field": null,
+          "severity": "info"
+        }
+      ],
+      "kind": "exact_duplicate",
+      "line": 502,
+      "mes": "2023-10"
+    },
+    {
+      "asesoria_id": 288,
+      "expected_status": "accepted",
+      "file": "drops/metricas_2023-11.csv",
+      "issues": [
+        {
+          "code": "backlog_resolved",
+          "field": "consultas_resueltas",
+          "severity": "warning"
+        }
+      ],
+      "kind": "backlog_resolved",
+      "line": 288,
+      "mes": "2023-11"
+    },
+    {
+      "asesoria_id": 187,
+      "expected_status": "duplicate",
+      "file": "drops/metricas_2023-11.csv",
+      "issues": [
+        {
+          "code": "exact_duplicate",
+          "field": null,
+          "severity": "info"
+        }
+      ],
+      "kind": "exact_duplicate",
+      "line": 501,
+      "mes": "2023-11"
+    },
+    {
+      "asesoria_id": 223,
+      "expected_status": "accepted",
+      "file": "drops/metricas_2023-12.csv",
+      "issues": [
+        {
+          "code": "backlog_resolved",
+          "field": "consultas_resueltas",
+          "severity": "warning"
+        }
+      ],
+      "kind": "backlog_resolved",
+      "line": 224,
+      "mes": "2023-12"
+    },
+    {
+      "asesoria_id": 240,
+      "expected_status": "accepted",
+      "file": "drops/metricas_2023-12.csv",
+      "issues": [
+        {
+          "code": "missing_value",
+          "field": "satisfaccion_cliente",
+          "severity": "warning"
+        }
+      ],
+      "kind": "blank_optional",
+      "line": 241,
+      "mes": "2023-12"
+    },
+    {
+      "asesoria_id": 196,
+      "expected_status": "duplicate",
+      "file": "drops/metricas_2023-12.csv",
+      "issues": [
+        {
+          "code": "exact_duplicate",
+          "field": null,
+          "severity": "info"
+        }
+      ],
+      "kind": "exact_duplicate",
+      "line": 510,
+      "mes": "2023-12"
+    },
+    {
+      "asesoria_id": 158,
+      "expected_status": "accepted",
+      "file": "drops/metricas_2024-01.csv",
+      "issues": [
+        {
+          "code": "backlog_resolved",
+          "field": "consultas_resueltas",
+          "severity": "warning"
+        }
+      ],
+      "kind": "backlog_resolved",
+      "line": 159,
+      "mes": "2024-01"
+    },
+    {
+      "asesoria_id": 163,
+      "expected_status": "accepted",
+      "file": "drops/metricas_2024-01.csv",
+      "issues": [
+        {
+          "code": "missing_value",
+          "field": "documentos_procesados",
+          "severity": "warning"
+        }
+      ],
+      "kind": "blank_optional",
+      "line": 164,
+      "mes": "2024-01"
+    },
+    {
+      "asesoria_id": 205,
+      "expected_status": "duplicate",
+      "file": "drops/metricas_2024-01.csv",
+      "issues": [
+        {
+          "code": "exact_duplicate",
+          "field": null,
+          "severity": "info"
+        }
+      ],
+      "kind": "exact_duplicate",
+      "line": 502,
+      "mes": "2024-01"
+    },
+    {
+      "asesoria_id": 86,
+      "expected_status": "accepted",
+      "file": "drops/metricas_2024-02.csv",
+      "issues": [
+        {
+          "code": "missing_value",
+          "field": "horas_trabajadas",
+          "severity": "warning"
+        }
+      ],
+      "kind": "blank_optional",
+      "line": 87,
+      "mes": "2024-02"
+    },
+    {
+      "asesoria_id": 93,
+      "expected_status": "accepted",
+      "file": "drops/metricas_2024-02.csv",
+      "issues": [
+        {
+          "code": "backlog_resolved",
+          "field": "consultas_resueltas",
+          "severity": "warning"
+        }
+      ],
+      "kind": "backlog_resolved",
+      "line": 94,
+      "mes": "2024-02"
+    },
+    {
+      "asesoria_id": 214,
+      "expected_status": "duplicate",
+      "file": "drops/metricas_2024-02.csv",
+      "issues": [
+        {
+          "code": "exact_duplicate",
+          "field": null,
+          "severity": "info"
+        }
+      ],
+      "kind": "exact_duplicate",
+      "line": 501,
+      "mes": "2024-02"
+    },
+    {
+      "asesoria_id": 223,
+      "expected_status": "duplicate",
+      "file": "drops/metricas_2024-03.csv",
+      "issues": [
+        {
+          "code": "exact_duplicate",
+          "field": null,
+          "severity": "info"
+        }
+      ],
+      "kind": "exact_duplicate",
+      "line": 502,
+      "mes": "2024-03"
+    },
+    {
+      "asesoria_id": 232,
+      "expected_status": "duplicate",
+      "file": "drops/metricas_2024-04.csv",
+      "issues": [
+        {
+          "code": "exact_duplicate",
+          "field": null,
+          "severity": "info"
+        }
+      ],
+      "kind": "exact_duplicate",
+      "line": 502,
+      "mes": "2024-04"
+    },
+    {
+      "asesoria_id": 251,
+      "expected_status": "accepted",
+      "file": "drops/metricas_2024-05.csv",
+      "issues": [
+        {
+          "code": "missing_value",
+          "field": "horas_trabajadas",
+          "severity": "warning"
+        }
+      ],
+      "kind": "blank_optional",
+      "line": 251,
+      "mes": "2024-05"
+    },
+    {
+      "asesoria_id": 241,
+      "expected_status": "duplicate",
+      "file": "drops/metricas_2024-05.csv",
+      "issues": [
+        {
+          "code": "exact_duplicate",
+          "field": null,
+          "severity": "info"
+        }
+      ],
+      "kind": "exact_duplicate",
+      "line": 501,
+      "mes": "2024-05"
+    },
+    {
+      "asesoria_id": 174,
+      "expected_status": "accepted",
+      "file": "drops/metricas_2024-06.csv",
+      "issues": [
+        {
+          "code": "missing_value",
+          "field": "satisfaccion_cliente",
+          "severity": "warning"
+        }
+      ],
+      "kind": "blank_optional",
+      "line": 175,
+      "mes": "2024-06"
+    },
+    {
+      "asesoria_id": 250,
+      "expected_status": "duplicate",
+      "file": "drops/metricas_2024-06.csv",
+      "issues": [
+        {
+          "code": "exact_duplicate",
+          "field": null,
+          "severity": "info"
+        }
+      ],
+      "kind": "exact_duplicate",
+      "line": 502,
+      "mes": "2024-06"
+    },
+    {
+      "asesoria_id": 97,
+      "expected_status": "accepted",
+      "file": "drops/metricas_2024-07.csv",
+      "issues": [
+        {
+          "code": "missing_value",
+          "field": "documentos_procesados",
+          "severity": "warning"
+        }
+      ],
+      "kind": "blank_optional",
+      "line": 98,
+      "mes": "2024-07"
+    },
+    {
+      "asesoria_id": 236,
+      "expected_status": "accepted",
+      "file": "drops/metricas_2024-07.csv",
+      "issues": [
+        {
+          "code": "backlog_resolved",
+          "field": "consultas_resueltas",
+          "severity": "warning"
+        }
+      ],
+      "kind": "backlog_resolved",
+      "line": 237,
+      "mes": "2024-07"
+    },
+    {
+      "asesoria_id": 259,
+      "expected_status": "duplicate",
+      "file": "drops/metricas_2024-07.csv",
+      "issues": [
+        {
+          "code": "exact_duplicate",
+          "field": null,
+          "severity": "info"
+        }
+      ],
+      "kind": "exact_duplicate",
+      "line": 510,
+      "mes": "2024-07"
+    },
+    {
+      "asesoria_id": 171,
+      "expected_status": "accepted",
+      "file": "drops/metricas_2024-08.csv",
+      "issues": [
+        {
+          "code": "backlog_resolved",
+          "field": "consultas_resueltas",
+          "severity": "warning"
+        }
+      ],
+      "kind": "backlog_resolved",
+      "line": 172,
+      "mes": "2024-08"
+    },
+    {
+      "asesoria_id": 268,
+      "expected_status": "duplicate",
+      "file": "drops/metricas_2024-08.csv",
+      "issues": [
+        {
+          "code": "exact_duplicate",
+          "field": null,
+          "severity": "info"
+        }
+      ],
+      "kind": "exact_duplicate",
+      "line": 501,
+      "mes": "2024-08"
+    },
+    {
+      "asesoria_id": 106,
+      "expected_status": "accepted",
+      "file": "drops/metricas_2024-09.csv",
+      "issues": [
+        {
+          "code": "backlog_resolved",
+          "field": "consultas_resueltas",
+          "severity": "warning"
+        }
+      ],
+      "kind": "backlog_resolved",
+      "line": 107,
+      "mes": "2024-09"
+    },
+    {
+      "asesoria_id": 277,
+      "expected_status": "duplicate",
+      "file": "drops/metricas_2024-09.csv",
+      "issues": [
+        {
+          "code": "exact_duplicate",
+          "field": null,
+          "severity": "info"
+        }
+      ],
+      "kind": "exact_duplicate",
+      "line": 502,
+      "mes": "2024-09"
+    },
+    {
+      "asesoria_id": 262,
+      "expected_status": "accepted",
+      "file": "drops/metricas_2024-10.csv",
+      "issues": [
+        {
+          "code": "missing_value",
+          "field": "documentos_procesados",
+          "severity": "warning"
+        }
+      ],
+      "kind": "blank_optional",
+      "line": 263,
+      "mes": "2024-10"
+    },
+    {
+      "asesoria_id": 286,
+      "expected_status": "duplicate",
+      "file": "drops/metricas_2024-10.csv",
+      "issues": [
+        {
+          "code": "exact_duplicate",
+          "field": null,
+          "severity": "info"
+        }
+      ],
+      "kind": "exact_duplicate",
+      "line": 502,
+      "mes": "2024-10"
+    },
+    {
+      "asesoria_id": 185,
+      "expected_status": "accepted",
+      "file": "drops/metricas_2024-11.csv",
+      "issues": [
+        {
+          "code": "missing_value",
+          "field": "horas_trabajadas",
+          "severity": "warning"
+        }
+      ],
+      "kind": "blank_optional",
+      "line": 186,
+      "mes": "2024-11"
+    },
+    {
+      "asesoria_id": 295,
+      "expected_status": "duplicate",
+      "file": "drops/metricas_2024-11.csv",
+      "issues": [
+        {
+          "code": "exact_duplicate",
+          "field": null,
+          "severity": "info"
+        }
+      ],
+      "kind": "exact_duplicate",
+      "line": 501,
+      "mes": "2024-11"
+    },
+    {
+      "asesoria_id": 108,
+      "expected_status": "accepted",
+      "file": "drops/metricas_2024-12.csv",
+      "issues": [
+        {
+          "code": "missing_value",
+          "field": "satisfaccion_cliente",
+          "severity": "warning"
+        }
+      ],
+      "kind": "blank_optional",
+      "line": 109,
+      "mes": "2024-12"
+    },
+    {
+      "asesoria_id": 304,
+      "expected_status": "duplicate",
+      "file": "drops/metricas_2024-12.csv",
+      "issues": [
+        {
+          "code": "exact_duplicate",
+          "field": null,
+          "severity": "info"
+        }
+      ],
+      "kind": "exact_duplicate",
+      "line": 502,
+      "mes": "2024-12"
+    },
+    {
+      "asesoria_id": 313,
+      "expected_status": "duplicate",
+      "file": "drops/metricas_2025-01.csv",
+      "issues": [
+        {
+          "code": "exact_duplicate",
+          "field": null,
+          "severity": "info"
+        }
+      ],
+      "kind": "exact_duplicate",
+      "line": 502,
+      "mes": "2025-01"
+    },
+    {
+      "asesoria_id": 249,
+      "expected_status": "accepted",
+      "file": "drops/metricas_2025-02.csv",
+      "issues": [
+        {
+          "code": "backlog_resolved",
+          "field": "consultas_resueltas",
+          "severity": "warning"
+        }
+      ],
+      "kind": "backlog_resolved",
+      "line": 250,
+      "mes": "2025-02"
+    },
+    {
+      "asesoria_id": 322,
+      "expected_status": "duplicate",
+      "file": "drops/metricas_2025-02.csv",
+      "issues": [
+        {
+          "code": "exact_duplicate",
+          "field": null,
+          "severity": "info"
+        }
+      ],
+      "kind": "exact_duplicate",
+      "line": 509,
+      "mes": "2025-02"
+    },
+    {
+      "asesoria_id": 184,
+      "expected_status": "accepted",
+      "file": "drops/metricas_2025-03.csv",
+      "issues": [
+        {
+          "code": "backlog_resolved",
+          "field": "consultas_resueltas",
+          "severity": "warning"
+        }
+      ],
+      "kind": "backlog_resolved",
+      "line": 185,
+      "mes": "2025-03"
+    },
+    {
+      "asesoria_id": 273,
+      "expected_status": "accepted",
+      "file": "drops/metricas_2025-03.csv",
+      "issues": [
+        {
+          "code": "missing_value",
+          "field": "satisfaccion_cliente",
+          "severity": "warning"
+        }
+      ],
+      "kind": "blank_optional",
+      "line": 274,
+      "mes": "2025-03"
+    },
+    {
+      "asesoria_id": 331,
+      "expected_status": "duplicate",
+      "file": "drops/metricas_2025-03.csv",
+      "issues": [
+        {
+          "code": "exact_duplicate",
+          "field": null,
+          "severity": "info"
+        }
+      ],
+      "kind": "exact_duplicate",
+      "line": 502,
+      "mes": "2025-03"
+    },
+    {
+      "asesoria_id": 119,
+      "expected_status": "accepted",
+      "file": "drops/metricas_2025-04.csv",
+      "issues": [
+        {
+          "code": "backlog_resolved",
+          "field": "consultas_resueltas",
+          "severity": "warning"
+        }
+      ],
+      "kind": "backlog_resolved",
+      "line": 120,
+      "mes": "2025-04"
+    },
+    {
+      "asesoria_id": 196,
+      "expected_status": "accepted",
+      "file": "drops/metricas_2025-04.csv",
+      "issues": [
+        {
+          "code": "missing_value",
+          "field": "documentos_procesados",
+          "severity": "warning"
+        }
+      ],
+      "kind": "blank_optional",
+      "line": 197,
+      "mes": "2025-04"
+    },
+    {
+      "asesoria_id": 340,
+      "expected_status": "duplicate",
+      "file": "drops/metricas_2025-04.csv",
+      "issues": [
+        {
+          "code": "exact_duplicate",
+          "field": null,
+          "severity": "info"
+        }
+      ],
+      "kind": "exact_duplicate",
+      "line": 502,
+      "mes": "2025-04"
+    },
+    {
+      "asesoria_id": 119,
+      "expected_status": "accepted",
+      "file": "drops/metricas_2025-05.csv",
+      "issues": [
+        {
+          "code": "missing_value",
+          "field": "horas_trabajadas",
+          "severity": "warning"
+        }
+      ],
+      "kind": "blank_optional",
+      "line": 120,
+      "mes": "2025-05"
+    },
+    {
+      "asesoria_id": 349,
+      "expected_status": "duplicate",
+      "file": "drops/metricas_2025-05.csv",
+      "issues": [
+        {
+          "code": "exact_duplicate",
+          "field": null,
+          "severity": "info"
+        }
+      ],
+      "kind": "exact_duplicate",
+      "line": 501,
+      "mes": "2025-05"
+    },
+    {
+      "asesoria_id": 284,
+      "expected_status": "accepted",
+      "file": "drops/metricas_2025-08.csv",
+      "issues": [
+        {
+          "code": "missing_value",
+          "field": "horas_trabajadas",
+          "severity": "warning"
+        }
+      ],
+      "kind": "blank_optional",
+      "line": 285,
+      "mes": "2025-08"
+    },
+    {
+      "asesoria_id": 207,
+      "expected_status": "accepted",
+      "file": "drops/metricas_2025-09.csv",
+      "issues": [
+        {
+          "code": "missing_value",
+          "field": "satisfaccion_cliente",
+          "severity": "warning"
+        }
+      ],
+      "kind": "blank_optional",
+      "line": 208,
+      "mes": "2025-09"
+    },
+    {
+      "asesoria_id": 262,
+      "expected_status": "accepted",
+      "file": "drops/metricas_2025-09.csv",
+      "issues": [
+        {
+          "code": "backlog_resolved",
+          "field": "consultas_resueltas",
+          "severity": "warning"
+        }
+      ],
+      "kind": "backlog_resolved",
+      "line": 263,
+      "mes": "2025-09"
+    },
+    {
+      "asesoria_id": 130,
+      "expected_status": "accepted",
+      "file": "drops/metricas_2025-10.csv",
+      "issues": [
+        {
+          "code": "missing_value",
+          "field": "documentos_procesados",
+          "severity": "warning"
+        }
+      ],
+      "kind": "blank_optional",
+      "line": 131,
+      "mes": "2025-10"
+    },
+    {
+      "asesoria_id": 197,
+      "expected_status": "accepted",
+      "file": "drops/metricas_2025-10.csv",
+      "issues": [
+        {
+          "code": "backlog_resolved",
+          "field": "consultas_resueltas",
+          "severity": "warning"
+        }
+      ],
+      "kind": "backlog_resolved",
+      "line": 198,
+      "mes": "2025-10"
+    },
+    {
+      "asesoria_id": 53,
+      "expected_status": "accepted",
+      "file": "drops/metricas_2025-11.csv",
+      "issues": [
+        {
+          "code": "missing_value",
+          "field": "horas_trabajadas",
+          "severity": "warning"
+        }
+      ],
+      "kind": "blank_optional",
+      "line": 54,
+      "mes": "2025-11"
+    },
+    {
+      "asesoria_id": 132,
+      "expected_status": "accepted",
+      "file": "drops/metricas_2025-11.csv",
+      "issues": [
+        {
+          "code": "backlog_resolved",
+          "field": "consultas_resueltas",
+          "severity": "warning"
+        }
+      ],
+      "kind": "backlog_resolved",
+      "line": 133,
+      "mes": "2025-11"
+    },
+    {
+      "asesoria_id": 79,
+      "expected_status": "duplicate",
+      "file": "drops/metricas_2025-11.csv",
+      "issues": [
+        {
+          "code": "exact_duplicate",
+          "field": null,
+          "severity": "info"
+        }
+      ],
+      "kind": "exact_duplicate",
+      "line": 502,
+      "mes": "2025-11"
+    },
+    {
+      "asesoria_id": 8001,
+      "expected_status": "rejected",
+      "file": "drops/metricas_2025-11.csv",
+      "issues": [
+        {
+          "code": "unknown_firm",
+          "field": "asesoria_id",
+          "severity": "error"
+        }
+      ],
+      "kind": "unknown_id",
+      "line": 503,
+      "mes": "2025-10"
+    },
+    {
+      "asesoria_id": 8006,
+      "expected_status": "rejected",
+      "file": "drops/metricas_2025-11.csv",
+      "issues": [
+        {
+          "code": "unknown_firm",
+          "field": "asesoria_id",
+          "severity": "error"
+        }
+      ],
+      "kind": "unknown_id",
+      "line": 504,
+      "mes": "2025-10"
+    },
+    {
+      "asesoria_id": 320,
+      "expected_status": "rejected",
+      "file": "drops/metricas_2025-11.csv",
+      "issues": [
+        {
+          "code": "invalid_month",
+          "field": "mes",
+          "severity": "error"
+        }
+      ],
+      "kind": "invalid_month",
+      "line": 505,
+      "mes": "2025-13"
+    },
+    {
+      "asesoria_id": 325,
+      "expected_status": "rejected",
+      "file": "drops/metricas_2025-11.csv",
+      "issues": [
+        {
+          "code": "invalid_month",
+          "field": "mes",
+          "severity": "error"
+        }
+      ],
+      "kind": "invalid_month",
+      "line": 506,
+      "mes": "2025-13"
+    },
+    {
+      "asesoria_id": 37,
+      "expected_status": "rejected",
+      "file": "drops/metricas_2025-11.csv",
+      "issues": [
+        {
+          "code": "invalid_number",
+          "field": "facturacion_gestion_eur",
+          "severity": "error"
+        }
+      ],
+      "kind": "negative_money",
+      "line": 507,
+      "mes": "2025-10",
+      "retained_key": {
+        "asesoria_id": 37,
+        "mes": "2025-10"
+      }
+    },
+    {
+      "asesoria_id": 252,
+      "expected_status": "rejected",
+      "file": "drops/metricas_2025-11.csv",
+      "issues": [
+        {
+          "code": "invalid_number",
+          "field": "facturacion_gestion_eur",
+          "severity": "error"
+        }
+      ],
+      "kind": "negative_money",
+      "line": 508,
+      "mes": "2025-10",
+      "retained_key": {
+        "asesoria_id": 252,
+        "mes": "2025-10"
+      }
+    },
+    {
+      "asesoria_id": 41,
+      "expected_status": "rejected",
+      "file": "drops/metricas_2025-11.csv",
+      "issues": [
+        {
+          "code": "satisfaction_range",
+          "field": "satisfaccion_cliente",
+          "severity": "error"
+        }
+      ],
+      "kind": "out_of_range_satisfaction",
+      "line": 509,
+      "mes": "2025-10",
+      "retained_key": {
+        "asesoria_id": 41,
+        "mes": "2025-10"
+      }
+    },
+    {
+      "asesoria_id": 276,
+      "expected_status": "rejected",
+      "file": "drops/metricas_2025-11.csv",
+      "issues": [
+        {
+          "code": "satisfaction_range",
+          "field": "satisfaccion_cliente",
+          "severity": "error"
+        }
+      ],
+      "kind": "out_of_range_satisfaction",
+      "line": 510,
+      "mes": "2025-10",
+      "retained_key": {
+        "asesoria_id": 276,
+        "mes": "2025-10"
+      }
+    },
+    {
+      "asesoria_id": 67,
+      "expected_status": "accepted",
+      "file": "drops/metricas_2025-12.csv",
+      "issues": [
+        {
+          "code": "backlog_resolved",
+          "field": "consultas_resueltas",
+          "severity": "warning"
+        }
+      ],
+      "kind": "backlog_resolved",
+      "line": 68,
+      "mes": "2025-12"
+    },
+    {
+      "asesoria_id": 88,
+      "expected_status": "duplicate",
+      "file": "drops/metricas_2025-12.csv",
+      "issues": [
+        {
+          "code": "exact_duplicate",
+          "field": null,
+          "severity": "info"
+        }
+      ],
+      "kind": "exact_duplicate",
+      "line": 502,
+      "mes": "2025-12"
+    },
+    {
+      "asesoria_id": 8002,
+      "expected_status": "rejected",
+      "file": "drops/metricas_2025-12.csv",
+      "issues": [
+        {
+          "code": "unknown_firm",
+          "field": "asesoria_id",
+          "severity": "error"
+        }
+      ],
+      "kind": "unknown_id",
+      "line": 503,
+      "mes": "2025-11"
+    },
+    {
+      "asesoria_id": 8007,
+      "expected_status": "rejected",
+      "file": "drops/metricas_2025-12.csv",
+      "issues": [
+        {
+          "code": "unknown_firm",
+          "field": "asesoria_id",
+          "severity": "error"
+        }
+      ],
+      "kind": "unknown_id",
+      "line": 504,
+      "mes": "2025-11"
+    },
+    {
+      "asesoria_id": 321,
+      "expected_status": "rejected",
+      "file": "drops/metricas_2025-12.csv",
+      "issues": [
+        {
+          "code": "invalid_month",
+          "field": "mes",
+          "severity": "error"
+        }
+      ],
+      "kind": "invalid_month",
+      "line": 505,
+      "mes": "2025-13"
+    },
+    {
+      "asesoria_id": 326,
+      "expected_status": "rejected",
+      "file": "drops/metricas_2025-12.csv",
+      "issues": [
+        {
+          "code": "invalid_month",
+          "field": "mes",
+          "severity": "error"
+        }
+      ],
+      "kind": "invalid_month",
+      "line": 506,
+      "mes": "2025-13"
+    },
+    {
+      "asesoria_id": 80,
+      "expected_status": "rejected",
+      "file": "drops/metricas_2025-12.csv",
+      "issues": [
+        {
+          "code": "invalid_number",
+          "field": "facturacion_gestion_eur",
+          "severity": "error"
+        }
+      ],
+      "kind": "negative_money",
+      "line": 507,
+      "mes": "2025-11",
+      "retained_key": {
+        "asesoria_id": 80,
+        "mes": "2025-11"
+      }
+    },
+    {
+      "asesoria_id": 295,
+      "expected_status": "rejected",
+      "file": "drops/metricas_2025-12.csv",
+      "issues": [
+        {
+          "code": "invalid_number",
+          "field": "facturacion_gestion_eur",
+          "severity": "error"
+        }
+      ],
+      "kind": "negative_money",
+      "line": 508,
+      "mes": "2025-11",
+      "retained_key": {
+        "asesoria_id": 295,
+        "mes": "2025-11"
+      }
+    },
+    {
+      "asesoria_id": 88,
+      "expected_status": "rejected",
+      "file": "drops/metricas_2025-12.csv",
+      "issues": [
+        {
+          "code": "satisfaction_range",
+          "field": "satisfaccion_cliente",
+          "severity": "error"
+        }
+      ],
+      "kind": "out_of_range_satisfaction",
+      "line": 509,
+      "mes": "2025-11",
+      "retained_key": {
+        "asesoria_id": 88,
+        "mes": "2025-11"
+      }
+    },
+    {
+      "asesoria_id": 323,
+      "expected_status": "rejected",
+      "file": "drops/metricas_2025-12.csv",
+      "issues": [
+        {
+          "code": "satisfaction_range",
+          "field": "satisfaccion_cliente",
+          "severity": "error"
+        }
+      ],
+      "kind": "out_of_range_satisfaction",
+      "line": 510,
+      "mes": "2025-11",
+      "retained_key": {
+        "asesoria_id": 323,
+        "mes": "2025-11"
+      }
+    },
+    {
+      "asesoria_id": 295,
+      "expected_status": "accepted",
+      "file": "drops/metricas_2026-01.csv",
+      "issues": [
+        {
+          "code": "missing_value",
+          "field": "documentos_procesados",
+          "severity": "warning"
+        }
+      ],
+      "kind": "blank_optional",
+      "line": 296,
+      "mes": "2026-01"
+    },
+    {
+      "asesoria_id": 97,
+      "expected_status": "duplicate",
+      "file": "drops/metricas_2026-01.csv",
+      "issues": [
+        {
+          "code": "exact_duplicate",
+          "field": null,
+          "severity": "info"
+        }
+      ],
+      "kind": "exact_duplicate",
+      "line": 502,
+      "mes": "2026-01"
+    },
+    {
+      "asesoria_id": 8003,
+      "expected_status": "rejected",
+      "file": "drops/metricas_2026-01.csv",
+      "issues": [
+        {
+          "code": "unknown_firm",
+          "field": "asesoria_id",
+          "severity": "error"
+        }
+      ],
+      "kind": "unknown_id",
+      "line": 503,
+      "mes": "2025-12"
+    },
+    {
+      "asesoria_id": 322,
+      "expected_status": "rejected",
+      "file": "drops/metricas_2026-01.csv",
+      "issues": [
+        {
+          "code": "invalid_month",
+          "field": "mes",
+          "severity": "error"
+        }
+      ],
+      "kind": "invalid_month",
+      "line": 504,
+      "mes": "2026-13"
+    },
+    {
+      "asesoria_id": 123,
+      "expected_status": "rejected",
+      "file": "drops/metricas_2026-01.csv",
+      "issues": [
+        {
+          "code": "invalid_number",
+          "field": "facturacion_gestion_eur",
+          "severity": "error"
+        }
+      ],
+      "kind": "negative_money",
+      "line": 505,
+      "mes": "2025-12",
+      "retained_key": {
+        "asesoria_id": 123,
+        "mes": "2025-12"
+      }
+    },
+    {
+      "asesoria_id": 135,
+      "expected_status": "rejected",
+      "file": "drops/metricas_2026-01.csv",
+      "issues": [
+        {
+          "code": "satisfaction_range",
+          "field": "satisfaccion_cliente",
+          "severity": "error"
+        }
+      ],
+      "kind": "out_of_range_satisfaction",
+      "line": 506,
+      "mes": "2025-12",
+      "retained_key": {
+        "asesoria_id": 135,
+        "mes": "2025-12"
+      }
+    },
+    {
+      "asesoria_id": 218,
+      "expected_status": "accepted",
+      "file": "drops/metricas_2026-02.csv",
+      "issues": [
+        {
+          "code": "missing_value",
+          "field": "horas_trabajadas",
+          "severity": "warning"
+        }
+      ],
+      "kind": "blank_optional",
+      "line": 219,
+      "mes": "2026-02"
+    },
+    {
+      "asesoria_id": 106,
+      "expected_status": "duplicate",
+      "file": "drops/metricas_2026-02.csv",
+      "issues": [
+        {
+          "code": "exact_duplicate",
+          "field": null,
+          "severity": "info"
+        }
+      ],
+      "kind": "exact_duplicate",
+      "line": 501,
+      "mes": "2026-02"
+    },
+    {
+      "asesoria_id": 8004,
+      "expected_status": "rejected",
+      "file": "drops/metricas_2026-02.csv",
+      "issues": [
+        {
+          "code": "unknown_firm",
+          "field": "asesoria_id",
+          "severity": "error"
+        }
+      ],
+      "kind": "unknown_id",
+      "line": 502,
+      "mes": "2026-01"
+    },
+    {
+      "asesoria_id": 323,
+      "expected_status": "rejected",
+      "file": "drops/metricas_2026-02.csv",
+      "issues": [
+        {
+          "code": "invalid_month",
+          "field": "mes",
+          "severity": "error"
+        }
+      ],
+      "kind": "invalid_month",
+      "line": 503,
+      "mes": "2026-13"
+    },
+    {
+      "asesoria_id": 166,
+      "expected_status": "rejected",
+      "file": "drops/metricas_2026-02.csv",
+      "issues": [
+        {
+          "code": "invalid_number",
+          "field": "facturacion_gestion_eur",
+          "severity": "error"
+        }
+      ],
+      "kind": "negative_money",
+      "line": 504,
+      "mes": "2026-01",
+      "retained_key": {
+        "asesoria_id": 166,
+        "mes": "2026-01"
+      }
+    },
+    {
+      "asesoria_id": 182,
+      "expected_status": "rejected",
+      "file": "drops/metricas_2026-02.csv",
+      "issues": [
+        {
+          "code": "satisfaction_range",
+          "field": "satisfaccion_cliente",
+          "severity": "error"
+        }
+      ],
+      "kind": "out_of_range_satisfaction",
+      "line": 505,
+      "mes": "2026-01",
+      "retained_key": {
+        "asesoria_id": 182,
+        "mes": "2026-01"
+      }
+    },
+    {
+      "asesoria_id": 141,
+      "expected_status": "accepted",
+      "file": "drops/metricas_2026-03.csv",
+      "issues": [
+        {
+          "code": "missing_value",
+          "field": "satisfaccion_cliente",
+          "severity": "warning"
+        }
+      ],
+      "kind": "blank_optional",
+      "line": 142,
+      "mes": "2026-03"
+    },
+    {
+      "asesoria_id": 115,
+      "expected_status": "duplicate",
+      "file": "drops/metricas_2026-03.csv",
+      "issues": [
+        {
+          "code": "exact_duplicate",
+          "field": null,
+          "severity": "info"
+        }
+      ],
+      "kind": "exact_duplicate",
+      "line": 502,
+      "mes": "2026-03"
+    },
+    {
+      "asesoria_id": 8005,
+      "expected_status": "rejected",
+      "file": "drops/metricas_2026-03.csv",
+      "issues": [
+        {
+          "code": "unknown_firm",
+          "field": "asesoria_id",
+          "severity": "error"
+        }
+      ],
+      "kind": "unknown_id",
+      "line": 503,
+      "mes": "2026-02"
+    },
+    {
+      "asesoria_id": 324,
+      "expected_status": "rejected",
+      "file": "drops/metricas_2026-03.csv",
+      "issues": [
+        {
+          "code": "invalid_month",
+          "field": "mes",
+          "severity": "error"
+        }
+      ],
+      "kind": "invalid_month",
+      "line": 504,
+      "mes": "2026-13"
+    },
+    {
+      "asesoria_id": 209,
+      "expected_status": "rejected",
+      "file": "drops/metricas_2026-03.csv",
+      "issues": [
+        {
+          "code": "invalid_number",
+          "field": "facturacion_gestion_eur",
+          "severity": "error"
+        }
+      ],
+      "kind": "negative_money",
+      "line": 505,
+      "mes": "2026-02",
+      "retained_key": {
+        "asesoria_id": 209,
+        "mes": "2026-02"
+      }
+    },
+    {
+      "asesoria_id": 229,
+      "expected_status": "rejected",
+      "file": "drops/metricas_2026-03.csv",
+      "issues": [
+        {
+          "code": "satisfaction_range",
+          "field": "satisfaccion_cliente",
+          "severity": "error"
+        }
+      ],
+      "kind": "out_of_range_satisfaction",
+      "line": 506,
+      "mes": "2026-02",
+      "retained_key": {
+        "asesoria_id": 229,
+        "mes": "2026-02"
+      }
+    }
+  ],
+  "manifest_version": 1,
+  "monthly_totals": {
+    "2023-04": {
+      "clientes_activos": 147045,
+      "reporting_firms": 500,
+      "revenue_eur": "26654471.61"
+    },
+    "2023-05": {
+      "clientes_activos": 146904,
+      "reporting_firms": 499,
+      "revenue_eur": "26363347.31"
+    },
+    "2023-06": {
+      "clientes_activos": 148212,
+      "reporting_firms": 500,
+      "revenue_eur": "26609403.20"
+    },
+    "2023-07": {
+      "clientes_activos": 148876,
+      "reporting_firms": 500,
+      "revenue_eur": "27598093.43"
+    },
+    "2023-08": {
+      "clientes_activos": 148884,
+      "reporting_firms": 499,
+      "revenue_eur": "26772560.02"
+    },
+    "2023-09": {
+      "clientes_activos": 149892,
+      "reporting_firms": 500,
+      "revenue_eur": "27003915.20"
+    },
+    "2023-10": {
+      "clientes_activos": 150499,
+      "reporting_firms": 500,
+      "revenue_eur": "27265963.40"
+    },
+    "2023-11": {
+      "clientes_activos": 150510,
+      "reporting_firms": 499,
+      "revenue_eur": "27129916.06"
+    },
+    "2023-12": {
+      "clientes_activos": 151250,
+      "reporting_firms": 500,
+      "revenue_eur": "27189412.59"
+    },
+    "2024-01": {
+      "clientes_activos": 152448,
+      "reporting_firms": 500,
+      "revenue_eur": "27726518.90"
+    },
+    "2024-02": {
+      "clientes_activos": 152196,
+      "reporting_firms": 499,
+      "revenue_eur": "27235756.74"
+    },
+    "2024-03": {
+      "clientes_activos": 153243,
+      "reporting_firms": 500,
+      "revenue_eur": "27690869.35"
+    },
+    "2024-04": {
+      "clientes_activos": 153825,
+      "reporting_firms": 500,
+      "revenue_eur": "27880234.56"
+    },
+    "2024-05": {
+      "clientes_activos": 153896,
+      "reporting_firms": 499,
+      "revenue_eur": "27635875.52"
+    },
+    "2024-06": {
+      "clientes_activos": 154940,
+      "reporting_firms": 500,
+      "revenue_eur": "27820257.47"
+    },
+    "2024-07": {
+      "clientes_activos": 155825,
+      "reporting_firms": 500,
+      "revenue_eur": "28535548.48"
+    },
+    "2024-08": {
+      "clientes_activos": 156202,
+      "reporting_firms": 499,
+      "revenue_eur": "27818011.61"
+    },
+    "2024-09": {
+      "clientes_activos": 156781,
+      "reporting_firms": 500,
+      "revenue_eur": "28114457.41"
+    },
+    "2024-10": {
+      "clientes_activos": 157673,
+      "reporting_firms": 500,
+      "revenue_eur": "28420850.69"
+    },
+    "2024-11": {
+      "clientes_activos": 157724,
+      "reporting_firms": 499,
+      "revenue_eur": "28352387.48"
+    },
+    "2024-12": {
+      "clientes_activos": 158659,
+      "reporting_firms": 500,
+      "revenue_eur": "28429674.70"
+    },
+    "2025-01": {
+      "clientes_activos": 159394,
+      "reporting_firms": 500,
+      "revenue_eur": "28961753.67"
+    },
+    "2025-02": {
+      "clientes_activos": 159107,
+      "reporting_firms": 499,
+      "revenue_eur": "28499762.17"
+    },
+    "2025-03": {
+      "clientes_activos": 160357,
+      "reporting_firms": 500,
+      "revenue_eur": "28776532.65"
+    },
+    "2025-04": {
+      "clientes_activos": 161009,
+      "reporting_firms": 500,
+      "revenue_eur": "28854509.27"
+    },
+    "2025-05": {
+      "clientes_activos": 161033,
+      "reporting_firms": 499,
+      "revenue_eur": "28764523.93"
+    },
+    "2025-06": {
+      "clientes_activos": 161993,
+      "reporting_firms": 500,
+      "revenue_eur": "28936718.48"
+    },
+    "2025-07": {
+      "clientes_activos": 162740,
+      "reporting_firms": 500,
+      "revenue_eur": "29749638.00"
+    },
+    "2025-08": {
+      "clientes_activos": 163051,
+      "reporting_firms": 499,
+      "revenue_eur": "29134677.16"
+    },
+    "2025-09": {
+      "clientes_activos": 163828,
+      "reporting_firms": 500,
+      "revenue_eur": "29219955.23"
+    },
+    "2025-10": {
+      "clientes_activos": 164517,
+      "reporting_firms": 500,
+      "revenue_eur": "29592698.87"
+    },
+    "2025-11": {
+      "clientes_activos": 164581,
+      "reporting_firms": 499,
+      "revenue_eur": "29972877.48"
+    },
+    "2025-12": {
+      "clientes_activos": 165592,
+      "reporting_firms": 500,
+      "revenue_eur": "30173015.80"
+    },
+    "2026-01": {
+      "clientes_activos": 166253,
+      "reporting_firms": 500,
+      "revenue_eur": "30653828.44"
+    },
+    "2026-02": {
+      "clientes_activos": 166398,
+      "reporting_firms": 499,
+      "revenue_eur": "30336918.56"
+    },
+    "2026-03": {
+      "clientes_activos": 167336,
+      "reporting_firms": 500,
+      "revenue_eur": "30499873.18"
+    }
+  },
+  "period": {
+    "end": "2026-03",
+    "format_change": "2025-11",
+    "months": [
+      "2023-04",
+      "2023-05",
+      "2023-06",
+      "2023-07",
+      "2023-08",
+      "2023-09",
+      "2023-10",
+      "2023-11",
+      "2023-12",
+      "2024-01",
+      "2024-02",
+      "2024-03",
+      "2024-04",
+      "2024-05",
+      "2024-06",
+      "2024-07",
+      "2024-08",
+      "2024-09",
+      "2024-10",
+      "2024-11",
+      "2024-12",
+      "2025-01",
+      "2025-02",
+      "2025-03",
+      "2025-04",
+      "2025-05",
+      "2025-06",
+      "2025-07",
+      "2025-08",
+      "2025-09",
+      "2025-10",
+      "2025-11",
+      "2025-12",
+      "2026-01",
+      "2026-02",
+      "2026-03"
+    ],
+    "start": "2023-04"
+  },
+  "provenance": "Entirely procedural fictional identities, locations and measurements; no source records used. DEMO tax IDs are intentionally non-real.",
+  "scenarios": {
+    "backlog_resolved": {
+      "asesoria_id": 275,
+      "expected_status": "accepted",
+      "file": "drops/metricas_2023-04.csv",
+      "issues": [
+        {
+          "code": "backlog_resolved",
+          "field": "consultas_resueltas",
+          "severity": "warning"
+        }
+      ],
+      "kind": "backlog_resolved",
+      "line": 276,
+      "mes": "2023-04"
+    },
+    "blank_optional": {
+      "asesoria_id": 64,
+      "expected_status": "accepted",
+      "file": "drops/metricas_2023-04.csv",
+      "issues": [
+        {
+          "code": "missing_value",
+          "field": "documentos_procesados",
+          "severity": "warning"
+        }
+      ],
+      "kind": "blank_optional",
+      "line": 65,
+      "mes": "2023-04"
+    },
+    "exact_duplicate": {
+      "asesoria_id": 124,
+      "expected_status": "duplicate",
+      "file": "drops/metricas_2023-04.csv",
+      "issues": [
+        {
+          "code": "exact_duplicate",
+          "field": null,
+          "severity": "info"
+        }
+      ],
+      "kind": "exact_duplicate",
+      "line": 502,
+      "mes": "2023-04"
+    },
+    "first_correction": {
+      "asesoria_id": 23,
+      "changed_fields": {
+        "facturacion_asesoria_eur": {
+          "after": "94473.09",
+          "before": "94028.95"
+        }
+      },
+      "expected_status": "accepted",
+      "file": "drops/metricas_2025-11.csv",
+      "issues": [],
+      "kind": "correction",
+      "line": 501,
+      "mes": "2025-10",
+      "original_file": "drops/metricas_2025-10.csv",
+      "original_line": 24
+    },
+    "first_gap": {
+      "asesoria_id": 11,
+      "mes": "2023-05"
+    },
+    "invalid_month": {
+      "asesoria_id": 320,
+      "expected_status": "rejected",
+      "file": "drops/metricas_2025-11.csv",
+      "issues": [
+        {
+          "code": "invalid_month",
+          "field": "mes",
+          "severity": "error"
+        }
+      ],
+      "kind": "invalid_month",
+      "line": 505,
+      "mes": "2025-13"
+    },
+    "investigation": {
+      "asesoria_id": 42,
+      "file": "drops/metricas_2024-01.csv",
+      "line": 43,
+      "mes": "2024-01"
+    },
+    "negative_money": {
+      "asesoria_id": 37,
+      "expected_status": "rejected",
+      "file": "drops/metricas_2025-11.csv",
+      "issues": [
+        {
+          "code": "invalid_number",
+          "field": "facturacion_gestion_eur",
+          "severity": "error"
+        }
+      ],
+      "kind": "negative_money",
+      "line": 507,
+      "mes": "2025-10",
+      "retained_key": {
+        "asesoria_id": 37,
+        "mes": "2025-10"
+      }
+    },
+    "out_of_range_satisfaction": {
+      "asesoria_id": 41,
+      "expected_status": "rejected",
+      "file": "drops/metricas_2025-11.csv",
+      "issues": [
+        {
+          "code": "satisfaction_range",
+          "field": "satisfaccion_cliente",
+          "severity": "error"
+        }
+      ],
+      "kind": "out_of_range_satisfaction",
+      "line": 509,
+      "mes": "2025-10",
+      "retained_key": {
+        "asesoria_id": 41,
+        "mes": "2025-10"
+      }
+    },
+    "unknown_id": {
+      "asesoria_id": 8001,
+      "expected_status": "rejected",
+      "file": "drops/metricas_2025-11.csv",
+      "issues": [
+        {
+          "code": "unknown_firm",
+          "field": "asesoria_id",
+          "severity": "error"
+        }
+      ],
+      "kind": "unknown_id",
+      "line": 503,
+      "mes": "2025-10"
+    }
+  },
+  "schemas": {
+    "encoding": "utf-8",
+    "legacy_other_revenue": "absent in v1; blank in v2 corrections for months before 2025-11 means structural zero",
+    "line_ending": "LF",
+    "master": [
+      "id",
+      "nombre",
+      "cif",
+      "provincia",
+      "ciudad",
+      "fecha_alta",
+      "num_empleados",
+      "especialidad"
+    ],
+    "schema_selected_by": "delivery month",
+    "v1": [
+      "asesoria_id",
+      "mes",
+      "clientes_activos",
+      "clientes_nuevos",
+      "clientes_baja",
+      "declaraciones_renta",
+      "declaraciones_iva",
+      "declaraciones_sociedades",
+      "declaraciones_otros",
+      "facturacion_asesoria_eur",
+      "facturacion_gestion_eur",
+      "facturacion_consultoria_eur",
+      "horas_trabajadas",
+      "consultas_recibidas",
+      "consultas_resueltas",
+      "incidencias_aeat",
+      "documentos_procesados",
+      "satisfaccion_cliente"
+    ],
+    "v1_decimal_separator": ".",
+    "v2": [
+      "asesoria_id",
+      "mes",
+      "clientes_activos",
+      "clientes_nuevos",
+      "clientes_baja",
+      "declaraciones_renta",
+      "declaraciones_iva",
+      "declaraciones_sociedades",
+      "declaraciones_otros",
+      "facturacion_asesoria_eur",
+      "facturacion_gestion_eur",
+      "facturacion_consultoria_eur",
+      "facturacion_otros_eur",
+      "horas_trabajadas",
+      "consultas_recibidas",
+      "consultas_resueltas",
+      "incidencias_aeat",
+      "documentos_procesados",
+      "satisfaccion_media"
+    ],
+    "v2_decimal_separator": ","
+  },
+  "seed": 731942,
+  "synthetic": true
+}

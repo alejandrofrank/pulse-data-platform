@@ -4,6 +4,7 @@ import argparse
 import json
 import time
 import urllib.request
+from pathlib import Path
 from uuid import uuid4
 
 from check_assets import check_assets
@@ -55,7 +56,12 @@ assert first["counts"]["raw_rows"] == 18087
 assert first["counts"]["rejected_rows"] == 28
 assert first["counts"]["duplicate_rows"] == 31
 assert first["counts"]["gaps"] == 12
-# Private fixture aggregate removed when preparing the public history.
+manifest = json.loads(
+    (Path(__file__).resolve().parents[2] / "data" / "manifest.json").read_text(encoding="utf-8")
+)
+for month in first["months"]:
+    expected = manifest["monthly_totals"][month["mes"][:7]]
+    assert month["revenue_eur"] == expected["revenue_eur"]
 assert all(check["passed"] for check in first["checks"])
 query = call(
     "/api/lab/sql",
