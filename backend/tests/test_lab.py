@@ -177,8 +177,15 @@ def test_topline_matches_reporting_after_out_of_order_load_replay_and_missing_mo
         replay = finished(client)
         assert replay["months"] == loaded["months"]
         assert replay["business_hash"] == loaded["business_hash"]
-        assert request(client, [december]).status_code == 200
-        missing = finished(client)["months"][-1]
+        created = request(client, [december])
+        assert created.status_code == 200
+        completed = wait_for(
+            client,
+            lambda state: state["job"]["id"] == created.json()["id"]
+            and state["job"]["status"] in ("success", "failed"),
+        )
+        assert completed["job"]["status"] == "success", completed["job"]
+        missing = completed["months"][-1]
         assert missing["mes"] == "2025-12-01"
         assert missing["revenue_eur"] is None
         assert missing["clientes_activos"] is None
