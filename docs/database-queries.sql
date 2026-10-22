@@ -1,6 +1,9 @@
+-- Pulse Data Platform: queries over the synthetic public dataset.
+-- Example IDs/months are query parameters, not claims about measured fixture results.
 -- Run ONE statement at a time in the lab SQL editor (or select it first).
 -- Lab: http://127.0.0.1:8001/#sql-console (only files loaded in the lab).
 -- Main: docker compose exec db psql -U pulse_reader -d pulse
+-- Run Compose from the public checkout; use LAB_PORT if its default is overridden.
 
 -- 1. Published records at the lowest valid satisfaction score.
 SELECT *
@@ -36,7 +39,8 @@ FROM mart.firm_month
 WHERE satisfaccion_cliente IS NULL
 ORDER BY mes, asesoria_id;
 
--- 5. Current January 2024 revenue for firm 42, with its original CSV row.
+-- 5. Example: January 2024 revenue for fictional firm 42 and its synthetic source row.
+-- Choose a loaded firm/month; no rows can mean that the target has not been published.
 SELECT f.asesoria_id, c.nombre, f.mes,
        f.facturacion_asesoria_eur + f.facturacion_gestion_eur
        + f.facturacion_consultoria_eur + f.facturacion_otros_eur AS revenue_eur,

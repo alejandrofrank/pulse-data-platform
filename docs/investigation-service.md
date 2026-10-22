@@ -1,8 +1,12 @@
-# Deterministic revenue investigation
+# Pulse Data Platform: deterministic revenue investigation
 
 `GET /api/v1/investigations/{firm_id}/{YYYY-MM}` compares one firm's total revenue
 across the archived CSV, normalized record, publication and actual local HTTP API.
 It does not call an LLM, modify data, or accept arbitrary SQL or URLs.
+
+Public-edition inputs and archived evidence are wholly synthetic. A consistent
+result demonstrates agreement between software layers, not real financial accuracy.
+See [provenance](public-edition.md) and [verification status](verification.md).
 
 ## Publication identity
 
@@ -50,8 +54,9 @@ against the same database snapshot's coverage, including when no accepted row ex
 Each check is `match`, `mismatch` or `unavailable`. The overall outcome is
 `discrepancy` if any check disagrees, `inconclusive` if evidence is unavailable,
 otherwise `consistent`. A consistent result only means that the checked layers
-agree with the recorded contract. Supplier financial correctness needs independent
-business evidence. A mismatch is an investigation finding, never an automatic repair.
+agree with the recorded contract. In real deployments, source financial correctness
+would require independent business evidence. A mismatch is an investigation finding,
+never an automatic repair.
 
 ## Limits and explicit uncertainty
 
@@ -82,4 +87,6 @@ Tests inject independent failures into archived bytes, normalized money and
 eligibility, published revenue, source selection and actual API serialization.
 They also cover rejected newer corrections, publication failures, absent records,
 publication races, complete-file duplicate rules and explicit history truncation.
-The original Phase 1 reconciliation and idempotency checks remain required.
+Pipeline reconciliation and idempotency checks remain required. These describe
+test coverage, not completed verification of the public edition; fresh results are
+pending and must be recorded in [verification.md](verification.md).

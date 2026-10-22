@@ -1,19 +1,23 @@
-# Explaining Pulse in the technical defense
+# Pulse Data Platform: implementation walkthrough
 
-## A concise opening
+## Design overview
 
-“I separated immutable deliveries from the current reporting result. Each published
+The platform separates immutable deliveries from the current reporting result. Each published
 number points to a source row, a file checksum and a validation decision. Ingestion
 is incremental at the file level; the reporting table is rebuilt transactionally
-because 18,000 rows is small and correctness is easier to establish that way. Dagster
+because the demo dataset is small and correctness is easier to establish that way. Dagster
 coordinates execution, PostgreSQL holds the audit and reporting state, and the API
-and dashboard make both the business data and its limitations visible.”
+and dashboard make both the business data and its limitations visible.
+
+All public source data is synthetic. Use the [data contract](data-contract.md) for
+quality rules, [public-edition provenance](public-edition.md) for history boundaries,
+and [verification](verification.md) for current status and reproducible checks.
 
 ## 1. Source adapters: interpreting the files
 
 File: `backend/01_pipeline/src/pulse/parsing.py`.
 
-The producer changed separator, decimal convention, a column name and revenue
+The synthetic deliveries exercise changes in separator, decimal convention, a column name and revenue
 categories. An explicit header-to-contract adapter prevents accidental mappings.
 Both versions produce the same canonical field names. Decimal preserves money
 exactly; numeric parsing rejects ambiguous thousands separators instead of guessing.
@@ -27,8 +31,8 @@ new other-revenue semantics and the meaning of unresolved duplicate conflicts.
 
 Tables: `raw.master`, `raw.deliveries`, `raw.records`.
 
-A SHA-256 checksum identifies file contents. The original bytes survive on disk in
-Git and in the database archive; payload JSON preserves field values, while normalized
+A SHA-256 checksum identifies file contents. Synthetic input bytes are retained on
+disk and in the database archive; payload JSON preserves field values, while normalized
 JSON holds typed canonical representations (decimal strings in JSON). Source line
 numbers connect a dashboard/API result to the original CSV.
 
@@ -49,9 +53,9 @@ Tables: `ops.issues`, `ops.file_errors`; view: `mart.coverage`.
 - Coverage gaps indicate that no accepted row exists for an expected firm-month.
 - File errors preserve unreadable or unexpectedly changed files as bytes.
 
-One row can have multiple errors. Therefore “28 rejected rows” need not equal the
+One row can have multiple errors. Therefore the rejected-row count need not equal the
 number of issue records. A missing score is different from an impossible score: NULL
-does not assert a false answer, while 55 violates the provided 1–5 scale.
+does not assert a false answer, while an illustrative score of 55 violates the 1–5 scale.
 
 Resolved queries can exceed incoming queries because of earlier backlog. Seasonal
 peaks and zero consultancy revenue are not rejected just for looking unusual.
@@ -77,9 +81,9 @@ advisory locking protects the whole ingestion from overlapping manual/scheduled 
 
 ## 5. Dimensional model and aggregation
 
-`core.firms` is the supplied firm dimension; `mart.firm_month` is a periodic snapshot
+`core.firms` is the static firm dimension; `mart.firm_month` is a periodic snapshot
 fact with some monthly flows. Month is a DATE at month start. A separate calendar
-dimension is unnecessary for 36 calendar months with no fiscal-calendar attributes;
+dimension is unnecessary for this monthly demo with no fiscal-calendar attributes;
 the coverage view generates the complete expected month grid.
 
 Revenue is additive across firms/months subject to reporting completeness. Active
@@ -147,12 +151,14 @@ starts the serving/orchestration processes. Runtime containers use a non-root us
 The application serves the UI, avoiding an unnecessary webserver container. The
 database reader role cannot write the data tables.
 
-The CI builds test and runtime image targets, runs Ruff and pytest, starts the actual
+The verification workflow builds test and runtime image targets, runs Ruff and pytest, starts the actual
 services and makes real HTTP calls. It repeats ingestion and compares stable results.
 An independent CSV calculation checks every monthly revenue/client total against the
 API. That is more valuable than a test that simply calls the same aggregation twice.
 Development-only jsdom tests execute the dashboard's actual JavaScript against the
 live API. They check behavior and safe DOM rendering; they are not visual browser screenshots.
+These describe the checks to run, not a successful public-edition result. Fresh
+results belong in [verification.md](verification.md).
 
 ## Demo sequence
 
@@ -163,13 +169,20 @@ selected CSV. This demonstrates incremental raw archival, corrections, replay id
 and recovery without modifying the already-loaded dashboard. The worker controls playback
 timing; Dagster remains responsible for the normal pipeline's schedule.
 
-For a short lab demonstration, select April and May 2023, play them and inspect the
-May evidence for changes to earlier firm-months. Replay both: raw counts and the
-business hash stay identical. Reset the lab, load May before April, and use the lineage
-API for firm 218 in April to show that delivery precedence beats arrival order. Pause
-after a file, refresh the browser and continue to demonstrate persisted progress.
+For a short lab demonstration, use the generated manifest and lineage API to select
+a firm-month with an accepted correction. Play the initial delivery and its correction,
+then inspect the before/after evidence. Replay both and compare raw counts and the
+business hash. In a disposable lab, reset and reverse their arrival order: the same
+accepted correction should win. Pause after a file, refresh the browser and continue
+to inspect persisted progress. Select examples from this fixture rather than relying
+on firm IDs or outcomes from older development runs.
 
-The lab's **SQL** panel lets a reviewer investigate beyond the dashboard's filters.
+In the current generated manifest, `scenarios.first_correction` identifies fictional
+firm 23 in October 2025, corrected by `metricas_2025-11.csv`;
+`scenarios.first_gap` identifies firm 11 in May 2023. These are generator-declared
+examples to verify after ingestion, not recorded runtime successes.
+
+The lab's **SQL** panel supports investigation beyond the dashboard's filters.
 Write joins between `mart.firm_month`, `raw.records` and `raw.deliveries` to inspect
 which source row won. Query raw JSON, quality issues, execution history or playback
 evidence directly. All SQL uses the reader role; PostgreSQL enforces read-only access,
@@ -179,21 +192,22 @@ the new snapshot. Precision is preserved as text rather than converted to JavaSc
 
 1. Start with `docker compose up`; open the dashboard and explain coverage.
 2. Inspect a row error, a backlog warning and a duplicate.
-3. Select firm 218 and inspect April 2023 lineage to show a later correction.
+3. Select a corrected firm-month from the current fixture and inspect its lineage.
 4. Run `docker compose run --rm bootstrap pulse ingest`; numbers stay unchanged,
    while the new execution shows the files were already processed.
 5. Open Dagster and inspect `monthly_metrics`, its check and the enabled schedule.
-6. Show the API docs and one missing-month response (firm 409, May 2023).
-7. Show green CI and the independent reconciliation test.
+6. Show the API docs and a missing-month response selected from the gaps endpoint.
+7. Inspect fresh verification results and the independent reconciliation test;
+   report any pending or failed checks as such.
 
-## Questions to be ready for
+## Design tradeoffs
 
 - Why isn't NULL zero? Unknown data and known absence are different business assertions.
 - Why not reject all unusual rows? Backlog and seasonality are legitimate explanations.
 - Why not use file modification time? Copying files changes it; it is not delivery precedence.
 - Why not incremental reporting? At this size, full deterministic publication is cheap
   and makes corrections, retries and out-of-order delivery easier to prove correct.
-- Why no cloud? The deliverable is Compose/on-premise; a cloud account adds no required capability.
+- Why no cloud? The local platform runs through Compose; a cloud account adds no required capability.
 - Why no dbt? The transformations are few and explicit SQL, versioned and tested. Add
   dbt when the dependency graph, model documentation and team workflow justify it.
 - What if facts change after a parser fix? Archive versioned source, reproduce old and
