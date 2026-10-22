@@ -1,7 +1,7 @@
-name: pulse
+name: pulse-portfolio
 
 x-app: &app
-  image: pulse-app:local
+  image: pulse-portfolio-app:local
   build:
     context: .
     dockerfile: backend/00_infrastructure/Dockerfile
@@ -98,7 +98,7 @@ services:
   test:
     <<: *app
     profiles: [test]
-    image: pulse-test:local
+    image: pulse-portfolio-test:local
     build:
       context: .
       dockerfile: backend/00_infrastructure/Dockerfile

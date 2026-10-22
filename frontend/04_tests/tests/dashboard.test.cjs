@@ -190,7 +190,11 @@ test("relative assets and read-only polling work at /tests/ without external req
   );
   assert.deepEqual(
     [...ui.d.querySelectorAll("nav a")].map((a) => a.getAttribute("href")),
-    ["/", "/agents", "https://github.com/alejandrofrank/pulse-data-platform/actions"],
+    [
+      "/",
+      "/agents",
+      "https://github.com/alejandrofrank/pulse-data-platform/actions",
+    ],
   );
   assert.equal(
     ui.d.querySelector(".runner code").textContent,
